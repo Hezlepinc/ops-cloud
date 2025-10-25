@@ -1,0 +1,10 @@
+﻿{
+  "name": "marketing-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'WordPress runs via docker-compose'",
+    "build": "echo 'No build for WP'",
+    "lint": "echo 'No lint yet'"
+  }
+}
