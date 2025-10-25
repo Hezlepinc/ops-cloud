@@ -1,0 +1,27 @@
+name: Rebuild WordPress Staging
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Trigger Bootstrap Script via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.CLOUDWAYS_HOST }}
+          username: ${{ secrets.CLOUDWAYS_USER }}
+          key: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html
+            wp theme activate marketing || true
+            wp plugin activate --all || true
+            wp option update siteurl https://staging.${{ secrets.PRIMARY_DOMAIN }}
+            wp option update home https://staging.${{ secrets.PRIMARY_DOMAIN }}
+
