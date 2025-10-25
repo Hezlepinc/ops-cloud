@@ -2,7 +2,7 @@ name: Rebuild WordPress Staging
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
 
 jobs:
   rebuild:
@@ -24,4 +24,3 @@ jobs:
             wp plugin activate --all || true
             wp option update siteurl https://staging.${{ secrets.PRIMARY_DOMAIN }}
             wp option update home https://staging.${{ secrets.PRIMARY_DOMAIN }}
-

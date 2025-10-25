@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'infra/wordpress/themes/**'
+      - "infra/wordpress/themes/**"
     paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
-      - '.github/**'
+      - "docs/**"
+      - "**/*.md"
+      - ".github/**"
 
 jobs:
   deploy:
