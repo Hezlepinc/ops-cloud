@@ -9,10 +9,14 @@
     "lint": "turbo lint",
     "format": "prettier -w .",
     "format:check": "prettier -c .",
-    "build:themes": "echo 'No theme build yet'"
+    "build:themes": "echo 'No theme build yet'",
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:hezlepinc": "pnpm run deploy -- --site=hezlepinc",
+    "deploy:sparky": "pnpm run deploy -- --site=sparky"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
-    "turbo": "^2.1.1"
+    "turbo": "^2.1.1",
+    "dotenv-cli": "^7.3.0"
   }
 }

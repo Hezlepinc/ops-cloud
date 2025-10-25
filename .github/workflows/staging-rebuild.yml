@@ -10,17 +10,21 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+      - name: Install rsync and jq
+        run: sudo apt-get update && sudo apt-get install -y rsync jq
 
-      - name: Trigger Bootstrap Script via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.CLOUDWAYS_HOST }}
-          username: ${{ secrets.CLOUDWAYS_USER }}
-          key: ${{ secrets.CLOUDWAYS_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html
-            wp theme activate marketing || true
-            wp plugin activate --all || true
-            wp option update siteurl https://staging.${{ secrets.PRIMARY_DOMAIN }}
-            wp option update home https://staging.${{ secrets.PRIMARY_DOMAIN }}
+      - name: Write SSH key
+        env:
+          SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Deploy via script (staging)
+        env:
+          CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
+          DEPLOY_SITE: ${{ secrets.DEPLOY_SITE }}
+        run: |
+          bash scripts/deploy.sh --site="${DEPLOY_SITE}" --env=staging

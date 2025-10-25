@@ -1,14 +1,12 @@
 {
   "hezlepinc": {
+    "app_id": "5951972",
     "domain": "hezlepinc.com",
-    "siteName": "Hezlep Inc",
-    "adminEmail": "admin@hezlepinc.com",
-    "cloudwaysAppId": "${CLOUDWAYS_APP_ID_HEZLEPINC}"
+    "staging": "staging.hezlepinc.com"
   },
-  "sparkyHq": {
+  "sparky": {
+    "app_id": "5952041",
     "domain": "sparky-hq.com",
-    "siteName": "Sparky HQ",
-    "adminEmail": "admin@sparky-hq.com",
-    "cloudwaysAppId": "${CLOUDWAYS_APP_ID_SPARKY}"
+    "staging": "staging.sparky-hq.com"
   }
 }
