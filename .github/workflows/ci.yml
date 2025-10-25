@@ -1,9 +1,9 @@
 ﻿name: CI
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -12,11 +12,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Install pnpm
         run: npm i -g pnpm@9.11.0
       - run: pnpm install --frozen-lockfile=false
-      - run: pnpm run format -- --check
+      - run: pnpm run format:check
   compose-validate:
     runs-on: ubuntu-latest
     steps:

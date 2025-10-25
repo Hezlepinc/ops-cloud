@@ -8,6 +8,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier -w .",
+    "format:check": "prettier -c .",
     "build:themes": "echo 'No theme build yet'"
   },
   "devDependencies": {
