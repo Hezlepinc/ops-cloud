@@ -27,6 +27,17 @@ jobs:
             -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
             infra/wordpress/themes/marketing/ \
             ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html/wp-content/themes/marketing/
+      - name: Upload wp-bootstrap.sh
+        env:
+          SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+        run: |
+          rsync -az \
+            -e "ssh -o StrictHostKeyChecking=no -i <(echo \"$SSH_KEY\")" \
+            infra/wordpress/wp-bootstrap.sh \
+            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html/wp-bootstrap.sh
+          ssh -o StrictHostKeyChecking=no -i <(echo "$SSH_KEY") \
+            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
+            "chmod +x /home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html/wp-bootstrap.sh"
       - name: Run WP bootstrap remotely
         env:
           SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
