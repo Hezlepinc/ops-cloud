@@ -9,13 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
+      - name: Activate pnpm via corepack
+        run: corepack prepare pnpm@9.11.0 --activate
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm run format -- --check
   compose-validate:
@@ -23,4 +22,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Docker Compose config
-        run: docker compose config
+        run: docker compose -f docs/docker-compose.yml config
