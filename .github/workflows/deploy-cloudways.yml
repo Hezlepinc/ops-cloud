@@ -2,7 +2,9 @@ name: Deploy Theme to Cloudways
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - 'infra/wordpress/themes/**'
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -15,12 +17,17 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Deploy Theme via SCP
-        uses: appleboy/scp-action@v0.1.3
-        with:
-          host: ${{ secrets.CLOUDWAYS_HOST }}
-          username: ${{ secrets.CLOUDWAYS_USER }}
-          key: ${{ secrets.CLOUDWAYS_SSH_KEY }}
-          source: infra/wordpress/themes/marketing
-          target: /home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html/wp-content/themes/marketing
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
 
+      - name: Deploy Theme via rsync
+        env:
+          SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          rsync -az --delete \
+            -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
+            infra/wordpress/themes/marketing/ \
+            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html/wp-content/themes/marketing/
