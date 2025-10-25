@@ -1,0 +1,14 @@
+{
+  "hezlepinc": {
+    "domain": "hezlepinc.com",
+    "siteName": "Hezlep Inc",
+    "adminEmail": "admin@hezlepinc.com",
+    "cloudwaysAppId": "${CLOUDWAYS_APP_ID_HEZLEPINC}"
+  },
+  "sparkyHq": {
+    "domain": "sparky-hq.com",
+    "siteName": "Sparky HQ",
+    "adminEmail": "admin@sparky-hq.com",
+    "cloudwaysAppId": "${CLOUDWAYS_APP_ID_SPARKY}"
+  }
+}

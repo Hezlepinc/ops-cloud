@@ -27,3 +27,14 @@ jobs:
             -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
             infra/wordpress/themes/marketing/ \
             ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html/wp-content/themes/marketing/
+      - name: Run WP bootstrap remotely
+        env:
+          SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+          SITE_NAME: Hezlep Inc
+          DOMAIN: ${{ secrets.PRIMARY_DOMAIN }}
+          ADMIN_EMAIL: admin@${{ secrets.PRIMARY_DOMAIN }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i <(echo "$SSH_KEY") \
+            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
+            "cd /home/master/applications/${{ secrets.CLOUDWAYS_APP_ID }}/public_html && \
+             SITE_NAME='${SITE_NAME}' DOMAIN='${DOMAIN}' ADMIN_EMAIL='${ADMIN_EMAIL}' bash wp-bootstrap.sh"
