@@ -13,6 +13,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site: [hezlepinc, sparky]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -43,14 +46,20 @@ jobs:
 
       - name: Build Cursor tokens
         env:
-          DEPLOY_SITE: ${{ secrets.DEPLOY_SITE }}
+          DEPLOY_SITE: ${{ matrix.site }}
         run: pnpm run build-cursor
+
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ matrix.site }}" ]; then echo "Missing site key" >&2; exit 1; fi
 
       - name: Deploy via script
         env:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
-          DEPLOY_SITE: ${{ secrets.DEPLOY_SITE }}
+          DEPLOY_SITE: ${{ matrix.site }}
           PLUGINS: 'elementor,breeze,wordpress-seo,header-footer-elementor,contact-form-7'
         run: |
+          set -euo pipefail
+          echo "Deploying site=${DEPLOY_SITE} env=${{ steps.env.outputs.env }}"
           bash scripts/deploy.sh --site="${DEPLOY_SITE}" --env=${{ steps.env.outputs.env }}
