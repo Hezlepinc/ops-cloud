@@ -47,9 +47,9 @@ echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN"
 
 # Compute Cloudways application root
 if [[ -n "$APP_DIR" && "$APP_DIR" != "null" ]]; then
-  APP_ROOT="/home/${CLOUDWAYS_USER}/applications/$APP_DIR/public_html"
+  APP_ROOT="~/applications/$APP_DIR/public_html"
 else
-  APP_ROOT="/home/${CLOUDWAYS_USER}/applications/$APP_ID/public_html"
+  APP_ROOT="~/applications/$APP_ID/public_html"
 fi
 
 THEME_SLUG="marketing"
