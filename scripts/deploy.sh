@@ -29,6 +29,10 @@ if [[ ! -f "$PROJECTS_JSON" ]]; then
 fi
 
 APP_ID=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].app_id' "$PROJECTS_JSON")
+# Allow override via env (useful for manual workflows where app_id is provided)
+if [[ -n "${CLOUDWAYS_APP_ID:-}" && "${CLOUDWAYS_APP_ID}" != "null" ]]; then
+  APP_ID="${CLOUDWAYS_APP_ID}"
+fi
 DOMAIN=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].domain' "$PROJECTS_JSON")
 
 if [[ -z "$APP_ID" || "$APP_ID" == "null" ]]; then
