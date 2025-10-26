@@ -12,7 +12,8 @@
     "build:themes": "echo 'No theme build yet'",
     "deploy": "bash scripts/deploy.sh",
     "deploy:hezlepinc": "pnpm run deploy -- --site=hezlepinc",
-    "deploy:sparky": "pnpm run deploy -- --site=sparky"
+    "deploy:sparky": "pnpm run deploy -- --site=sparky",
+    "build-cursor": "node scripts/build-cursor-theme.js"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
