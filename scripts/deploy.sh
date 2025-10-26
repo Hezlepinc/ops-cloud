@@ -44,11 +44,21 @@ TARGET_DOMAIN="$DOMAIN"
 
 echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN"
 
+THEME_SLUG="marketing"
+if [[ "$SITE" == "sparky" ]]; then
+  THEME_SLUG="sparky-hq"
+fi
+
+# Ensure remote directories exist
+ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
+  "mkdir -p /home/master/applications/$APP_ID/public_html/wp-content/themes/$THEME_SLUG && \
+   mkdir -p /home/master/applications/$APP_ID/public_html/brand/$SITE"
+
 # Rsync theme
 rsync -az --delete \
   -e "ssh -o StrictHostKeyChecking=no" \
-  "$(dirname "$0")/../infra/wordpress/themes/marketing/" \
-  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-content/themes/marketing/"
+  "$(dirname "$0")/../infra/wordpress/themes/$THEME_SLUG/" \
+  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-content/themes/$THEME_SLUG/"
 
 # Determine brand directory name (repo uses 'sparkyhq')
 BRAND_DIR="$SITE"
@@ -65,10 +75,6 @@ rsync -az \
 # Upload bootstrap and run it
 scp -o StrictHostKeyChecking=no "$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-bootstrap.sh"
-THEME_SLUG="marketing"
-if [[ "$SITE" == "sparky" ]]; then
-  THEME_SLUG="sparky-hq"
-fi
 
 ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
   "chmod +x /home/master/applications/$APP_ID/public_html/wp-bootstrap.sh && \
