@@ -46,6 +46,12 @@ rsync -az --delete \
   "$(dirname "$0")/../infra/wordpress/themes/marketing/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-content/themes/marketing/"
 
+# Rsync brand kit (JSON + CSS) for this site into app root under ./brand/<site>/
+rsync -az \
+  -e "ssh -o StrictHostKeyChecking=no" \
+  "$(dirname "$0")/../infra/brands/${SITE}/" \
+  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/brand/${SITE}/"
+
 # Upload bootstrap and run it
 scp -o StrictHostKeyChecking=no "$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-bootstrap.sh"
@@ -57,6 +63,6 @@ fi
 ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
   "chmod +x /home/master/applications/$APP_ID/public_html/wp-bootstrap.sh && \
    cd /home/master/applications/$APP_ID/public_html && \
-   SITE_NAME='$SITE' DOMAIN='$TARGET_DOMAIN' ADMIN_EMAIL='admin@$TARGET_DOMAIN' THEME_SLUG='$THEME_SLUG' bash wp-bootstrap.sh"
+   SITE_NAME='$SITE' DOMAIN='$TARGET_DOMAIN' ADMIN_EMAIL='admin@$TARGET_DOMAIN' THEME_SLUG='$THEME_SLUG' DEPLOY_SITE='$SITE' PLUGINS='${PLUGINS:-}' bash wp-bootstrap.sh"
 
 

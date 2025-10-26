@@ -35,6 +35,37 @@ if [ "${THEME_SLUG}" = "marketing" ]; then
   wp theme is-installed hello-elementor || wp theme install hello-elementor --quiet
 fi
 
+# === BRAND / KIT IMPORT (Cursor) ===
+BRAND_PATH="./brand/${DEPLOY_SITE:-}"
+KIT_PATH="${BRAND_PATH}/elementor/cursor-sitekit.json"
+BRAND_CSS_SRC="${BRAND_PATH}/assets/css/cursor.css"
+THEME_CSS_DST="./wp-content/themes/marketing/assets/css/cursor.css"
+
+echo "Running Cursor kit import for ${DEPLOY_SITE:-unset}..."
+
+# 1) Ensure Elementor installed/active; Elementor Pro activation is manual one-time
+wp plugin is-installed elementor || wp plugin install elementor --activate
+wp plugin activate elementor-pro || echo "Elementor Pro not found (upload once manually)."
+
+# 2) Copy brand cursor.css into child theme tokens path
+if [ -f "$BRAND_CSS_SRC" ]; then
+  mkdir -p "$(dirname "$THEME_CSS_DST")"
+  cp "$BRAND_CSS_SRC" "$THEME_CSS_DST"
+else
+  echo "No brand cursor.css at $BRAND_CSS_SRC"
+fi
+
+# 3) Import Elementor Site Kit if present
+if [ -f "$KIT_PATH" ]; then
+  wp elementor kit import "$KIT_PATH" || echo "Kit import failed or requires Elementor Pro."
+else
+  echo "Kit not found at $KIT_PATH"
+fi
+
+# 4) Disable Elementor default schemes
+wp option update elementor_disable_color_schemes "yes"
+wp option update elementor_disable_typography_schemes "yes"
+
 # Create starter pages if missing
 create_page_if_missing() {
   local title="$1"
