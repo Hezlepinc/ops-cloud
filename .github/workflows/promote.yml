@@ -1,0 +1,52 @@
+name: Promote Staging to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type 'promote' to confirm merging staging into main"
+        required: true
+        default: "promote"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        if: inputs.confirm != 'promote'
+        run: |
+          echo "Confirmation mismatch. Type 'promote' to proceed." >&2
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge staging into main
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            try {
+              const res = await github.rest.repos.merge({
+                owner,
+                repo,
+                base: 'main',
+                head: 'staging',
+              });
+              core.info(`Merge status: ${res.status}`);
+            } catch (err) {
+              core.setFailed(`Merge failed (possible conflicts): ${err.message}`);
+            }
+
+      - name: Post-merge note
+        run: |
+          echo "If the merge created a commit on main, the deploy workflow will run for production."
+

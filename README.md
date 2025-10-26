@@ -33,6 +33,7 @@ repo.
 ```
 
 5. Add/Update GitHub Secrets:
+
 - `CLOUDWAYS_HOST` – Cloudways server IP/hostname
 - `CLOUDWAYS_USER` – SSH user
 - `CLOUDWAYS_SSH_KEY` – Private key (PEM)
@@ -40,9 +41,16 @@ repo.
 - `DEPLOY_SITE` – Site key from `config/projects.json` (e.g., `hezlepinc`, `sparky`)
 
 6. Deploy:
+
 - Push to `staging` → deploys to staging domain
 - Push to `main` → deploys to production domain
 
+## Promotion Flow (Git-driven)
+
+- Develop on feature branches → merge into `staging`.
+- Verify staging deployment (auto from `staging` pushes).
+- Manually promote to production using GitHub Actions → Promote Staging to Production (merges `staging` → `main`).
+- Production deploy runs automatically from `main` push.
 
 ## Structure
 
