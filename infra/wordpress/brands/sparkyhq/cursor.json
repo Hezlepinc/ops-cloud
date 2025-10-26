@@ -1,0 +1,20 @@
+{
+  "primary": "#007AFF",
+  "primary600": "#005FCC",
+  "accent": "#FF6A00",
+  "background": "#FFFFFF",
+  "surface": "#F8FAFC",
+  "text": "#0F172A",
+  "muted": "#475569",
+  "border": "#E2E8F0",
+  "fontDisplay": "Poppins",
+  "fontBody": "Inter",
+  "headings": {
+    "h1": { "size": "clamp(2rem, 2.1vw + 1rem, 3rem)", "weight": "700", "lineHeight": "1.08" },
+    "h2": { "size": "1.6rem", "weight": "700", "lineHeight": "1.12" },
+    "h3": { "size": "1.25rem", "weight": "600", "lineHeight": "1.15" },
+    "h4": { "size": "1.125rem", "weight": "600", "lineHeight": "1.2" },
+    "h5": { "size": "1rem", "weight": "600", "lineHeight": "1.25" },
+    "h6": { "size": "0.875rem", "weight": "600", "lineHeight": "1.3" }
+  }
+}
