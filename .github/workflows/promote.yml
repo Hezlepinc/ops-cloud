@@ -6,7 +6,7 @@ on:
       confirm:
         description: "Type 'promote' to confirm merging staging into main"
         required: true
-        default: "promote"
+        default: 'promote'
 
 permissions:
   contents: write
@@ -49,4 +49,3 @@ jobs:
       - name: Post-merge note
         run: |
           echo "If the merge created a commit on main, the deploy workflow will run for production."
-

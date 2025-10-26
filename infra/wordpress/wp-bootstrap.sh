@@ -12,6 +12,7 @@ fi
 SITE_NAME="${SITE_NAME:-${WP_SITE_NAME:-WordPress Site}}"
 DOMAIN="${DOMAIN:-${WP_DOMAIN:-example.com}}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@${DOMAIN}}"
+THEME_SLUG="${THEME_SLUG:-marketing}"
 PLUGINS_CSV="${PLUGINS:-}" # comma-separated list
 
 wp option update blogname "${SITE_NAME}"
@@ -25,3 +26,33 @@ for plugin_slug in "${PLUGINS_ARR[@]}"; do
     wp plugin activate "${plugin_slug}" || true
   fi
 done
+
+# Activate theme
+wp theme activate "${THEME_SLUG}" || true
+
+# Create starter pages if missing
+create_page_if_missing() {
+  local title="$1"
+  local slug="$2"
+  local content="$3"
+  if ! wp post list --post_type=page --name="$slug" --field=ID | grep -qE '^[0-9]+$'; then
+    wp post create --post_type=page --post_title="$title" --post_name="$slug" --post_status=publish --post_content="$content" >/dev/null
+  fi
+}
+
+create_page_if_missing "Home" "home" "Welcome to ${SITE_NAME}."
+create_page_if_missing "Resources" "resources" "Resources page."
+create_page_if_missing "Tools" "tools" "Tools page."
+
+# Assign Home as front page
+HOME_ID=$(wp post list --post_type=page --name=home --field=ID)
+if [ -n "$HOME_ID" ]; then
+  wp option update show_on_front page
+  wp option update page_on_front "$HOME_ID"
+fi
+
+# Ensure primary menu exists and assigned
+if ! wp menu list --fields=slug | grep -q '^primary$'; then
+  wp menu create primary >/dev/null
+fi
+wp menu location assign primary primary || true

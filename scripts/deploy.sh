@@ -49,9 +49,14 @@ rsync -az --delete \
 # Upload bootstrap and run it
 scp -o StrictHostKeyChecking=no "$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-bootstrap.sh"
+THEME_SLUG="marketing"
+if [[ "$SITE" == "sparky" ]]; then
+  THEME_SLUG="sparky-hq"
+fi
+
 ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
   "chmod +x /home/master/applications/$APP_ID/public_html/wp-bootstrap.sh && \
    cd /home/master/applications/$APP_ID/public_html && \
-   SITE_NAME='$SITE' DOMAIN='$TARGET_DOMAIN' ADMIN_EMAIL='admin@$TARGET_DOMAIN' bash wp-bootstrap.sh"
+   SITE_NAME='$SITE' DOMAIN='$TARGET_DOMAIN' ADMIN_EMAIL='admin@$TARGET_DOMAIN' THEME_SLUG='$THEME_SLUG' bash wp-bootstrap.sh"
 
 
