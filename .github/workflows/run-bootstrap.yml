@@ -1,0 +1,63 @@
+name: Run Bootstrap on Cloudways
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: "Site key from config/projects.json (e.g., hezlepinc or sparky)"
+        required: true
+        default: "sparky"
+      env:
+        description: "Deploy environment"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+      plugins:
+        description: "Comma-separated WP.org plugin slugs to install/activate"
+        required: false
+        default: "elementor,breeze,wordpress-seo,header-footer-elementor,contact-form-7"
+      build_cursor:
+        description: "Build brand Cursor assets before deploy"
+        required: false
+        default: "true"
+
+jobs:
+  run-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node (for build-cursor)
+        if: inputs.build_cursor == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Cursor tokens
+        if: inputs.build_cursor == 'true'
+        run: node scripts/build-cursor-theme.js ${{ inputs.site }}
+
+      - name: Install rsync and jq
+        run: sudo apt-get update && sudo apt-get install -y rsync jq
+
+      - name: Write SSH key
+        env:
+          SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Run bootstrap via deploy script
+        env:
+          CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
+          PLUGINS: ${{ inputs.plugins }}
+        run: |
+          bash scripts/deploy.sh --site="${{ inputs.site }}" --env=${{ inputs.env }}
+
+
