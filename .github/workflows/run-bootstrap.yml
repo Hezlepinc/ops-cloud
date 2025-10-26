@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       site:
-        description: "Site key from config/projects.json (e.g., hezlepinc or sparky)"
+        description: 'Site key from config/projects.json (e.g., hezlepinc or sparky)'
         required: true
-        default: "sparky"
+        default: 'sparky'
       env:
-        description: "Deploy environment"
+        description: 'Deploy environment'
         required: true
         type: choice
         options:
@@ -16,13 +16,13 @@ on:
           - production
         default: staging
       plugins:
-        description: "Comma-separated WP.org plugin slugs to install/activate"
+        description: 'Comma-separated WP.org plugin slugs to install/activate'
         required: false
-        default: "elementor,breeze,wordpress-seo,header-footer-elementor,contact-form-7"
+        default: 'elementor,breeze,wordpress-seo,header-footer-elementor,contact-form-7'
       build_cursor:
-        description: "Build brand Cursor assets before deploy"
+        description: 'Build brand Cursor assets before deploy'
         required: false
-        default: "true"
+        default: 'true'
 
 jobs:
   run-bootstrap:
@@ -37,9 +37,13 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install pnpm
+        if: inputs.build_cursor == 'true'
+        run: npm i -g pnpm@9.11.0
+
       - name: Build Cursor tokens
         if: inputs.build_cursor == 'true'
-        run: node scripts/build-cursor-theme.js ${{ inputs.site }}
+        run: pnpm run build-cursor ${{ inputs.site }}
 
       - name: Install rsync and jq
         run: sudo apt-get update && sudo apt-get install -y rsync jq
@@ -59,5 +63,3 @@ jobs:
           PLUGINS: ${{ inputs.plugins }}
         run: |
           bash scripts/deploy.sh --site="${{ inputs.site }}" --env=${{ inputs.env }}
-
-

@@ -38,6 +38,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install pnpm
+        run: npm i -g pnpm@9.11.0
+
       - name: Build Cursor tokens
         run: pnpm run build-cursor ${DEPLOY_SITE}
 
