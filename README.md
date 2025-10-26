@@ -147,19 +147,17 @@ Examples:
 1. In WP Admin (staging), adjust Elementor → Site Settings (colors, fonts, etc.).
 2. Export the kit: Elementor → Tools → Import/Export Kit → Export. Download `cursor-sitekit.json`.
 3. Replace the repo file for the brand:
-
    - `infra/brands/<brand>/elementor/cursor-sitekit.json`
 
 4. If your process generates brand CSS, run locally:
-
    - `pnpm run build-cursor`
 
    This should update:
-
    - `infra/brands/<brand>/assets/css/cursor.css`
 
 5. Commit and push to `staging` to deploy and re-import the kit on staging automatically.
-6. Verify on staging (Site Settings reflect changes; front-end tokens present), then promote `staging → main` using the Promote workflow to deploy to production.
+6. Verify on staging (Site Settings reflect changes; front-end tokens present), then promote
+   `staging → main` using the Promote workflow to deploy to production.
 
 ## Structure
 

@@ -57,7 +57,6 @@
 
 - **Envs:** `dev` → `staging` → `prod`
 - **Branches:**
-
   - `main`: production
   - `develop`: staging
   - feature branches: `feat/*`, `fix/*`

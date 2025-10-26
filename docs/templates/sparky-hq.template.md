@@ -97,7 +97,6 @@ SSL everywhere (Let’s Encrypt/managed certs).
 ### 5.1 Global Design System
 
 - **Colors**
-
   - Primary `#007AFF` (CTAs)
   - Secondary `#005FCC` (hover/contrast)
   - Accent `#00C2FF` (highlights)
@@ -105,7 +104,6 @@ SSL everywhere (Let’s Encrypt/managed certs).
   - Background `#FFFFFF`; Alt `#F8F9FB`; Divider `#E4E6EA`
 
 - **Fonts**
-
   - Headings: **Poppins** 700/600 (H1 48px, H2 36px, H3 28px; LH≈1.3)
   - Body/Buttons: **Inter** 400/600 (16–18px; LH≈1.6)
 
@@ -148,7 +146,6 @@ Elementor → **Site Settings → Typography**
 - Provision DO **4GB** server (~$54/mo) → 10–20 light sites.
 - Enable **Varnish + Redis**; daily backups (retain 7–14 days).
 - Apps:
-
   - `main-business-site` (prod)
   - `client-template-site` (golden image → clone per customer)
 
