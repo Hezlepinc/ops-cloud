@@ -1,0 +1,60 @@
+:root {
+  --color-primary: #007AFF;
+  --color-primary-600: #005FCC;
+  --color-accent: #F59E0B;
+  --color-bg: #FFFFFF;
+  --color-surface: #F8FAFC;
+  --color-text: #0F172A;
+  --color-muted: #475569;
+  --color-border: #E2E8F0;
+  --ring: 0 0 0 4px rgba(0,122,255,.15);
+
+  --font-display: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --fs-900: clamp(2rem, 2vw + 1rem, 3rem);
+  --fs-700: 1.5rem;
+  --fs-600: 1.25rem;
+  --fs-500: 1.125rem;
+  --fs-400: 1rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+
+  --radius: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+}
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body { font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); font-size: var(--fs-400); }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; }
+h1 { font-size: var(--fs-900); }
+h2 { font-size: var(--fs-700); }
+h3 { font-size: var(--fs-600); }
+
+.c-container { width: min(1200px, 92%); margin-inline: auto; }
+.c-card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-6); }
+.c-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--space-6); }
+@media (max-width: 900px) { .c-grid-3 { grid-template-columns: 1fr; } }
+
+.c-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .75rem 1rem; border-radius: var(--radius);
+  text-decoration: none; font-weight: 600; line-height: 1;
+  border: 1px solid transparent; box-shadow: var(--shadow-sm);
+}
+.c-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.c-btn--primary { background: var(--color-primary); color: #fff; }
+.c-btn--primary:hover { background: var(--color-primary-600); }
+
+.muted { color: var(--color-muted); }
+img { max-width: 100%; height: auto; border-radius: calc(var(--radius) - 6px); }
+
+

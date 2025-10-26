@@ -38,5 +38,6 @@ jobs:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
           DEPLOY_SITE: ${{ secrets.DEPLOY_SITE }}
+          PLUGINS: "elementor,breeze,wordpress-seo,header-footer-elementor,contact-form-7"
         run: |
           bash scripts/deploy.sh --site="${DEPLOY_SITE}" --env=${{ steps.env.outputs.env }}

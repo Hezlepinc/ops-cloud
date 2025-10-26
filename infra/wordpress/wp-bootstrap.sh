@@ -30,6 +30,11 @@ done
 # Activate theme
 wp theme activate "${THEME_SLUG}" || true
 
+# Ensure Hello Elementor parent for child theme
+if [ "${THEME_SLUG}" = "marketing" ]; then
+  wp theme is-installed hello-elementor || wp theme install hello-elementor --quiet
+fi
+
 # Create starter pages if missing
 create_page_if_missing() {
   local title="$1"
@@ -43,6 +48,8 @@ create_page_if_missing() {
 create_page_if_missing "Home" "home" "Welcome to ${SITE_NAME}."
 create_page_if_missing "Resources" "resources" "Resources page."
 create_page_if_missing "Tools" "tools" "Tools page."
+create_page_if_missing "About" "about" "About us."
+create_page_if_missing "Contact" "contact" "Contact page."
 
 # Assign Home as front page
 HOME_ID=$(wp post list --post_type=page --name=home --field=ID)
@@ -56,3 +63,7 @@ if ! wp menu list --fields=slug | grep -q '^primary$'; then
   wp menu create primary >/dev/null
 fi
 wp menu location assign primary primary || true
+
+# Permalinks
+wp rewrite structure '/%postname%/' --hard
+wp option update blogdescription 'Modern electrical tools & content'
