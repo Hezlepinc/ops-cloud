@@ -28,7 +28,25 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/id_rsa
+          # Normalize line endings (fix CRLF causing libcrypto errors)
+          sed -i -e 's/\r$//' ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          # Validate key parses
+          ssh-keygen -y -f ~/.ssh/id_rsa >/dev/null 2>&1 || (echo "Invalid SSH key content" >&2; exit 1)
+
+      - name: Add host to known_hosts
+        env:
+          CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$CLOUDWAYS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        env:
+          CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" "echo '✅ SSH OK:' $(hostname)"
 
       - name: Determine environment
         id: env
