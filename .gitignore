@@ -25,3 +25,11 @@ Thumbs.db
 /dist/
 /build/
 /coverage/
+
+# SSH keys and sensitive material
+cloudways_deploy_key
+cloudways_deploy_key.pub
+cloudways_rsa_deploy_key
+cloudways_rsa_deploy_key.pub
+*.pem
+*.key
