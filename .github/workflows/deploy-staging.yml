@@ -17,9 +17,15 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.CLOUDWAYS_SSH_KEY }}
 
+      - name: Trust Cloudways host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.CLOUDWAYS_HOST }}" >> ~/.ssh/known_hosts
+
       - name: Deploy Hello Child Theme
         run: |
           rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=yes" \
             infra/wordpress/themes/hello-child/ \
             ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html/wp-content/themes/hello-child/ \
             --delete
@@ -28,5 +34,3 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
           "cd /home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html && bash -s" < deploy/post-deploy.sh
-
-

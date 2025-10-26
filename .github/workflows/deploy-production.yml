@@ -28,5 +28,3 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
           "cd /home/1540390.cloudwaysapps.com/PRODUCTION_PATH/public_html && bash -s" < deploy/post-deploy.sh
-
-
