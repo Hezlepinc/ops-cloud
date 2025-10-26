@@ -2,9 +2,13 @@ name: Deploy Theme to Cloudways
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - staging
     paths:
-      - 'infra/wordpress/themes/**'
+      - 'infra/**'
+      - 'themes/**'
+      - 'plugins/**'
 
 jobs:
   deploy:
@@ -23,10 +27,16 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Deploy via script (production)
+      - name: Determine environment
+        id: env
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "$BRANCH" = "main" ]; then echo "env=production" >> $GITHUB_OUTPUT; else echo "env=staging" >> $GITHUB_OUTPUT; fi
+
+      - name: Deploy via script
         env:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
           DEPLOY_SITE: ${{ secrets.DEPLOY_SITE }}
         run: |
-          bash scripts/deploy.sh --site="${DEPLOY_SITE}" --env=production
+          bash scripts/deploy.sh --site="${DEPLOY_SITE}" --env=${{ steps.env.outputs.env }}

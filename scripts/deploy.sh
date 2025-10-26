@@ -28,20 +28,15 @@ if [[ ! -f "$PROJECTS_JSON" ]]; then
   exit 1
 fi
 
-APP_ID=$(jq -r --arg s "$SITE" '.[$s].app_id' "$PROJECTS_JSON")
-DOMAIN=$(jq -r --arg s "$SITE" '.[$s].domain' "$PROJECTS_JSON")
-STAGING_DOMAIN=$(jq -r --arg s "$SITE" '.[$s].staging' "$PROJECTS_JSON")
+APP_ID=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].app_id' "$PROJECTS_JSON")
+DOMAIN=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].domain' "$PROJECTS_JSON")
 
 if [[ -z "$APP_ID" || "$APP_ID" == "null" ]]; then
   echo "Unknown site: $SITE" >&2
   exit 1
 fi
 
-if [[ "$DEPLOY_ENV" == "production" ]]; then
-  TARGET_DOMAIN="$DOMAIN"
-else
-  TARGET_DOMAIN="$STAGING_DOMAIN"
-fi
+TARGET_DOMAIN="$DOMAIN"
 
 echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN"
 

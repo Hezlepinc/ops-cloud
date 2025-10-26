@@ -1,12 +1,22 @@
 {
   "hezlepinc": {
-    "app_id": "5951972",
-    "domain": "hezlepinc.com",
-    "staging": "staging.hezlepinc.com"
+    "production": {
+      "domain": "hezlepinc.com",
+      "app_id": "5951972"
+    },
+    "staging": {
+      "domain": "staging.hezlepinc.com",
+      "app_id": "YOUR_STAGING_APP_ID"
+    }
   },
   "sparky": {
-    "app_id": "5952041",
-    "domain": "sparky-hq.com",
-    "staging": "staging.sparky-hq.com"
+    "production": {
+      "domain": "sparky-hq.com",
+      "app_id": "5952041"
+    },
+    "staging": {
+      "domain": "staging.sparky-hq.com",
+      "app_id": "YOUR_STAGING_APP_ID"
+    }
   }
 }
