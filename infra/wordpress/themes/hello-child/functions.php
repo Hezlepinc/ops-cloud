@@ -9,9 +9,9 @@ add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style('hello-elementor', get_template_directory_uri() . '/style.css');
     // Enqueue child theme styles
     wp_enqueue_style('hello-child', get_stylesheet_uri(), ['hello-elementor'], '1.0.0');
-    // Enqueue brand token CSS
-    $cursor_css = get_stylesheet_directory_uri() . '/assets/css/cursor.css';
-    wp_enqueue_style('hello-child-cursor', $cursor_css, ['hello-child'], '1.0.0');
+    // Brand token CSS temporarily disabled while Elementor framework is built
+    // $cursor_css = get_stylesheet_directory_uri() . '/assets/css/cursor.css';
+    // wp_enqueue_style('hello-child-cursor', $cursor_css, ['hello-child'], '1.0.0');
 });
 
 // One-time bootstrap on first activation
