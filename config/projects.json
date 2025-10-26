@@ -16,7 +16,8 @@
     },
     "staging": {
       "domain": "staging.sparky-hq.com",
-      "app_id": "5952134"
+      "app_id": "5952134",
+      "app_dir": "xpzgjptrwn"
     }
   }
 }

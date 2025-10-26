@@ -34,6 +34,7 @@ if [[ -n "${CLOUDWAYS_APP_ID:-}" && "${CLOUDWAYS_APP_ID}" != "null" ]]; then
   APP_ID="${CLOUDWAYS_APP_ID}"
 fi
 DOMAIN=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].domain' "$PROJECTS_JSON")
+APP_DIR=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].app_dir // ""' "$PROJECTS_JSON")
 
 if [[ -z "$APP_ID" || "$APP_ID" == "null" ]]; then
   echo "Unknown site: $SITE" >&2
@@ -44,6 +45,13 @@ TARGET_DOMAIN="$DOMAIN"
 
 echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN"
 
+# Compute Cloudways application root
+if [[ -n "$APP_DIR" && "$APP_DIR" != "null" ]]; then
+  APP_ROOT="/home/${CLOUDWAYS_USER}/applications/$APP_DIR/public_html"
+else
+  APP_ROOT="/home/${CLOUDWAYS_USER}/applications/$APP_ID/public_html"
+fi
+
 THEME_SLUG="marketing"
 if [[ "$SITE" == "sparky" ]]; then
   THEME_SLUG="sparky-hq"
@@ -51,14 +59,14 @@ fi
 
 # Ensure remote directories exist
 ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
-  "mkdir -p /home/master/applications/$APP_ID/public_html/wp-content/themes/$THEME_SLUG && \
-   mkdir -p /home/master/applications/$APP_ID/public_html/brand/$SITE"
+  "mkdir -p $APP_ROOT/wp-content/themes/$THEME_SLUG && \
+   mkdir -p $APP_ROOT/brand/$SITE"
 
 # Rsync theme
 rsync -az --delete \
   -e "ssh -o StrictHostKeyChecking=no" \
   "$(dirname "$0")/../infra/wordpress/themes/$THEME_SLUG/" \
-  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-content/themes/$THEME_SLUG/"
+  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/wp-content/themes/$THEME_SLUG/"
 
 # Determine brand directory name (repo uses 'sparkyhq')
 BRAND_DIR="$SITE"
@@ -70,15 +78,15 @@ fi
 rsync -az \
   -e "ssh -o StrictHostKeyChecking=no" \
   "$(dirname "$0")/../infra/wordpress/brands/${BRAND_DIR}/" \
-  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/brand/${SITE}/"
+  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/brand/${SITE}/"
 
 # Upload bootstrap and run it
 scp -o StrictHostKeyChecking=no "$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh" \
-  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-bootstrap.sh"
+  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/wp-bootstrap.sh"
 
 ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
-  "chmod +x /home/master/applications/$APP_ID/public_html/wp-bootstrap.sh && \
-   cd /home/master/applications/$APP_ID/public_html && \
+  "chmod +x $APP_ROOT/wp-bootstrap.sh && \
+   cd $APP_ROOT && \
    SITE_NAME='$SITE' DOMAIN='$TARGET_DOMAIN' ADMIN_EMAIL='admin@$TARGET_DOMAIN' THEME_SLUG='$THEME_SLUG' DEPLOY_SITE='$SITE' PLUGINS='${PLUGINS:-}' bash wp-bootstrap.sh"
 
 
