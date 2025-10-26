@@ -6,7 +6,7 @@
     },
     "staging": {
       "domain": "staging.hezlepinc.com",
-      "app_id": "YOUR_STAGING_APP_ID"
+      "app_id": "5951972"
     }
   },
   "sparky": {
@@ -16,7 +16,7 @@
     },
     "staging": {
       "domain": "staging.sparky-hq.com",
-      "app_id": "YOUR_STAGING_APP_ID"
+      "app_id": "5952134"
     }
   }
 }
