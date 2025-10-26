@@ -1,8 +1,7 @@
-name: Deploy to Cloudways (Staging)
+name: Deploy to Cloudways (Staging - Legacy)
 
 on:
-  push:
-    branches: [staging] # trigger when pushing to staging branch
+  workflow_dispatch: {}
 
 jobs:
   deploy:
@@ -38,23 +37,23 @@ jobs:
         env:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
-          APP_ROOT: '/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html' # staging.sparky-hq.com
+          APP_ROOT: ${{ secrets.APP_ROOT_SPARKY_STAGING }}
         run: |
           set -euo pipefail
           echo "🔄 Deploying theme to Cloudways..."
-          rsync -az --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
-            infra/wordpress/themes/marketing/ \
-            "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}:${APP_ROOT}/wp-content/themes/marketing/"
+          rsync -az --no-perms --no-times --omit-dir-times --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            infra/wordpress/themes/hello-child/ \
+            "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}:${APP_ROOT}/wp-content/themes/hello-child/"
 
       # === Activate theme + flush cache ===
       - name: Activate theme and flush cache
         env:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
-          APP_ROOT: '/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html'
+          APP_ROOT: ${{ secrets.APP_ROOT_SPARKY_STAGING }}
         run: |
           set -euo pipefail
           echo "⚙️  Activating theme and flushing cache..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" \
-            "cd ${APP_ROOT} && wp theme activate marketing --allow-root && wp cache flush --allow-root"
+            "cd ${APP_ROOT} && wp theme activate hello-child --allow-root && wp cache flush --allow-root"
