@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site: [sparky, hezlepinc]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,14 +26,26 @@ jobs:
           ssh-keyscan -H "${{ secrets.CLOUDWAYS_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Deploy Hello Child Theme
+        env:
+          SITE: ${{ matrix.site }}
+          HEZLEPINC_APP_DIR: ${{ secrets.HEZLEPINC_STAGING_APP_DIR }}
         run: |
+          set -euo pipefail
+          if [ "$SITE" = "sparky" ]; then APP_DIR="xpzgjptrwn"; else APP_DIR="$HEZLEPINC_APP_DIR"; fi
+          if [ -z "$APP_DIR" ]; then echo "Missing app dir for $SITE (set HEZLEPINC_STAGING_APP_DIR secret)" >&2; exit 1; fi
           rsync -avz \
             -e "ssh -o StrictHostKeyChecking=yes" \
             infra/wordpress/themes/hello-child/ \
-            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html/wp-content/themes/hello-child/ \
+            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/1540390.cloudwaysapps.com/$APP_DIR/public_html/wp-content/themes/hello-child/ \
             --delete
 
       - name: Run post-deploy script
+        env:
+          SITE: ${{ matrix.site }}
+          HEZLEPINC_APP_DIR: ${{ secrets.HEZLEPINC_STAGING_APP_DIR }}
         run: |
+          set -euo pipefail
+          if [ "$SITE" = "sparky" ]; then APP_DIR="xpzgjptrwn"; else APP_DIR="$HEZLEPINC_APP_DIR"; fi
+          if [ -z "$APP_DIR" ]; then echo "Missing app dir for $SITE (set HEZLEPINC_STAGING_APP_DIR secret)" >&2; exit 1; fi
           ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
-          "cd /home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html && bash -s" < deploy/post-deploy.sh
+          "cd /home/1540390.cloudwaysapps.com/$APP_DIR/public_html && bash -s" < deploy/post-deploy.sh
