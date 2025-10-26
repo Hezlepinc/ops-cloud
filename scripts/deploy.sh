@@ -43,20 +43,17 @@ fi
 
 TARGET_DOMAIN="$DOMAIN"
 
-echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN"
+echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN app_dir=${APP_DIR:-unset}"
 
-# Compute Cloudways application root
-# Build remote app root using remote $HOME to avoid hardcoding username/home
+# Compute Cloudways application root using Cloudways HOST + app_dir
 if [[ -n "$APP_DIR" && "$APP_DIR" != "null" ]]; then
-  APP_ROOT="\$HOME/applications/$APP_DIR/public_html"
+  APP_ROOT="/home/${CLOUDWAYS_HOST}/$APP_DIR/public_html"
 else
-  APP_ROOT="\$HOME/applications/$APP_ID/public_html"
+  echo "Missing app_dir for $SITE $DEPLOY_ENV in config/projects.json" >&2
+  exit 1
 fi
 
 THEME_SLUG="marketing"
-if [[ "$SITE" == "sparky" ]]; then
-  THEME_SLUG="sparky-hq"
-fi
 
 # Ensure remote directories exist
 ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \

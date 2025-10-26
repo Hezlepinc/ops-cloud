@@ -2,19 +2,17 @@ name: Deploy to Cloudways (Staging)
 
 on:
   push:
-    branches: [staging] # whenever you push to staging branch
+    branches: [staging] # trigger when pushing to staging branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        site: [sparky]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # === Prepare SSH key ===
       - name: Prepare SSH key
         env:
           SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
@@ -27,22 +25,36 @@ jobs:
           else
             echo "$SSH_KEY" | base64 -d > ~/.ssh/id_rsa || (echo "Failed to decode base64 SSH key" >&2; exit 1)
           fi
+          # Normalize line endings for Windows users
           sed -i -e 's/\r$//' ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          # Validate key content
           ssh-keygen -y -f ~/.ssh/id_rsa >/dev/null 2>&1 || (echo "Invalid SSH key content" >&2; exit 1)
+          # Trust the Cloudways host
           ssh-keyscan -H "$CLOUDWAYS_HOST" >> ~/.ssh/known_hosts
 
-      - name: Deploy via script (rsync + wp-cli)
+      # === Deploy via rsync ===
+      - name: Deploy via rsync
         env:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
-          DEPLOY_SITE: ${{ matrix.site }}
-          PLUGINS: 'elementor,breeze,wordpress-seo,header-footer-elementor,contact-form-7'
+          APP_ROOT: '/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html' # staging.sparky-hq.com
         run: |
-          bash scripts/deploy.sh --site="${DEPLOY_SITE}" --env=staging
+          set -euo pipefail
+          echo "🔄 Deploying theme to Cloudways..."
+          rsync -az --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            infra/wordpress/themes/marketing/ \
+            "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}:${APP_ROOT}/wp-content/themes/marketing/"
 
-      - name: Activate theme + clear cache
+      # === Activate theme + flush cache ===
+      - name: Activate theme and flush cache
+        env:
+          CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
+          APP_ROOT: '/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html'
         run: |
+          set -euo pipefail
+          echo "⚙️  Activating theme and flushing cache..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
-            "cd ${{ env.APP_ROOT }} && wp theme activate marketing --allow-root && wp cache flush --allow-root"
+            "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" \
+            "cd ${APP_ROOT} && wp theme activate marketing --allow-root && wp cache flush --allow-root"

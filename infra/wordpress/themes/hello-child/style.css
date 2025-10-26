@@ -1,0 +1,42 @@
+/*
+Theme Name: Hello Child
+Theme URI: https://sparkyhq.com/
+Author: Hezlep Inc.
+Author URI: https://hezlep.com/
+Description: Child theme for Hello Elementor – customized for Sparky HQ and Hezlep brand stack.
+Version: 1.0.0
+Template: hello-elementor
+Text Domain: hello-child
+*/
+
+/* === Global Brand Tokens === */
+:root {
+  --brand-primary: #007aff;
+  --brand-accent: #ffcc00;
+  --brand-dark: #1a1a1a;
+  --brand-light: #f8f8f8;
+}
+
+/* === Global Overrides === */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--brand-light);
+  color: var(--brand-dark);
+}
+
+a {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--brand-accent);
+}
+
+/* Elementor Fixes / Utility Styles */
+.elementor-widget-heading h2 {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+
