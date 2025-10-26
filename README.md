@@ -28,14 +28,18 @@ repo.
 - Secrets use per-site app roots instead of IDs
 
 Required repo secrets (staging):
+
 - `CLOUDWAYS_HOST`, `CLOUDWAYS_USER`, `CLOUDWAYS_SSH_KEY`
 - `APP_ROOT_SPARKY_STAGING` → e.g., `/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html`
-- `APP_ROOT_HEZLEP_STAGING` → e.g., `/home/1540390.cloudwaysapps.com/<hezlepinc_app_dir>/public_html`
+- `APP_ROOT_HEZLEP_STAGING` → e.g.,
+  `/home/1540390.cloudwaysapps.com/<hezlepinc_app_dir>/public_html`
 
 Optional repo secrets (production, when enabling prod workflow):
+
 - `APP_ROOT_SPARKY_PROD`, `APP_ROOT_HEZLEP_PROD`
 
 Triggering a deploy:
+
 - Push to `staging` → runs “Deploy to Staging (Hello Child)” for both sites
 
 ## Setting Up a New WordPress Site (Staging + Production)
@@ -67,15 +71,21 @@ Triggering a deploy:
 
 ### Duplicate this setup for a new brand/site
 
-1) Cloudways: create staging (and later prod) apps; get each app's full app root path: `/home/<cw_account>.cloudwaysapps.com/<app_dir>/public_html`.
+1. Cloudways: create staging (and later prod) apps; get each app's full app root path:
+   `/home/<cw_account>.cloudwaysapps.com/<app_dir>/public_html`.
 
-2) GitHub Secrets: add `APP_ROOT_<BRAND>_STAGING` (and `APP_ROOT_<BRAND>_PROD` when ready) with the full app root.
+2. GitHub Secrets: add `APP_ROOT_<BRAND>_STAGING` (and `APP_ROOT_<BRAND>_PROD` when ready) with the
+   full app root.
 
-3) Workflow Matrix: in `.github/workflows/deploy-staging.yml`, add the brand key to `matrix.site: [sparky, hezlepinc, <brand>]` and map its secret name if it differs from the convention.
+3. Workflow Matrix: in `.github/workflows/deploy-staging.yml`, add the brand key to
+   `matrix.site: [sparky, hezlepinc, <brand>]` and map its secret name if it differs from the
+   convention.
 
-4) Push to `staging` and watch Actions. The job rsyncs `infra/wordpress/themes/hello-child/` and runs `deploy/post-deploy.sh` to activate the theme.
+4. Push to `staging` and watch Actions. The job rsyncs `infra/wordpress/themes/hello-child/` and
+   runs `deploy/post-deploy.sh` to activate the theme.
 
-5) Verify in WP Admin → Appearance → Themes, or via CLI (`wp theme list --status=active --allow-root`).
+5. Verify in WP Admin → Appearance → Themes, or via CLI
+   (`wp theme list --status=active --allow-root`).
 
 ## Promotion Flow (Git-driven)
 

@@ -15,12 +15,12 @@
 2. **Main Marketing Site** – (Business name TBD) markets website, SEO, social, and automation services for small/medium service businesses.
 
 **Later Layers**
+
 - Current status (staging):
   - Hello Child theme in repo and deploying via Actions
   - Matrix deploy for `sparky` and `hezlepinc` using per-site APP_ROOT secrets
   - Post-deploy script activates theme; cache clearing tolerant
   - SSH tests and host key management in CI
-
 
 - Trades & Services support (consulting, automation)
 - SaaS integration with SoloStack, LaunchPad, ArchitectCore, etc.

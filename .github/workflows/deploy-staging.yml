@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           if [ "$SITE" = "sparky" ]; then APP_ROOT="$APP_ROOT_SPARKY_STAGING"; else APP_ROOT="$APP_ROOT_HEZLEP_STAGING"; fi
           if [ -z "${APP_ROOT:-}" ]; then echo "Missing APP_ROOT secret for $SITE (set APP_ROOT_SPARKY_STAGING / APP_ROOT_HEZLEP_STAGING)" >&2; exit 1; fi
-          rsync -avz \
+          rsync -avz --omit-dir-times --no-perms \
             -e "ssh -o StrictHostKeyChecking=yes" \
             infra/wordpress/themes/hello-child/ \
             ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:${APP_ROOT}/wp-content/themes/hello-child/ \
