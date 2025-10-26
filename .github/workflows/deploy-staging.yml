@@ -28,34 +28,37 @@ jobs:
       - name: Deploy Hello Child Theme
         env:
           SITE: ${{ matrix.site }}
-          HEZLEPINC_APP_DIR: ${{ secrets.HEZLEPINC_STAGING_APP_DIR }}
+          APP_ROOT_HEZLEP_STAGING: ${{ secrets.APP_ROOT_HEZLEP_STAGING }}
+          APP_ROOT_SPARKY_STAGING: ${{ secrets.APP_ROOT_SPARKY_STAGING }}
         run: |
           set -euo pipefail
-          if [ "$SITE" = "sparky" ]; then APP_DIR="xpzgjptrwn"; else APP_DIR="$HEZLEPINC_APP_DIR"; fi
-          if [ -z "$APP_DIR" ]; then echo "Missing app dir for $SITE (set HEZLEPINC_STAGING_APP_DIR secret)" >&2; exit 1; fi
+          if [ "$SITE" = "sparky" ]; then APP_ROOT="$APP_ROOT_SPARKY_STAGING"; else APP_ROOT="$APP_ROOT_HEZLEP_STAGING"; fi
+          if [ -z "${APP_ROOT:-}" ]; then echo "Missing APP_ROOT secret for $SITE (set APP_ROOT_SPARKY_STAGING / APP_ROOT_HEZLEP_STAGING)" >&2; exit 1; fi
           rsync -avz \
             -e "ssh -o StrictHostKeyChecking=yes" \
             infra/wordpress/themes/hello-child/ \
-            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/1540390.cloudwaysapps.com/$APP_DIR/public_html/wp-content/themes/hello-child/ \
+            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:${APP_ROOT}/wp-content/themes/hello-child/ \
             --delete
 
       - name: Run post-deploy script
         env:
           SITE: ${{ matrix.site }}
-          HEZLEPINC_APP_DIR: ${{ secrets.HEZLEPINC_STAGING_APP_DIR }}
+          APP_ROOT_HEZLEP_STAGING: ${{ secrets.APP_ROOT_HEZLEP_STAGING }}
+          APP_ROOT_SPARKY_STAGING: ${{ secrets.APP_ROOT_SPARKY_STAGING }}
         run: |
           set -euo pipefail
-          if [ "$SITE" = "sparky" ]; then APP_DIR="xpzgjptrwn"; else APP_DIR="$HEZLEPINC_APP_DIR"; fi
-          if [ -z "$APP_DIR" ]; then echo "Missing app dir for $SITE (set HEZLEPINC_STAGING_APP_DIR secret)" >&2; exit 1; fi
+          if [ "$SITE" = "sparky" ]; then APP_ROOT="$APP_ROOT_SPARKY_STAGING"; else APP_ROOT="$APP_ROOT_HEZLEP_STAGING"; fi
+          if [ -z "${APP_ROOT:-}" ]; then echo "Missing APP_ROOT secret for $SITE (set APP_ROOT_SPARKY_STAGING / APP_ROOT_HEZLEP_STAGING)" >&2; exit 1; fi
           ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
-          "cd /home/1540390.cloudwaysapps.com/$APP_DIR/public_html && bash -s" < deploy/post-deploy.sh
+          "cd ${APP_ROOT} && bash -s" < deploy/post-deploy.sh
 
       - name: Verify active theme
         env:
           SITE: ${{ matrix.site }}
-          HEZLEPINC_APP_DIR: ${{ secrets.HEZLEPINC_STAGING_APP_DIR }}
+          APP_ROOT_HEZLEP_STAGING: ${{ secrets.APP_ROOT_HEZLEP_STAGING }}
+          APP_ROOT_SPARKY_STAGING: ${{ secrets.APP_ROOT_SPARKY_STAGING }}
         run: |
           set -euo pipefail
-          if [ "$SITE" = "sparky" ]; then APP_DIR="xpzgjptrwn"; else APP_DIR="$HEZLEPINC_APP_DIR"; fi
+          if [ "$SITE" = "sparky" ]; then APP_ROOT="$APP_ROOT_SPARKY_STAGING"; else APP_ROOT="$APP_ROOT_HEZLEP_STAGING"; fi
           ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
-          "cd /home/1540390.cloudwaysapps.com/$APP_DIR/public_html && wp theme list --status=active --allow-root"
+          "cd ${APP_ROOT} && wp theme list --status=active --allow-root"
