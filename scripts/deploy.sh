@@ -46,10 +46,16 @@ rsync -az --delete \
   "$(dirname "$0")/../infra/wordpress/themes/marketing/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/wp-content/themes/marketing/"
 
+# Determine brand directory name (repo uses 'sparkyhq')
+BRAND_DIR="$SITE"
+if [[ "$SITE" == "sparky" ]]; then
+  BRAND_DIR="sparkyhq"
+fi
+
 # Rsync brand kit (JSON + CSS) for this site into app root under ./brand/<site>/
 rsync -az \
   -e "ssh -o StrictHostKeyChecking=no" \
-  "$(dirname "$0")/../infra/brands/${SITE}/" \
+  "$(dirname "$0")/../infra/wordpress/brands/${BRAND_DIR}/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/home/master/applications/$APP_ID/public_html/brand/${SITE}/"
 
 # Upload bootstrap and run it
