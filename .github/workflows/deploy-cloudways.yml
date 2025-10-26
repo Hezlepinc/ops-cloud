@@ -42,7 +42,9 @@ jobs:
         run: npm i -g pnpm@9.11.0
 
       - name: Build Cursor tokens
-        run: pnpm run build-cursor ${{ secrets.DEPLOY_SITE }}
+        env:
+          DEPLOY_SITE: ${{ secrets.DEPLOY_SITE }}
+        run: pnpm run build-cursor
 
       - name: Deploy via script
         env:

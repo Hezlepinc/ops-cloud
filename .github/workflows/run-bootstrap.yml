@@ -43,7 +43,9 @@ jobs:
 
       - name: Build Cursor tokens
         if: inputs.build_cursor == 'true'
-        run: pnpm run build-cursor ${{ inputs.site }}
+        env:
+          DEPLOY_SITE: ${{ inputs.site }}
+        run: pnpm run build-cursor
 
       - name: Install rsync and jq
         run: sudo apt-get update && sudo apt-get install -y rsync jq

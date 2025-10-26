@@ -1,12 +1,12 @@
 import fs from "fs";
 
-const brand = process.argv[2];
+const brand = process.argv[2] || process.env.DEPLOY_SITE;
 if (!brand) {
-  console.error("❌  Usage: node scripts/build-cursor-theme.js <brand>");
+  console.error("❌  Usage: node scripts/build-cursor-theme.js <brand> or set DEPLOY_SITE");
   process.exit(1);
 }
 
-const path = `infra/brands/${brand}/cursor.json`;
+const path = `infra/wordpress/brands/${brand}/cursor.json`;
 if (!fs.existsSync(path)) {
   console.error(`❌  Brand config not found: ${path}`);
   process.exit(1);
@@ -30,8 +30,8 @@ const css = `:root {
   --shadow-md: 0 4px 12px rgba(0,0,0,.08);
 }`;
 
-const cssOut = `infra/brands/${brand}/assets/css/cursor.css`;
-fs.mkdirSync(`infra/brands/${brand}/assets/css`, { recursive: true });
+const cssOut = `infra/wordpress/brands/${brand}/assets/css/cursor.css`;
+fs.mkdirSync(`infra/wordpress/brands/${brand}/assets/css`, { recursive: true });
 fs.writeFileSync(cssOut, css);
 
 /* === Build cursor-sitekit.json (Elementor) === */
@@ -55,8 +55,8 @@ const kit = {
     }
   }
 };
-const kitOut = `infra/brands/${brand}/elementor/cursor-sitekit.json`;
-fs.mkdirSync(`infra/brands/${brand}/elementor`, { recursive: true });
+const kitOut = `infra/wordpress/brands/${brand}/elementor/cursor-sitekit.json`;
+fs.mkdirSync(`infra/wordpress/brands/${brand}/elementor`, { recursive: true });
 fs.writeFileSync(kitOut, JSON.stringify(kit, null, 2));
 
 console.log(`✅ Built Cursor theme assets for ${brand}`);
