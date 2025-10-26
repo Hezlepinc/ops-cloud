@@ -1,9 +1,16 @@
 name: Deploy to Production (Hello Child)
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      site:
+        description: 'sparky | hezlepinc'
+        required: true
+        default: 'hezlepinc'
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -17,14 +24,24 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.CLOUDWAYS_SSH_KEY }}
 
+      - name: Resolve app root
+        id: app
+        env:
+          SITE: ${{ inputs.site }}
+          APP_ROOT_SPARKY_PROD: ${{ secrets.APP_ROOT_SPARKY_PROD }}
+          APP_ROOT_HEZLEP_PROD: ${{ secrets.APP_ROOT_HEZLEP_PROD }}
+        run: |
+          if [ "$SITE" = "sparky" ]; then echo "root=$APP_ROOT_SPARKY_PROD" >> $GITHUB_OUTPUT; else echo "root=$APP_ROOT_HEZLEP_PROD" >> $GITHUB_OUTPUT; fi
+
       - name: Deploy Hello Child Theme
         run: |
-          rsync -avz \
+          rsync -avz --omit-dir-times --no-perms \
+            -e "ssh -o StrictHostKeyChecking=yes" \
             infra/wordpress/themes/hello-child/ \
-            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:/home/1540390.cloudwaysapps.com/PRODUCTION_PATH/public_html/wp-content/themes/hello-child/ \
+            ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }}:${{ steps.app.outputs.root }}/wp-content/themes/hello-child/ \
             --delete
 
       - name: Run post-deploy script
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
-          "cd /home/1540390.cloudwaysapps.com/PRODUCTION_PATH/public_html && bash -s" < deploy/post-deploy.sh
+          "cd ${{ steps.app.outputs.root }} && bash -s" < deploy/post-deploy.sh
