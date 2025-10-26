@@ -61,7 +61,7 @@ ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
    mkdir -p $APP_ROOT/brand/$SITE"
 
 # Rsync theme
-rsync -az --delete \
+rsync -az --no-perms --no-times --omit-dir-times --delete \
   -e "ssh -o StrictHostKeyChecking=no" \
   "$(dirname "$0")/../infra/wordpress/themes/$THEME_SLUG/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/wp-content/themes/$THEME_SLUG/"
@@ -73,7 +73,7 @@ if [[ "$SITE" == "sparky" ]]; then
 fi
 
 # Rsync brand kit (JSON + CSS) for this site into app root under ./brand/<site>/
-rsync -az \
+rsync -az --no-perms --no-times --omit-dir-times \
   -e "ssh -o StrictHostKeyChecking=no" \
   "$(dirname "$0")/../infra/wordpress/brands/${BRAND_DIR}/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/brand/${SITE}/"
