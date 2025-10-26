@@ -9,6 +9,8 @@ Template: hello-elementor
 Text Domain: hello-child
 */
 
+@import url("../hello-elementor/style.css");
+
 /* === Global Brand Tokens === */
 :root {
   --brand-primary: #007aff;
