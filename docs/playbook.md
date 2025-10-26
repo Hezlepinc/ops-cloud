@@ -218,6 +218,22 @@ jobs:
           remote_key: ${{ secrets.CW_SSH_KEY }}
 ```
 
+### 9.1.1 Current Implementation (Hello Child)
+
+- Staging workflow: `.github/workflows/deploy-staging.yml`
+- Matrix sites: `sparky`, `hezlepinc`
+- Secrets per site (full app root path):
+  - `APP_ROOT_SPARKY_STAGING`
+  - `APP_ROOT_HEZLEP_STAGING`
+- Steps:
+  1. `ssh-agent` loads `CLOUDWAYS_SSH_KEY`
+  2. `ssh-keyscan` trusts host
+  3. `rsync` copies `infra/wordpress/themes/hello-child/` to `${APP_ROOT}/wp-content/themes/hello-child/`
+  4. SSH runs `deploy/post-deploy.sh` which activates the child theme and clears cache
+  5. Verify step prints active theme
+
+To add a new site: create a new secret `APP_ROOT_<BRAND>_STAGING` with app root; extend `matrix.site` and map the secret.
+
 ### 9.2 API → Render (Deploy Hook)
 
 ```yaml

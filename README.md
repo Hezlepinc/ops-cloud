@@ -18,6 +18,26 @@ repo.
 3. Start WordPress: docker compose up -d
 4. Visit: http://localhost:8081
 
+## What's live now (staging CI/CD)
+
+- Hello Child theme (`infra/wordpress/themes/hello-child`) deployed to Cloudways via GitHub Actions
+  - Workflow: `.github/workflows/deploy-staging.yml`
+  - Matrix deploys for `sparky` and `hezlepinc`
+  - Post-deploy script activates the theme and clears cache gracefully: `deploy/post-deploy.sh`
+- SSH connectivity validated in `.github/workflows/test-cloudways.yml`
+- Secrets use per-site app roots instead of IDs
+
+Required repo secrets (staging):
+- `CLOUDWAYS_HOST`, `CLOUDWAYS_USER`, `CLOUDWAYS_SSH_KEY`
+- `APP_ROOT_SPARKY_STAGING` → e.g., `/home/1540390.cloudwaysapps.com/xpzgjptrwn/public_html`
+- `APP_ROOT_HEZLEP_STAGING` → e.g., `/home/1540390.cloudwaysapps.com/<hezlepinc_app_dir>/public_html`
+
+Optional repo secrets (production, when enabling prod workflow):
+- `APP_ROOT_SPARKY_PROD`, `APP_ROOT_HEZLEP_PROD`
+
+Triggering a deploy:
+- Push to `staging` → runs “Deploy to Staging (Hello Child)” for both sites
+
 ## Setting Up a New WordPress Site (Staging + Production)
 
 1. Create two Cloudways apps (production and staging). Note each app's App ID and public IP.
@@ -42,8 +62,20 @@ repo.
 
 6. Deploy:
 
-- Push to `staging` → deploys to staging domain
-- Push to `main` → deploys to production domain
+- Push to `staging` → deploys Hello Child to staging apps for configured sites
+- Push to `main` → deploys to production (when production workflow/secrets are configured)
+
+### Duplicate this setup for a new brand/site
+
+1) Cloudways: create staging (and later prod) apps; get each app's full app root path: `/home/<cw_account>.cloudwaysapps.com/<app_dir>/public_html`.
+
+2) GitHub Secrets: add `APP_ROOT_<BRAND>_STAGING` (and `APP_ROOT_<BRAND>_PROD` when ready) with the full app root.
+
+3) Workflow Matrix: in `.github/workflows/deploy-staging.yml`, add the brand key to `matrix.site: [sparky, hezlepinc, <brand>]` and map its secret name if it differs from the convention.
+
+4) Push to `staging` and watch Actions. The job rsyncs `infra/wordpress/themes/hello-child/` and runs `deploy/post-deploy.sh` to activate the theme.
+
+5) Verify in WP Admin → Appearance → Themes, or via CLI (`wp theme list --status=active --allow-root`).
 
 ## Promotion Flow (Git-driven)
 
@@ -70,11 +102,8 @@ Examples:
 
 ### Theme expectations
 
-- Child theme: `infra/wordpress/themes/marketing/` (Hello Elementor child)
-- Tokens CSS expected at: `infra/wordpress/themes/marketing/assets/css/cursor.css`
-- The child theme enqueues:
-  - Parent CSS: Hello Elementor
-  - Tokens CSS: `assets/css/cursor.css`
+- Child theme path: `infra/wordpress/themes/hello-child/` (Hello Elementor child)
+- The child theme enqueues parent Hello Elementor CSS and its own stylesheet.
 
 ### Build the brand kit artifacts
 
