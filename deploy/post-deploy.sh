@@ -3,6 +3,11 @@ set -e
 
 echo "Activating Hello Child theme and clearing cache..."
 
+# Ensure Hello Elementor parent is installed
+if ! wp theme is-installed hello-elementor --allow-root; then
+  wp theme install hello-elementor --allow-root
+fi
+
 # Activate Hello Child theme
 wp theme activate hello-child --allow-root
 

@@ -49,3 +49,13 @@ jobs:
           if [ -z "$APP_DIR" ]; then echo "Missing app dir for $SITE (set HEZLEPINC_STAGING_APP_DIR secret)" >&2; exit 1; fi
           ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
           "cd /home/1540390.cloudwaysapps.com/$APP_DIR/public_html && bash -s" < deploy/post-deploy.sh
+
+      - name: Verify active theme
+        env:
+          SITE: ${{ matrix.site }}
+          HEZLEPINC_APP_DIR: ${{ secrets.HEZLEPINC_STAGING_APP_DIR }}
+        run: |
+          set -euo pipefail
+          if [ "$SITE" = "sparky" ]; then APP_DIR="xpzgjptrwn"; else APP_DIR="$HEZLEPINC_APP_DIR"; fi
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CLOUDWAYS_USER }}@${{ secrets.CLOUDWAYS_HOST }} \
+          "cd /home/1540390.cloudwaysapps.com/$APP_DIR/public_html && wp theme list --status=active --allow-root"
