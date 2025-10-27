@@ -2,7 +2,7 @@ name: Deploy Hello Child Theme (Main)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ staging ]
   workflow_dispatch:
     inputs:
       brand:
