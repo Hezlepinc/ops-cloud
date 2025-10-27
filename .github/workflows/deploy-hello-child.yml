@@ -57,10 +57,19 @@ jobs:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
           CLOUDWAYS_APPFOLDER: ${{ secrets.CLOUDWAYS_APPFOLDER }}
+          CLOUDWAYS_ACCOUNT: ${{ secrets.CLOUDWAYS_ACCOUNT }}
         run: |
           set -euo pipefail
           SSH_OPTS="-i ~/.ssh/id_rsa -o StrictHostKeyChecking=no"
-          ACCOUNT_DIR=$(ssh $SSH_OPTS "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" "basename /home/*")
+          if [ -n "${CLOUDWAYS_ACCOUNT:-}" ]; then
+            ACCOUNT_DIR="${CLOUDWAYS_ACCOUNT}"
+          else
+            ACCOUNT_DIR=$(ssh $SSH_OPTS "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" "ls -d /home/*cloudwaysapps.com 2>/dev/null | head -n1 | xargs -I{} basename {}")
+          fi
+          if [ -z "${ACCOUNT_DIR}" ]; then
+            echo "Failed to determine Cloudways account directory under /home" >&2
+            exit 1
+          fi
           APP_ROOT="/home/${ACCOUNT_DIR}/${CLOUDWAYS_APPFOLDER}/public_html"
           echo "app_root=${APP_ROOT}" >> $GITHUB_OUTPUT
 
