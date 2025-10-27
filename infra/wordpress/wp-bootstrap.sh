@@ -65,6 +65,20 @@ else
   echo "Kit not found at $KIT_PATH_ZIP or $KIT_PATH_JSON"
 fi
 
+# 3b) Import additional Elementor templates if present (header/footer/single-page)
+TEMPLATES_DIR="${BRAND_PATH}/elementor"
+if [ -d "$TEMPLATES_DIR" ]; then
+  for tpl in "${TEMPLATES_DIR}"/*.json; do
+    [ -e "$tpl" ] || continue
+    base="$(basename "$tpl")"
+    # Skip the sitekit JSON if present; it was handled above
+    if [ "$base" = "cursor-sitekit.json" ]; then
+      continue
+    fi
+    wp elementor import "$tpl" || echo "Skipped $tpl"
+  done
+fi
+
 # 4) Disable Elementor default schemes
 wp option update elementor_disable_color_schemes "yes"
 wp option update elementor_disable_typography_schemes "yes"
@@ -101,3 +115,6 @@ wp menu location assign primary primary || true
 # Permalinks
 wp rewrite structure '/%postname%/' --hard
 wp option update blogdescription 'Modern electrical tools & content'
+
+# Final cache flush
+wp cache flush || true
