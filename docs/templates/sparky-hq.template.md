@@ -62,10 +62,10 @@ repos/
 ```
 APP_ENV=production|staging|dev
 LOG_LEVEL=info
-WEB_BASE_URL=https://sparkyhq.com
-API_BASE_URL=https://api.sparkyhq.com
-WP_REST_ENDPOINT=https://cms.sparkyhq.com/wp-json
-WP_GRAPHQL_ENDPOINT=https://cms.sparkyhq.com/graphql
+WEB_BASE_URL=https://sparky-hq.com
+API_BASE_URL=https://api.sparky-hq.com
+WP_REST_ENDPOINT=https://cms.sparky-hq.com/wp-json
+WP_GRAPHQL_ENDPOINT=https://cms.sparky-hq.com/graphql
 MONGO_URI=...
 POSTGRES_URL=...
 REDIS_URL=...
@@ -80,13 +80,13 @@ Store in: **GitHub Actions Secrets** + Render/Vercel env stores. (Cloudways only
 
 ## 4) DNS Map
 
-| Host                 | Target              | Purpose            |
-| -------------------- | ------------------- | ------------------ |
-| `@`                  | Cloudways server IP | Main business WP   |
-| `cms.sparkyhq.com`   | Cloudways app IP    | Headless WordPress |
-| `api.sparkyhq.com`   | Render service      | Express API        |
-| `tools.sparkyhq.com` | Vercel/Render       | Next.js tools      |
-| client roots         | Cloudways server IP | Client WP hosting  |
+| Host                  | Target              | Purpose            |
+| --------------------- | ------------------- | ------------------ |
+| `@`                   | Cloudways server IP | Main business WP   |
+| `cms.sparky-hq.com`   | Cloudways app IP    | Headless WordPress |
+| `api.sparky-hq.com`   | Render service      | Express API        |
+| `tools.sparky-hq.com` | Vercel/Render       | Next.js tools      |
+| client roots          | Cloudways server IP | Client WP hosting  |
 
 SSL everywhere (Let’s Encrypt/managed certs).
 

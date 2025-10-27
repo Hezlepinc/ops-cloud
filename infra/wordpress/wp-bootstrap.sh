@@ -12,7 +12,7 @@ fi
 SITE_NAME="${SITE_NAME:-${WP_SITE_NAME:-WordPress Site}}"
 DOMAIN="${DOMAIN:-${WP_DOMAIN:-example.com}}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@${DOMAIN}}"
-THEME_SLUG="${THEME_SLUG:-marketing}"
+THEME_SLUG="${THEME_SLUG:-hello-child}"
 PLUGINS_CSV="${PLUGINS:-}" # comma-separated list
 
 wp option update blogname "${SITE_NAME}"
@@ -30,16 +30,17 @@ done
 # Activate theme
 wp theme activate "${THEME_SLUG}" || true
 
-# Ensure Hello Elementor parent for child theme
-if [ "${THEME_SLUG}" = "marketing" ]; then
+# Ensure Hello Elementor parent is installed when using our child themes
+if [ "${THEME_SLUG}" = "hello-child" ] || [ "${THEME_SLUG}" = "marketing" ]; then
   wp theme is-installed hello-elementor || wp theme install hello-elementor --quiet
 fi
 
 # === BRAND / KIT IMPORT (Cursor) ===
 BRAND_PATH="./brand/${DEPLOY_SITE:-}"
-KIT_PATH="${BRAND_PATH}/elementor/cursor-sitekit.json"
+KIT_PATH_JSON="${BRAND_PATH}/elementor/cursor-sitekit.json"
+KIT_PATH_ZIP="${BRAND_PATH}/elementor/cursor-sitekit.zip"
 BRAND_CSS_SRC="${BRAND_PATH}/assets/css/cursor.css"
-THEME_CSS_DST="./wp-content/themes/marketing/assets/css/cursor.css"
+THEME_CSS_DST="./wp-content/themes/${THEME_SLUG}/assets/css/cursor.css"
 
 echo "Running Cursor kit import for ${DEPLOY_SITE:-unset}..."
 
@@ -55,11 +56,13 @@ else
   echo "No brand cursor.css at $BRAND_CSS_SRC"
 fi
 
-# 3) Import Elementor Site Kit if present
-if [ -f "$KIT_PATH" ]; then
-  wp elementor kit import "$KIT_PATH" || echo "Kit import failed or requires Elementor Pro."
+# 3) Import Elementor Site Kit if present (.zip preferred, fallback to .json)
+if [ -f "$KIT_PATH_ZIP" ]; then
+  wp elementor kit import "$KIT_PATH_ZIP" || echo "Kit import failed or requires Elementor Pro."
+elif [ -f "$KIT_PATH_JSON" ]; then
+  wp elementor kit import "$KIT_PATH_JSON" || echo "Kit import failed or requires Elementor Pro."
 else
-  echo "Kit not found at $KIT_PATH"
+  echo "Kit not found at $KIT_PATH_ZIP or $KIT_PATH_JSON"
 fi
 
 # 4) Disable Elementor default schemes

@@ -1,11 +1,21 @@
-name: Deploy to Cloudways (Staging - Legacy)
+name: Deploy to Cloudways (Staging)
 
 on:
+  push:
+    branches: [staging]
   workflow_dispatch: {}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - site: sparky
+            app_root_secret: APP_ROOT_SPARKY_STAGING
+          - site: hezlepinc
+            app_root_secret: APP_ROOT_HEZLEP_STAGING
 
     steps:
       - name: Checkout code
@@ -32,28 +42,12 @@ jobs:
           # Trust the Cloudways host
           ssh-keyscan -H "$CLOUDWAYS_HOST" >> ~/.ssh/known_hosts
 
-      # === Deploy via rsync ===
-      - name: Deploy via rsync
+      - name: Deploy site via script
         env:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
-          APP_ROOT: ${{ secrets.APP_ROOT_SPARKY_STAGING }}
+          APP_ROOT: ${{ secrets[matrix.app_root_secret] }}
         run: |
           set -euo pipefail
-          echo "🔄 Deploying theme to Cloudways..."
-          rsync -az --no-perms --no-times --omit-dir-times --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
-            infra/wordpress/themes/hello-child/ \
-            "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}:${APP_ROOT}/wp-content/themes/hello-child/"
-
-      # === Activate theme + flush cache ===
-      - name: Activate theme and flush cache
-        env:
-          CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
-          APP_ROOT: ${{ secrets.APP_ROOT_SPARKY_STAGING }}
-        run: |
-          set -euo pipefail
-          echo "⚙️  Activating theme and flushing cache..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-            "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" \
-            "cd ${APP_ROOT} && wp theme activate hello-child --allow-root && wp cache flush --allow-root"
+          echo "🚀 Deploying ${{ matrix.site }} to staging..."
+          bash scripts/deploy.sh --site=${{ matrix.site }} --env=staging

@@ -101,10 +101,10 @@ repos/
 ```
 APP_ENV=production|staging|dev
 LOG_LEVEL=info
-WEB_BASE_URL=https://sparkyhq.com
-API_BASE_URL=https://api.sparkyhq.com
-WP_REST_ENDPOINT=https://cms.sparkyhq.com/wp-json
-WP_GRAPHQL_ENDPOINT=https://cms.sparkyhq.com/graphql
+WEB_BASE_URL=https://sparky-hq.com
+API_BASE_URL=https://api.sparky-hq.com
+WP_REST_ENDPOINT=https://cms.sparky-hq.com/wp-json
+WP_GRAPHQL_ENDPOINT=https://cms.sparky-hq.com/graphql
 MONGO_URI=...           # if using Atlas
 POSTGRES_URL=...        # if using Render Postgres
 REDIS_URL=...
@@ -119,13 +119,13 @@ POWERPLAY_CREDENTIALS_JSON=...   # encrypted JSON in platform secret store
 
 ## 6) DNS Layout (GoDaddy/Cloudflare)
 
-| Hostname             | Points To           | Purpose                  |
-| -------------------- | ------------------- | ------------------------ |
-| `@`                  | Cloudways server IP | Main business WP         |
-| `cms.sparkyhq.com`   | Cloudways app IP    | Headless WP              |
-| `api.sparkyhq.com`   | Render service      | API                      |
-| `tools.sparkyhq.com` | Vercel/Render       | Next.js tools (optional) |
-| client roots         | Cloudways server IP | Client WP sites          |
+| Hostname              | Points To           | Purpose                  |
+| --------------------- | ------------------- | ------------------------ |
+| `@`                   | Cloudways server IP | Main business WP         |
+| `cms.sparky-hq.com`   | Cloudways app IP    | Headless WP              |
+| `api.sparky-hq.com`   | Render service      | API                      |
+| `tools.sparky-hq.com` | Vercel/Render       | Next.js tools (optional) |
+| client roots          | Cloudways server IP | Client WP sites          |
 
 > Enable HTTPS everywhere (Cloudways Let’s Encrypt, Render managed certs, Vercel certs).
 

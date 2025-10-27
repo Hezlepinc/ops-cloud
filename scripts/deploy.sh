@@ -45,15 +45,17 @@ TARGET_DOMAIN="$DOMAIN"
 
 echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN app_dir=${APP_DIR:-unset}"
 
-# Compute Cloudways application root using Cloudways HOST + app_dir
-if [[ -n "$APP_DIR" && "$APP_DIR" != "null" ]]; then
-  APP_ROOT="/home/${CLOUDWAYS_HOST}/$APP_DIR/public_html"
+# Determine application root
+if [[ -n "${APP_ROOT:-}" && "${APP_ROOT}" != "null" ]]; then
+  : # use provided APP_ROOT
+elif [[ -n "$APP_DIR" && "$APP_DIR" != "null" && -n "${CLOUDWAYS_ACCOUNT:-}" ]]; then
+  APP_ROOT="/home/${CLOUDWAYS_ACCOUNT}/$APP_DIR/public_html"
 else
-  echo "Missing app_dir for $SITE $DEPLOY_ENV in config/projects.json" >&2
+  echo "Missing APP_ROOT or app_dir/CLOUDWAYS_ACCOUNT for $SITE $DEPLOY_ENV" >&2
   exit 1
 fi
 
-THEME_SLUG="marketing"
+THEME_SLUG="hello-child"
 
 # Ensure remote directories exist
 ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
@@ -66,10 +68,12 @@ rsync -az --no-perms --no-times --omit-dir-times --delete \
   "$(dirname "$0")/../infra/wordpress/themes/$THEME_SLUG/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/wp-content/themes/$THEME_SLUG/"
 
-# Determine brand directory name (repo uses 'sparkyhq')
+# Determine brand directory name (map site keys to directory slugs)
 BRAND_DIR="$SITE"
 if [[ "$SITE" == "sparky" ]]; then
-  BRAND_DIR="sparkyhq"
+  BRAND_DIR="sparky-hq"
+elif [[ "$SITE" == "hezlepinc" ]]; then
+  BRAND_DIR="hezlep-inc"
 fi
 
 # Rsync brand kit (JSON + CSS) for this site into app root under ./brand/<site>/

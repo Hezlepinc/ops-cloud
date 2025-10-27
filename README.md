@@ -102,13 +102,13 @@ theme and brand kits.
 
 ### Repo layout for brand kits
 
-- `infra/brands/<brand>/elementor/cursor-sitekit.json`
-- `infra/brands/<brand>/assets/css/cursor.css`
+- `infra/wordpress/brands/<brand>/elementor/cursor-sitekit.json`
+- `infra/wordpress/brands/<brand>/assets/css/cursor.css`
 
 Examples:
 
-- `infra/brands/sparkyhq/elementor/cursor-sitekit.json`
-- `infra/brands/hezlepinc/elementor/cursor-sitekit.json`
+- `infra/wordpress/brands/sparky-hq/elementor/cursor-sitekit.json`
+- `infra/wordpress/brands/hezlep-inc/elementor/cursor-sitekit.json`
 
 ### Theme expectations
 
@@ -118,7 +118,7 @@ Examples:
 ### Build the brand kit artifacts
 
 - Script: `pnpm run build-cursor`
-  - Generates brand assets into `infra/brands/<brand>/assets/css/cursor.css` and/or site kit JSON as
+  - Generates brand assets into `infra/wordpress/brands/<brand>/assets/css/cursor.css` and/or site kit JSON as
     needed.
 
 ### Deploy workflow (GitHub Actions)
@@ -186,13 +186,13 @@ Examples:
 1. In WP Admin (staging), adjust Elementor → Site Settings (colors, fonts, etc.).
 2. Export the kit: Elementor → Tools → Import/Export Kit → Export. Download `cursor-sitekit.json`.
 3. Replace the repo file for the brand:
-   - `infra/brands/<brand>/elementor/cursor-sitekit.json`
+   - `infra/wordpress/brands/<brand>/elementor/cursor-sitekit.json`
 
 4. If your process generates brand CSS, run locally:
    - `pnpm run build-cursor`
 
    This should update:
-   - `infra/brands/<brand>/assets/css/cursor.css`
+   - `infra/wordpress/brands/<brand>/assets/css/cursor.css`
 
 5. Commit and push to `staging` to deploy and re-import the kit on staging automatically.
 6. Verify on staging (Site Settings reflect changes; front-end tokens present), then promote
