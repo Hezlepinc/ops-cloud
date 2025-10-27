@@ -61,6 +61,16 @@ jobs:
             infra/wordpress/themes/hello-child/ \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/"
 
+      - name: Ensure remote assets dir
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child/assets/css'"
+
       - name: Upload Elementor Kit
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
@@ -75,6 +85,23 @@ jobs:
             "infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip" \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip"
 
+      - name: Upload Tokens CSS (optional)
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets[CLOUDWAYS_HOST] }}
+          CW_USER: ${{ secrets[CLOUDWAYS_USER] }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          CSS_PATH="infra/wordpress/brands/${{ matrix.brand }}/assets/css/cursor.css"
+          if [ -f "$CSS_PATH" ]; then
+            rsync -az --no-perms --no-times -e "ssh $SSH_OPTS" \
+              "$CSS_PATH" \
+              "${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/assets/css/cursor.css"
+          else
+            echo "No brand tokens CSS found at $CSS_PATH (skipping)"
+          fi
+
       - name: Import Elementor Kit + Clear Cache
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
@@ -87,7 +114,7 @@ jobs:
           retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" \
             "bash -lc 'set -e; cd \"${APP_ROOT}\"; \
               echo Activating theme...; wp theme activate hello-child --allow-root || true; \
-              echo Importing Elementor Kit...; wp elementor import cursor-sitekit.zip --allow-root || echo \"Kit import skipped or already applied.\"; \
+              echo Importing Elementor Kit...; wp elementor kit import cursor-sitekit.zip --allow-root || echo \"Kit import skipped or already applied.\"; \
               echo Flushing cache...; wp cache flush --allow-root || true; \
               if wp plugin is-installed breeze --allow-root; then wp breeze purge --allow-root || true; fi'"
 
