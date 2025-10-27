@@ -17,8 +17,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - site: sparky
+            brand_slug: sparky-hq
+          - site: hezlepinc
+            brand_slug: hezlep-inc
     env:
       BRAND: ${{ inputs.brand }}
+      SITE: ${{ matrix.site }}
 
     steps:
       - name: Checkout code
@@ -63,6 +72,8 @@ jobs:
           CLOUDWAYS_APPFOLDER: ${{ secrets.CLOUDWAYS_APPFOLDER }}
           CLOUDWAYS_ACCOUNT: ${{ secrets.CLOUDWAYS_ACCOUNT }}
           INPUT_APPFOLDER: ${{ inputs.app_folder }}
+          APPFOLDER_SPARKY: ${{ secrets.CLOUDWAYS_APPFOLDER_SPARKY }}
+          APPFOLDER_HEZLEP: ${{ secrets.CLOUDWAYS_APPFOLDER_HEZLEP }}
         run: |
           set -euo pipefail
           SSH_OPTS="-i ~/.ssh/id_rsa -o StrictHostKeyChecking=no"
@@ -70,7 +81,14 @@ jobs:
           if [ -n "${INPUT_APPFOLDER:-}" ]; then
             APPFOLDER="${INPUT_APPFOLDER}"
           else
-            APPFOLDER="${CLOUDWAYS_APPFOLDER:-}"
+            # Site presets via secrets
+            if [ "${SITE}" = "sparky" ] && [ -n "${APPFOLDER_SPARKY:-}" ]; then
+              APPFOLDER="${APPFOLDER_SPARKY}"
+            elif [ "${SITE}" = "hezlepinc" ] && [ -n "${APPFOLDER_HEZLEP:-}" ]; then
+              APPFOLDER="${APPFOLDER_HEZLEP}"
+            else
+              APPFOLDER="${CLOUDWAYS_APPFOLDER:-}"
+            fi
           fi
           if [ -z "${APPFOLDER}" ]; then
             echo "CLOUDWAYS_APPFOLDER (or app_folder input) is required, e.g. xpzgjptrwn" >&2
