@@ -57,14 +57,23 @@ fi
 
 THEME_SLUG="hello-child"
 
+SSH_OPTS="-i ~/.ssh/id_rsa -o StrictHostKeyChecking=no"
+echo "Using APP_ROOT=$APP_ROOT"
+
+# Verify remote app root exists
+if ! ssh $SSH_OPTS "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" "test -d '$APP_ROOT'"; then
+  echo "Remote APP_ROOT does not exist: $APP_ROOT" >&2
+  exit 1
+fi
+
 # Ensure remote directories exist
-ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
-  "mkdir -p $APP_ROOT/wp-content/themes/$THEME_SLUG && \
-   mkdir -p $APP_ROOT/brand/$SITE"
+ssh $SSH_OPTS "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
+  "mkdir -p '$APP_ROOT/wp-content/themes/$THEME_SLUG' && \
+   mkdir -p '$APP_ROOT/brand/$SITE'"
 
 # Rsync theme
 rsync -az --no-perms --no-times --omit-dir-times --delete \
-  -e "ssh -o StrictHostKeyChecking=no" \
+  -e "ssh $SSH_OPTS" \
   "$(dirname "$0")/../infra/wordpress/themes/$THEME_SLUG/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/wp-content/themes/$THEME_SLUG/"
 
@@ -78,15 +87,15 @@ fi
 
 # Rsync brand kit (JSON + CSS) for this site into app root under ./brand/<site>/
 rsync -az --no-perms --no-times --omit-dir-times \
-  -e "ssh -o StrictHostKeyChecking=no" \
+  -e "ssh $SSH_OPTS" \
   "$(dirname "$0")/../infra/wordpress/brands/${BRAND_DIR}/" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/brand/${SITE}/"
 
 # Upload bootstrap and run it
-scp -o StrictHostKeyChecking=no "$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh" \
+scp $SSH_OPTS "$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh" \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/wp-bootstrap.sh"
 
-ssh -o StrictHostKeyChecking=no "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
+ssh $SSH_OPTS "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
   "chmod +x $APP_ROOT/wp-bootstrap.sh && \
    cd $APP_ROOT && \
    SITE_NAME='$SITE' DOMAIN='$TARGET_DOMAIN' ADMIN_EMAIL='admin@$TARGET_DOMAIN' THEME_SLUG='$THEME_SLUG' DEPLOY_SITE='$SITE' PLUGINS='${PLUGINS:-}' bash wp-bootstrap.sh"
