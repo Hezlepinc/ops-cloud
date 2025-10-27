@@ -1,4 +1,4 @@
-name: Deploy Hello Child Theme (Main)
+name: Deploy Hello Child Theme (Staging)
 
 on:
   push:
@@ -7,10 +7,6 @@ on:
     inputs:
       brand:
         description: "Optional brand key to copy from infra/brands/<brand> into hello-child"
-        required: false
-        type: string
-      app_folder:
-        description: "Cloudways application folder (e.g., xpzgjptrwn)"
         required: false
         type: string
 
@@ -23,8 +19,10 @@ jobs:
         include:
           - site: sparky
             brand_slug: sparky-hq
+            app_root_secret: APP_ROOT_SPARKY_STAGING
           - site: hezlepinc
             brand_slug: hezlep-inc
+            app_root_secret: APP_ROOT_HEZLEP_STAGING
     env:
       BRAND: ${{ inputs.brand }}
       SITE: ${{ matrix.site }}
@@ -64,56 +62,14 @@ jobs:
             rsync -a --delete --exclude '.git' --exclude 'node_modules' "infra/wordpress/brands/${BRAND}/theme/" "$THEME_DIR/"
           fi
 
-      - name: Compute APP_ROOT on server
-        id: approot
-        env:
-          CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
-          CLOUDWAYS_APPFOLDER: ${{ secrets.CLOUDWAYS_APPFOLDER }}
-          CLOUDWAYS_ACCOUNT: ${{ secrets.CLOUDWAYS_ACCOUNT }}
-          INPUT_APPFOLDER: ${{ inputs.app_folder }}
-          APPFOLDER_SPARKY: ${{ secrets.CLOUDWAYS_APPFOLDER_SPARKY }}
-          APPFOLDER_HEZLEP: ${{ secrets.CLOUDWAYS_APPFOLDER_HEZLEP }}
-        run: |
-          set -euo pipefail
-          SSH_OPTS="-i ~/.ssh/id_rsa -o StrictHostKeyChecking=no"
-          # Resolve app folder from input (preferred) or secret
-          if [ -n "${INPUT_APPFOLDER:-}" ]; then
-            APPFOLDER="${INPUT_APPFOLDER}"
-          else
-            # Site presets via secrets
-            if [ "${SITE}" = "sparky" ] && [ -n "${APPFOLDER_SPARKY:-}" ]; then
-              APPFOLDER="${APPFOLDER_SPARKY}"
-            elif [ "${SITE}" = "hezlepinc" ] && [ -n "${APPFOLDER_HEZLEP:-}" ]; then
-              APPFOLDER="${APPFOLDER_HEZLEP}"
-            else
-              APPFOLDER="${CLOUDWAYS_APPFOLDER:-}"
-            fi
-          fi
-          if [ -z "${APPFOLDER}" ]; then
-            echo "CLOUDWAYS_APPFOLDER (or app_folder input) is required, e.g. xpzgjptrwn" >&2
-            exit 1
-          fi
-          if [ -n "${CLOUDWAYS_ACCOUNT:-}" ]; then
-            ACCOUNT_DIR="${CLOUDWAYS_ACCOUNT}"
-          else
-            ACCOUNT_DIR=$(ssh $SSH_OPTS "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" "ls -d /home/*cloudwaysapps.com 2>/dev/null | head -n1 | xargs -I{} basename {}")
-          fi
-          if [ -z "${ACCOUNT_DIR}" ]; then
-            echo "Failed to determine Cloudways account directory under /home" >&2
-            exit 1
-          fi
-          APP_ROOT="/home/${ACCOUNT_DIR}/${APPFOLDER}/public_html"
-          echo "app_root=${APP_ROOT}" >> $GITHUB_OUTPUT
-
       - name: Deploy hello-child via rsync
         env:
           CLOUDWAYS_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
+          APP_ROOT: ${{ secrets[matrix.app_root_secret] }}
         run: |
           set -euo pipefail
           SSH_OPTS="-i ~/.ssh/id_rsa -o StrictHostKeyChecking=no"
-          APP_ROOT='${{ steps.approot.outputs.app_root }}'
           # Ensure remote directory exists
           ssh $SSH_OPTS "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child'"
           # Rsync theme (exclude common junk)
