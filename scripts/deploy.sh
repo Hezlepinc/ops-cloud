@@ -92,14 +92,13 @@ rsync -az --no-perms --no-times --omit-dir-times \
   "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:$APP_ROOT/brand/${SITE}/"
 
 # Upload bootstrap and run it
-# Upload bootstrap script to /tmp first to avoid path issues, then move it
-scp $SSH_OPTS "$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh" \
-  "$CLOUDWAYS_USER@$CLOUDWAYS_HOST:/tmp/wp-bootstrap.sh"
+# Upload bootstrap script by streaming over SSH (base64) directly into theme dir
+BASE_SCRIPT_PATH="$(dirname "$0")/../infra/wordpress/wp-bootstrap.sh"
+base64 -w 0 "$BASE_SCRIPT_PATH" | ssh $SSH_OPTS "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
+  "mkdir -p '$APP_ROOT/wp-content/themes/$THEME_SLUG' && base64 -d > '$APP_ROOT/wp-content/themes/$THEME_SLUG/wp-bootstrap.sh'"
 
 ssh $SSH_OPTS "$CLOUDWAYS_USER@$CLOUDWAYS_HOST" \
-  "mkdir -p '$APP_ROOT/wp-content/themes/$THEME_SLUG' && \
-   mv /tmp/wp-bootstrap.sh '$APP_ROOT/wp-content/themes/$THEME_SLUG/wp-bootstrap.sh' && \
-   chmod +x '$APP_ROOT/wp-content/themes/$THEME_SLUG/wp-bootstrap.sh' && \
+  "chmod +x '$APP_ROOT/wp-content/themes/$THEME_SLUG/wp-bootstrap.sh' && \
    cd '$APP_ROOT' && \
    SITE_NAME='$SITE' DOMAIN='$TARGET_DOMAIN' ADMIN_EMAIL='admin@$TARGET_DOMAIN' THEME_SLUG='$THEME_SLUG' DEPLOY_SITE='$SITE' PLUGINS='${PLUGINS:-}' bash 'wp-content/themes/$THEME_SLUG/wp-bootstrap.sh'"
 
