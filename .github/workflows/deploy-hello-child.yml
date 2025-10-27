@@ -9,6 +9,10 @@ on:
         description: "Optional brand key to copy from infra/brands/<brand> into hello-child"
         required: false
         type: string
+      app_folder:
+        description: "Cloudways application folder (e.g., xpzgjptrwn)"
+        required: false
+        type: string
 
 jobs:
   deploy:
@@ -58,9 +62,20 @@ jobs:
           CLOUDWAYS_USER: ${{ secrets.CLOUDWAYS_USER }}
           CLOUDWAYS_APPFOLDER: ${{ secrets.CLOUDWAYS_APPFOLDER }}
           CLOUDWAYS_ACCOUNT: ${{ secrets.CLOUDWAYS_ACCOUNT }}
+          INPUT_APPFOLDER: ${{ inputs.app_folder }}
         run: |
           set -euo pipefail
           SSH_OPTS="-i ~/.ssh/id_rsa -o StrictHostKeyChecking=no"
+          # Resolve app folder from input (preferred) or secret
+          if [ -n "${INPUT_APPFOLDER:-}" ]; then
+            APPFOLDER="${INPUT_APPFOLDER}"
+          else
+            APPFOLDER="${CLOUDWAYS_APPFOLDER:-}"
+          fi
+          if [ -z "${APPFOLDER}" ]; then
+            echo "CLOUDWAYS_APPFOLDER (or app_folder input) is required, e.g. xpzgjptrwn" >&2
+            exit 1
+          fi
           if [ -n "${CLOUDWAYS_ACCOUNT:-}" ]; then
             ACCOUNT_DIR="${CLOUDWAYS_ACCOUNT}"
           else
@@ -70,7 +85,7 @@ jobs:
             echo "Failed to determine Cloudways account directory under /home" >&2
             exit 1
           fi
-          APP_ROOT="/home/${ACCOUNT_DIR}/${CLOUDWAYS_APPFOLDER}/public_html"
+          APP_ROOT="/home/${ACCOUNT_DIR}/${APPFOLDER}/public_html"
           echo "app_root=${APP_ROOT}" >> $GITHUB_OUTPUT
 
       - name: Deploy hello-child via rsync
