@@ -53,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "Deploying Hello Child to $APP_ROOT"
-          rsync -az --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+          rsync -az --no-perms --no-times --omit-dir-times --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
             infra/wordpress/themes/hello-child/ \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/"
 
@@ -65,7 +65,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "Uploading Elementor Kit for brand: ${{ matrix.brand }}"
-          rsync -az -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+          rsync -az --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
             "infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip" \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip"
 

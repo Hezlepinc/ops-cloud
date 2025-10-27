@@ -73,7 +73,7 @@ jobs:
           # Ensure remote directory exists
           ssh $SSH_OPTS "${CLOUDWAYS_USER}@${CLOUDWAYS_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child'"
           # Rsync theme (exclude common junk)
-          rsync -az --delete \
+          rsync -az --no-perms --no-times --omit-dir-times --delete \
             --exclude '.git' --exclude '.github' --exclude 'node_modules' --exclude '*.map' --exclude '.DS_Store' \
             -e "ssh $SSH_OPTS" \
             infra/wordpress/themes/hello-child/ \
