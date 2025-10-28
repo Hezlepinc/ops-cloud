@@ -83,7 +83,7 @@ jobs:
             "bash -lc 'set -e; \
               ls -lah \"${APP_ROOT}/wp-content/themes/hello-child\"; \
               for f in style.css functions.php; do \
-                if [ -s \"${APP_ROOT}/wp-content/themes/hello-child/$f\" ]; then echo \"$f OK\"; else echo \"$f MISSING or empty\"; fi; \
+                if [ -s \"${APP_ROOT}/wp-content/themes/hello-child/\$f\" ]; then echo \"\$f OK\"; else echo \"\$f MISSING or empty\"; fi; \
               done; \
               if [ -d \"${APP_ROOT}/wp-content/themes/hello-child/hello-child\" ]; then echo \"WARNING: nested hello-child folder detected\"; fi'"
 
