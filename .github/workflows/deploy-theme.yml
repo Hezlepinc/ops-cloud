@@ -15,18 +15,26 @@ jobs:
           - site: sparky
             brand: sparky-hq
             app_secret: APP_ROOT_SPARKY_STAGING
+            host_secret: CLOUDWAYS_HOST_SPARKY
+            user_secret: CLOUDWAYS_USER_SPARKY
+            key_secret: CLOUDWAYS_SSH_KEY_SPARKY
           - site: hezlep
             brand: hezlep-inc
             app_secret: APP_ROOT_HEZLEP_STAGING
+            host_secret: CLOUDWAYS_HOST
+            user_secret: CLOUDWAYS_USER
+            key_secret: CLOUDWAYS_SSH_KEY
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Prepare SSH key
+        env:
+          SSH_KEY: ${{ secrets[matrix.key_secret] }}
         run: |
           set -eo pipefail
-          echo "${{ secrets.CLOUDWAYS_SSH_KEY }}" > key.pem
+          echo "$SSH_KEY" > key.pem
           # Normalize Windows newlines just in case
           sed -i -e 's/\r$//' key.pem || true
           chmod 600 key.pem
@@ -49,8 +57,8 @@ jobs:
       - name: Deploy Hello Child Theme
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          CW_USER: ${{ secrets[matrix.user_secret] }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -64,8 +72,8 @@ jobs:
       - name: Ensure remote assets dir
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          CW_USER: ${{ secrets[matrix.user_secret] }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -74,8 +82,8 @@ jobs:
       - name: Verify remote theme files
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          CW_USER: ${{ secrets[matrix.user_secret] }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -90,8 +98,8 @@ jobs:
       - name: Upload Elementor Kit
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          CW_USER: ${{ secrets[matrix.user_secret] }}
         run: |
           set -eo pipefail
           echo "Uploading Elementor Kit for brand: ${{ matrix.brand }}"
@@ -104,8 +112,8 @@ jobs:
       - name: Upload Brand Templates (optional)
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          CW_USER: ${{ secrets[matrix.user_secret] }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -122,8 +130,8 @@ jobs:
       - name: Upload Tokens CSS (optional)
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          CW_USER: ${{ secrets[matrix.user_secret] }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
