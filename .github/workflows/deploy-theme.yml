@@ -32,12 +32,28 @@ jobs:
       - name: Prepare SSH key
         env:
           SSH_KEY: ${{ secrets[matrix.key_secret] }}
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
         run: |
           set -eo pipefail
-          echo "$SSH_KEY" > key.pem
-          # Normalize Windows newlines just in case
+          mkdir -p ~/.ssh
+          if echo "$SSH_KEY" | grep -q "BEGIN "; then
+            printf "%s\n" "$SSH_KEY" > key.pem
+          else
+            echo "$SSH_KEY" | base64 -d > key.pem || (echo "Failed to decode base64 SSH key" >&2; exit 1)
+          fi
           sed -i -e 's/\r$//' key.pem || true
           chmod 600 key.pem
+          ssh-keyscan -H "$CW_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: SSH preflight
+        env:
+          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          CW_USER: ${{ secrets[matrix.user_secret] }}
+        run: |
+          set -eo pipefail
+          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o TCPKeepAlive=yes"
+          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 3 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((3*n)); done }
+          retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "echo ok && whoami && hostname && pwd"
 
       - name: Assemble Hello Child Theme
         run: |
