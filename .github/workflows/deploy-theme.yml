@@ -57,7 +57,7 @@ jobs:
           retry() { n=0; until "$@"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts" >&2; return 1; fi; sleep $((5*n)); done }
           echo "Deploying Hello Child to $APP_ROOT"
           retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child'"
-          retry rsync -az --no-perms --no-times --omit-dir-times --delete -e "ssh $SSH_OPTS" \
+          retry rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh $SSH_OPTS" \
             infra/wordpress/themes/hello-child/ \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/"
 
@@ -71,6 +71,16 @@ jobs:
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
           ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child/assets/css'"
 
+      - name: Verify remote theme files
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets[CLOUDWAYS_USER] }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "bash -lc 'set -e; THEME_DIR=\"${APP_ROOT}/wp-content/themes/hello-child\"; ls -lah \"$THEME_DIR\"; for f in style.css functions.php; do if [ -s \"$THEME_DIR/$f\" ]; then echo \"$f OK\"; else echo \"$f MISSING or empty\"; fi; done; if [ -d \"$THEME_DIR/hello-child\" ]; then echo \"WARNING: nested hello-child folder detected\"; fi'"
+
       - name: Upload Elementor Kit
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
@@ -81,7 +91,7 @@ jobs:
           echo "Uploading Elementor Kit for brand: ${{ matrix.brand }}"
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
           retry() { n=0; until "$@"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts" >&2; return 1; fi; sleep $((5*n)); done }
-          retry rsync -az --no-perms --no-times -e "ssh $SSH_OPTS" \
+          retry rsync -azvP --no-perms --no-times -e "ssh $SSH_OPTS" \
             "infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip" \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip"
 
