@@ -9,15 +9,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       max-parallel: 1
       matrix:
         include:
-          - site: sparky
-            brand: sparky-hq
-            app_secret: APP_ROOT_SPARKY_STAGING
           - site: hezlep
             brand: hezlep-inc
             app_secret: APP_ROOT_HEZLEP_STAGING
+          - site: sparky
+            brand: sparky-hq
+            app_secret: APP_ROOT_SPARKY_STAGING
 
     steps:
       - name: Checkout repository
