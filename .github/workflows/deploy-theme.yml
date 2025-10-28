@@ -101,6 +101,24 @@ jobs:
             "infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip" \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip"
 
+      - name: Upload Brand Templates (optional)
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          # Only if any JSON templates exist in the brand elementor folder
+          if compgen -G "infra/wordpress/brands/${{ matrix.brand }}/elementor/*.json" > /dev/null; then
+            ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '${APP_ROOT}/tmp/elementor/brand-templates'"
+            rsync -azvP --no-perms --no-times -e "ssh $SSH_OPTS" \
+              infra/wordpress/brands/${{ matrix.brand }}/elementor/*.json \
+              "${CW_USER}@${CW_HOST}:${APP_ROOT}/tmp/elementor/brand-templates/"
+          else
+            echo "No brand JSON templates present (header/footer/single-page). Skipping upload."
+          fi
+
       - name: Upload Tokens CSS (optional)
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
@@ -131,6 +149,20 @@ jobs:
             "bash -lc 'set -e; cd \"${APP_ROOT}\"; \
               echo Activating theme...; wp theme activate hello-child --allow-root || true; \
               echo Importing Elementor Kit...; wp elementor kit import cursor-sitekit.zip --allow-root || echo \"Kit import skipped or already applied.\"; \
+              # Import additional brand templates if present
+              if [ -f \"${APP_ROOT}/tmp/elementor/brand-templates/header.json\" ]; then wp elementor import \"${APP_ROOT}/tmp/elementor/brand-templates/header.json\" --allow-root || true; fi; \
+              if [ -f \"${APP_ROOT}/tmp/elementor/brand-templates/footer.json\" ]; then wp elementor import \"${APP_ROOT}/tmp/elementor/brand-templates/footer.json\" --allow-root || true; fi; \
+              if [ -f \"${APP_ROOT}/tmp/elementor/brand-templates/single-page.json\" ]; then wp elementor import \"${APP_ROOT}/tmp/elementor/brand-templates/single-page.json\" --allow-root || true; fi; \
+              # Ensure core pages exist and set Home as front page
+              ensure_page(){ title=\"$1\"; slug=\"$2\"; id=$(wp post list --post_type=page --name=\"$slug\" --field=ID --allow-root); if [ -z \"$id\" ]; then id=$(wp post create --post_type=page --post_title=\"$title\" --post_name=\"$slug\" --post_status=publish --porcelain --allow-root); fi; echo $id; }; \
+              HOME_ID=$(ensure_page Home home); \
+              ensure_page Tools tools; ensure_page Resources resources; ensure_page About about; ensure_page Contact contact; \
+              wp option update show_on_front page --allow-root; \
+              wp option update page_on_front $HOME_ID --allow-root; \
+              # Ensure primary menu with links
+              if ! wp menu list --fields=slug --allow-root | grep -q '^primary$'; then wp menu create primary --allow-root; fi; \
+              wp menu location assign primary primary --allow-root || true; \
+              for slug in home tools resources about contact; do pid=$(wp post list --post_type=page --name=\"$slug\" --field=ID --allow-root); if [ -n \"$pid\" ]; then wp menu item add-post primary $pid --allow-root || true; fi; done; \
               echo Flushing cache...; wp cache flush --allow-root || true; \
               if wp plugin is-installed breeze --allow-root; then wp breeze purge --allow-root || true; fi'"
 
