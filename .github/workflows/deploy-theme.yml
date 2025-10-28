@@ -75,7 +75,7 @@ jobs:
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets[CLOUDWAYS_USER] }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -euo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
