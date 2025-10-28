@@ -15,15 +15,9 @@ jobs:
           - site: sparky
             brand: sparky-hq
             app_secret: APP_ROOT_SPARKY_STAGING
-            host_secret: CLOUDWAYS_HOST_SPARKY
-            user_secret: CLOUDWAYS_USER_SPARKY
-            key_secret: CLOUDWAYS_SSH_KEY_SPARKY
           - site: hezlep
             brand: hezlep-inc
             app_secret: APP_ROOT_HEZLEP_STAGING
-            host_secret: CLOUDWAYS_HOST
-            user_secret: CLOUDWAYS_USER
-            key_secret: CLOUDWAYS_SSH_KEY
 
     steps:
       - name: Checkout repository
@@ -31,8 +25,8 @@ jobs:
 
       - name: Prepare SSH key
         env:
-          SSH_KEY: ${{ secrets[matrix.key_secret] }}
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
+          SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
         run: |
           set -eo pipefail
           mkdir -p ~/.ssh
@@ -47,8 +41,8 @@ jobs:
 
       - name: SSH preflight
         env:
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
-          CW_USER: ${{ secrets[matrix.user_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o TCPKeepAlive=yes"
@@ -73,8 +67,8 @@ jobs:
       - name: Deploy Hello Child Theme
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
-          CW_USER: ${{ secrets[matrix.user_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -88,8 +82,8 @@ jobs:
       - name: Ensure remote assets dir
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
-          CW_USER: ${{ secrets[matrix.user_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -98,8 +92,8 @@ jobs:
       - name: Verify remote theme files
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
-          CW_USER: ${{ secrets[matrix.user_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -114,8 +108,8 @@ jobs:
       - name: Upload Elementor Kit
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
-          CW_USER: ${{ secrets[matrix.user_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
           echo "Uploading Elementor Kit for brand: ${{ matrix.brand }}"
@@ -128,8 +122,8 @@ jobs:
       - name: Upload Brand Templates (optional)
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
-          CW_USER: ${{ secrets[matrix.user_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
@@ -146,8 +140,8 @@ jobs:
       - name: Upload Tokens CSS (optional)
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets[matrix.host_secret] }}
-          CW_USER: ${{ secrets[matrix.user_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
