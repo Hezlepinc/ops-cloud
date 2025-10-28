@@ -79,7 +79,13 @@ jobs:
         run: |
           set -euo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
-          ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "bash -lc 'set -e; THEME_DIR=\"${APP_ROOT}/wp-content/themes/hello-child\"; ls -lah \"$THEME_DIR\"; for f in style.css functions.php; do if [ -s \"$THEME_DIR/$f\" ]; then echo \"$f OK\"; else echo \"$f MISSING or empty\"; fi; done; if [ -d \"$THEME_DIR/hello-child\" ]; then echo \"WARNING: nested hello-child folder detected\"; fi'"
+          ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" \
+            "bash -lc 'set -e; \
+              ls -lah \"${APP_ROOT}/wp-content/themes/hello-child\"; \
+              for f in style.css functions.php; do \
+                if [ -s \"${APP_ROOT}/wp-content/themes/hello-child/$f\" ]; then echo \"$f OK\"; else echo \"$f MISSING or empty\"; fi; \
+              done; \
+              if [ -d \"${APP_ROOT}/wp-content/themes/hello-child/hello-child\" ]; then echo \"WARNING: nested hello-child folder detected\"; fi'"
 
       - name: Upload Elementor Kit
         env:
