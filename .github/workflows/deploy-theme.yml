@@ -39,6 +39,15 @@ jobs:
           chmod 600 key.pem
           ssh-keyscan -H "$CW_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
+      - name: SSH debug (sparky only)
+        if: ${{ matrix.site == 'sparky' }}
+        env:
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -eo pipefail
+          ssh -vvv -i key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 "${CW_USER}@${CW_HOST}" true || true
+
       - name: SSH preflight
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
