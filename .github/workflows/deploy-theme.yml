@@ -25,7 +25,7 @@ jobs:
 
       - name: Prepare SSH key
         run: |
-          set -euo pipefail
+          set -eo pipefail
           echo "${{ secrets.CLOUDWAYS_SSH_KEY }}" > key.pem
           # Normalize Windows newlines just in case
           sed -i -e 's/\r$//' key.pem || true
@@ -33,7 +33,7 @@ jobs:
 
       - name: Assemble Hello Child Theme
         run: |
-          set -euo pipefail
+          set -eo pipefail
           echo "Building theme for brand: ${{ matrix.brand }}"
           rm -rf infra/wordpress/themes/hello-child
           mkdir -p infra/wordpress/themes/hello-child
@@ -52,9 +52,9 @@ jobs:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
-          retry() { n=0; until "$@"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts" >&2; return 1; fi; sleep $((5*n)); done }
+          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
           echo "Deploying Hello Child to $APP_ROOT"
           retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child'"
           retry rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh $SSH_OPTS" \
@@ -67,7 +67,7 @@ jobs:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
           ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child/assets/css'"
 
@@ -77,7 +77,7 @@ jobs:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
           ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" \
             "bash -lc 'set -e; \
@@ -93,10 +93,10 @@ jobs:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
           echo "Uploading Elementor Kit for brand: ${{ matrix.brand }}"
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
-          retry() { n=0; until "$@"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts" >&2; return 1; fi; sleep $((5*n)); done }
+          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
           retry rsync -azvP --no-perms --no-times -e "ssh $SSH_OPTS" \
             "infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip" \
             "${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip"
@@ -107,7 +107,7 @@ jobs:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
           # Only if any JSON templates exist in the brand elementor folder
           if compgen -G "infra/wordpress/brands/${{ matrix.brand }}/elementor/*.json" > /dev/null; then
@@ -144,7 +144,7 @@ jobs:
         run: |
           set -euo pipefail
           SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
-          retry() { n=0; until "$@"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts" >&2; return 1; fi; sleep $((5*n)); done }
+          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
           retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" \
             "bash -lc 'set -e; cd \"${APP_ROOT}\"; \
               echo Activating theme...; wp theme activate hello-child --allow-root || true; \
