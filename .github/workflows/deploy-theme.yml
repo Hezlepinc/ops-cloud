@@ -24,6 +24,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Show runner IP
+        run: |
+          set -eo pipefail
+          echo "Runner public IP: $(curl -s https://api.ipify.org)"
+
       - name: Prepare SSH key
         env:
           SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
@@ -40,14 +45,13 @@ jobs:
           chmod 600 key.pem
           ssh-keyscan -H "$CW_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: SSH debug (sparky only)
-        if: ${{ matrix.site == 'sparky' }}
+      - name: SSH debug (preflight)
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
-          ssh -vvv -i key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 "${CW_USER}@${CW_HOST}" true || true
+          ssh -vvv -i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=20 "${CW_USER}@${CW_HOST}" true || true
 
       - name: SSH preflight
         env:
@@ -55,7 +59,7 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o TCPKeepAlive=yes"
+          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o TCPKeepAlive=yes"
           retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 3 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((3*n)); done }
           retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "echo ok && whoami && hostname && pwd"
 
@@ -81,7 +85,7 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
           retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
           echo "Deploying Hello Child to $APP_ROOT"
           retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child'"
@@ -96,7 +100,7 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
           ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child/assets/css'"
 
       - name: Verify remote theme files
@@ -106,7 +110,7 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
           ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" \
             "bash -lc 'set -e; \
               ls -lah \"${APP_ROOT}/wp-content/themes/hello-child\"; \
@@ -123,7 +127,7 @@ jobs:
         run: |
           set -eo pipefail
           echo "Uploading Elementor Kit for brand: ${{ matrix.brand }}"
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
           retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
           retry rsync -azvP --no-perms --no-times -e "ssh $SSH_OPTS" \
             "infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip" \
@@ -136,7 +140,7 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -eo pipefail
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
+          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
           # Only if any JSON templates exist in the brand elementor folder
           if compgen -G "infra/wordpress/brands/${{ matrix.brand }}/elementor/*.json" > /dev/null; then
             ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '${APP_ROOT}/tmp/elementor/brand-templates'"
