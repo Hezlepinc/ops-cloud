@@ -2,203 +2,277 @@ name: Deploy Child Themes & Elementor Kits to Cloudways
 
 on:
   push:
-    branches: [staging]
-  workflow_dispatch: {}
+    branches:
+      - staging
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         include:
-          - site: hezlep
-            brand: hezlep-inc
-            app_secret: APP_ROOT_HEZLEP_STAGING
+          # --- Staging Sites ---
           - site: sparky
+            env: staging
             brand: sparky-hq
             app_secret: APP_ROOT_SPARKY_STAGING
+          - site: hezlep
+            env: staging
+            brand: hezlep-inc
+            app_secret: APP_ROOT_HEZLEP_STAGING
+
+          # --- Production Sites ---
+          - site: sparky
+            env: prod
+            brand: sparky-hq
+            app_secret: APP_ROOT_SPARKY_PROD
+          - site: hezlep
+            env: prod
+            brand: hezlep-inc
+            app_secret: APP_ROOT_HEZLEP_PROD
 
     steps:
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Show runner IP
       - name: Show runner IP
         run: |
-          set -eo pipefail
-          echo "Runner public IP: $(curl -s https://api.ipify.org)"
+          echo "Runner IP: $(curl -s https://api.ipify.org)"
 
+      # 3. Write SSH key and known_hosts
       - name: Prepare SSH key
-        env:
-          SSH_KEY: ${{ secrets.CLOUDWAYS_SSH_KEY }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
         run: |
-          set -eo pipefail
-          mkdir -p ~/.ssh
-          if echo "$SSH_KEY" | grep -q "BEGIN "; then
-            printf "%s\n" "$SSH_KEY" > key.pem
-          else
-            echo "$SSH_KEY" | base64 -d > key.pem || (echo "Failed to decode base64 SSH key" >&2; exit 1)
-          fi
+          echo "${{ secrets.CLOUDWAYS_SSH_KEY }}" > key.pem
+          # Normalize CRLF just in case
           sed -i -e 's/\r$//' key.pem || true
           chmod 600 key.pem
-          ssh-keyscan -H "$CW_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -H "${{ secrets.CLOUDWAYS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: SSH debug (preflight)
+      # 4. Verify the runner is using the same key (fingerprint)
+      - name: SSH key fingerprint test
+        run: |
+          echo "Runner SSH key fingerprint:"
+          ssh-keygen -lf key.pem
+
+      # 5. Quick SSH connection check
+      - name: Verify SSH connectivity
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -eo pipefail
-          ssh -vvv -i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=20 "${CW_USER}@${CW_HOST}" true || true
+          ssh -i key.pem -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ConnectTimeout=15 \
+            ${CW_USER}@${CW_HOST} "echo ✅ Connected successfully as $(whoami)"
 
-      - name: SSH preflight
-        env:
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -eo pipefail
-          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o TCPKeepAlive=yes"
-          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 3 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((3*n)); done }
-          retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "echo ok && whoami && hostname && pwd"
-
+      # 6. Assemble Hello Child Theme
       - name: Assemble Hello Child Theme
         run: |
-          set -eo pipefail
-          echo "Building theme for brand: ${{ matrix.brand }}"
+          set -e
+          echo "🏗️  Building theme for brand: ${{ matrix.brand }}"
           rm -rf infra/wordpress/themes/hello-child
           mkdir -p infra/wordpress/themes/hello-child
-          # Prefer dedicated theme subfolder
-          rsync -a --exclude '.git' --exclude 'node_modules' \
-            "infra/wordpress/brands/${{ matrix.brand }}/theme/" \
-            "infra/wordpress/themes/hello-child/" 2>/dev/null || true
-          # Fallback: copy from brand root if no theme/ subfolder
-          rsync -a --exclude '.git' --exclude 'node_modules' \
-            "infra/wordpress/brands/${{ matrix.brand }}/" \
-            "infra/wordpress/themes/hello-child/" 2>/dev/null || true
+          if [ -d "infra/wordpress/brands/${{ matrix.brand }}/theme" ]; then
+            rsync -a infra/wordpress/brands/${{ matrix.brand }}/theme/ infra/wordpress/themes/hello-child/
+          else
+            rsync -a infra/wordpress/brands/${{ matrix.brand }}/ infra/wordpress/themes/hello-child/
+          fi
 
+      # 7. Deploy Hello Child Theme
       - name: Deploy Hello Child Theme
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -eo pipefail
-          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
-          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
-          echo "Deploying Hello Child to $APP_ROOT"
-          retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child'"
-          retry rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh $SSH_OPTS" \
+          set -e
+          echo "🚀 Deploying Hello Child theme to: $APP_ROOT"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/hello-child"
+          rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
             infra/wordpress/themes/hello-child/ \
-            "${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/"
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/
 
-      - name: Ensure remote assets dir
-        env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -eo pipefail
-          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
-          ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '$APP_ROOT/wp-content/themes/hello-child/assets/css'"
-
-      - name: Verify remote theme files
-        env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -eo pipefail
-          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
-          ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" \
-            "bash -lc 'set -e; \
-              ls -lah \"${APP_ROOT}/wp-content/themes/hello-child\"; \
-              for f in style.css functions.php; do \
-                if [ -s \"${APP_ROOT}/wp-content/themes/hello-child/\$f\" ]; then echo \"\$f OK\"; else echo \"\$f MISSING or empty\"; fi; \
-              done; \
-              if [ -d \"${APP_ROOT}/wp-content/themes/hello-child/hello-child\" ]; then echo \"WARNING: nested hello-child folder detected\"; fi'"
-
+      # 8. Upload Elementor Kit
       - name: Upload Elementor Kit
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -eo pipefail
-          echo "Uploading Elementor Kit for brand: ${{ matrix.brand }}"
-          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
-          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
-          retry rsync -azvP --no-perms --no-times -e "ssh $SSH_OPTS" \
-            "infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip" \
-            "${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip"
+          set -e
+          echo "📦 Uploading Elementor Kit for brand: ${{ matrix.brand }}"
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip
 
-      - name: Upload Brand Templates (optional)
+      # 9. Import Elementor Kit + Activate Theme
+      - name: Import Elementor Kit + Activate Theme
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          set -eo pipefail
-          SSH_OPTS="-i key.pem -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes -o ConnectTimeout=20"
-          # Only if any JSON templates exist in the brand elementor folder
-          if compgen -G "infra/wordpress/brands/${{ matrix.brand }}/elementor/*.json" > /dev/null; then
-            ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" "mkdir -p '${APP_ROOT}/tmp/elementor/brand-templates'"
-            rsync -azvP --no-perms --no-times -e "ssh $SSH_OPTS" \
-              infra/wordpress/brands/${{ matrix.brand }}/elementor/*.json \
-              "${CW_USER}@${CW_HOST}:${APP_ROOT}/tmp/elementor/brand-templates/"
-          else
-            echo "No brand JSON templates present (header/footer/single-page). Skipping upload."
-          fi
-
-      - name: Upload Tokens CSS (optional)
-        env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -eo pipefail
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
-          CSS_PATH="infra/wordpress/brands/${{ matrix.brand }}/assets/css/cursor.css"
-          if [ -f "$CSS_PATH" ]; then
-            rsync -az --no-perms --no-times -e "ssh $SSH_OPTS" \
-              "$CSS_PATH" \
-              "${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/assets/css/cursor.css"
-          else
-            echo "No brand tokens CSS found at $CSS_PATH (skipping)"
-          fi
-
-      - name: Import Elementor Kit + Clear Cache
-        env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -eo pipefail
-          SSH_OPTS="-i key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o ConnectionAttempts=5 -o TCPKeepAlive=yes"
-          retry() { n=0; cmd="$*"; until sh -c "$cmd"; do n=$((n+1)); if [ $n -ge 5 ]; then echo "Failed after $n attempts: $cmd" >&2; return 1; fi; sleep $((5*n)); done }
-          retry ssh $SSH_OPTS "${CW_USER}@${CW_HOST}" \
+          set -e
+          echo "🔧 Importing Elementor kit & activating theme..."
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
             "bash -lc 'set -e; cd \"${APP_ROOT}\"; \
-              echo Activating theme...; wp theme activate hello-child --allow-root || true; \
-              echo Importing Elementor Kit...; wp elementor kit import cursor-sitekit.zip --allow-root || echo \"Kit import skipped or already applied.\"; \
-              # Import additional brand templates if present
-              if [ -f \"${APP_ROOT}/tmp/elementor/brand-templates/header.json\" ]; then wp elementor import \"${APP_ROOT}/tmp/elementor/brand-templates/header.json\" --allow-root || true; fi; \
-              if [ -f \"${APP_ROOT}/tmp/elementor/brand-templates/footer.json\" ]; then wp elementor import \"${APP_ROOT}/tmp/elementor/brand-templates/footer.json\" --allow-root || true; fi; \
-              if [ -f \"${APP_ROOT}/tmp/elementor/brand-templates/single-page.json\" ]; then wp elementor import \"${APP_ROOT}/tmp/elementor/brand-templates/single-page.json\" --allow-root || true; fi; \
-              # Ensure core pages exist and set Home as front page
-              ensure_page(){ title=\"$1\"; slug=\"$2\"; id=$(wp post list --post_type=page --name=\"$slug\" --field=ID --allow-root); if [ -z \"$id\" ]; then id=$(wp post create --post_type=page --post_title=\"$title\" --post_name=\"$slug\" --post_status=publish --porcelain --allow-root); fi; echo $id; }; \
-              HOME_ID=$(ensure_page Home home); \
-              ensure_page Tools tools; ensure_page Resources resources; ensure_page About about; ensure_page Contact contact; \
-              wp option update show_on_front page --allow-root; \
-              wp option update page_on_front $HOME_ID --allow-root; \
-              # Ensure primary menu with links
-              if ! wp menu list --fields=slug --allow-root | grep -q '^primary$'; then wp menu create primary --allow-root; fi; \
-              wp menu location assign primary primary --allow-root || true; \
-              for slug in home tools resources about contact; do pid=$(wp post list --post_type=page --name=\"$slug\" --field=ID --allow-root); if [ -n \"$pid\" ]; then wp menu item add-post primary $pid --allow-root || true; fi; done; \
+              echo Activating Hello Child theme...; wp theme activate hello-child --allow-root || true; \
+              echo Importing Elementor Kit...; wp elementor kit import cursor-sitekit.zip --allow-root || true; \
               echo Flushing cache...; wp cache flush --allow-root || true; \
               if wp plugin is-installed breeze --allow-root; then wp breeze purge --allow-root || true; fi'"
 
-      - name: Cleanup
-        if: always()
+      # 10. Verify remote theme directory
+      - name: Verify remote theme directory
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          rm -f key.pem
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
+            "ls -lah ${APP_ROOT}/wp-content/themes/hello-child && echo '✅ Theme deployed successfully'"
+
+      # 11. Cleanup
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f key.pem
+name: Deploy Child Themes & Elementor Kits to Cloudways
+
+on:
+  push:
+    branches:
+      - staging # → deploys to staging apps
+      - main # → deploys to production apps
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # --- Staging Sites ---
+          - site: sparky
+            env: staging
+            brand: sparky-hq
+            app_secret: APP_ROOT_SPARKY_STAGING
+          - site: hezlep
+            env: staging
+            brand: hezlep-inc
+            app_secret: APP_ROOT_HEZLEP_STAGING
+
+          # --- Production Sites ---
+          - site: sparky
+            env: prod
+            brand: sparky-hq
+            app_secret: APP_ROOT_SPARKY_PROD
+          - site: hezlep
+            env: prod
+            brand: hezlep-inc
+            app_secret: APP_ROOT_HEZLEP_PROD
+
+    steps:
+      # 1. Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Show runner IP
+      - name: Show runner IP
+        run: |
+          echo "Runner IP: $(curl -s https://api.ipify.org)"
+
+      # 3. Write SSH key
+      - name: Prepare SSH key
+        run: |
+          echo "${{ secrets.CLOUDWAYS_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+          ssh-keyscan -H "${{ secrets.CLOUDWAYS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      # 4. Test SSH connection
+      - name: Verify SSH connectivity
+        env:
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${CW_USER}@${CW_HOST} "echo ✅ Connected successfully as $(whoami)"
+
+      # 5. Assemble Hello Child Theme
+      - name: Assemble Hello Child Theme
+        run: |
+          set -e
+          echo "🏗️  Building theme for brand: ${{ matrix.brand }}"
+          rm -rf infra/wordpress/themes/hello-child
+          mkdir -p infra/wordpress/themes/hello-child
+          if [ -d "infra/wordpress/brands/${{ matrix.brand }}/theme" ]; then
+            rsync -a infra/wordpress/brands/${{ matrix.brand }}/theme/ infra/wordpress/themes/hello-child/
+          else
+            rsync -a infra/wordpress/brands/${{ matrix.brand }}/ infra/wordpress/themes/hello-child/
+          fi
+
+      # 6. Deploy Hello Child Theme
+      - name: Deploy Hello Child Theme
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -e
+          echo "🚀 Deploying Hello Child theme to: $APP_ROOT"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/hello-child"
+          rsync -azvP --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/themes/hello-child/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/
+
+      # 7. Upload Elementor Kit
+      - name: Upload Elementor Kit
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -e
+          echo "📦 Uploading Elementor Kit for brand: ${{ matrix.brand }}"
+          rsync -azP -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip
+
+      # 8. Import Elementor Kit + Activate Theme
+      - name: Import Elementor Kit + Activate Theme
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -e
+          echo "🔧 Importing Elementor kit & activating theme..."
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} <<'REMOTE'
+          set -e
+          cd ${APP_ROOT}
+          echo "Activating Hello Child theme..."
+          wp theme activate hello-child --allow-root || true
+          echo "Importing Elementor Kit..."
+          wp elementor import cursor-sitekit.zip --allow-root || true
+          echo "Flushing cache..."
+          wp cache flush --allow-root || true
+          if wp plugin is-installed breeze --allow-root; then
+            wp breeze purge --allow-root || true
+          fi
+          REMOTE
+
+      # 9. Verify remote theme directory
+      - name: Verify remote theme directory
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
+            "ls -lah ${APP_ROOT}/wp-content/themes/hello-child && echo '✅ Theme deployed successfully'"
+
+      # 10. Cleanup
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f key.pem
