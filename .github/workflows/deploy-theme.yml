@@ -73,12 +73,31 @@ jobs:
         run: |
           set -e
           echo "🏗️  Building theme for brand: ${{ matrix.brand }}"
-          rm -rf infra/wordpress/themes/hello-child
-          mkdir -p infra/wordpress/themes/hello-child
+          rm -rf infra/build/hello-child
+          mkdir -p infra/build/hello-child
+          # Base shared child theme
+          rsync -a infra/wordpress/themes/hello-child/ infra/build/hello-child/
+          # Brand overlay (optional)
           if [ -d "infra/wordpress/brands/${{ matrix.brand }}/theme" ]; then
-            rsync -a infra/wordpress/brands/${{ matrix.brand }}/theme/ infra/wordpress/themes/hello-child/
+            rsync -a infra/wordpress/brands/${{ matrix.brand }}/theme/ infra/build/hello-child/
+          fi
+          # Version stamp in style.css
+          if [ -f infra/build/hello-child/style.css ]; then
+            ver=$(date +"%Y.%m.%d-%H%M")
+            sed -i -e "s/^Version:.*/Version: ${ver}/" infra/build/hello-child/style.css || true
+          fi
+
+      # 6b. Copy brand tokens CSS if present
+      - name: Copy brand tokens CSS (optional)
+        run: |
+          set -e
+          mkdir -p infra/build/hello-child/assets/css
+          CSS_SRC="infra/wordpress/brands/${{ matrix.brand }}/assets/css/cursor.css"
+          if [ -f "$CSS_SRC" ]; then
+            cp "$CSS_SRC" infra/build/hello-child/assets/css/cursor.css
+            echo "Copied tokens CSS for ${{ matrix.brand }}"
           else
-            rsync -a infra/wordpress/brands/${{ matrix.brand }}/ infra/wordpress/themes/hello-child/
+            echo "No tokens CSS at $CSS_SRC (skipping)"
           fi
 
       # 7. Deploy Hello Child Theme
@@ -92,7 +111,7 @@ jobs:
           echo "🚀 Deploying Hello Child theme to: $APP_ROOT"
           ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/hello-child"
           rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/themes/hello-child/ \
+            infra/build/hello-child/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/
 
       # 8. Upload Elementor Kit
@@ -104,8 +123,11 @@ jobs:
         run: |
           set -e
           echo "📦 Uploading Elementor Kit for brand: ${{ matrix.brand }}"
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip \
+          KIT="infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit-${{ matrix.brand }}.zip"
+          if [ ! -f "$KIT" ]; then
+            KIT="infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip"
+          fi
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" "$KIT" \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip
 
       # 9. Import Elementor Kit + Activate Theme
