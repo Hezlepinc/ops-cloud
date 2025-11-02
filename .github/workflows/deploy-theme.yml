@@ -114,35 +114,40 @@ jobs:
             infra/build/hello-child/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/
 
-      # 8. Upload Elementor Kit
-      - name: Upload Elementor Kit
+      # 8. Upload brand assets (elementor kits, assets, etc.)
+      - name: Upload brand assets
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          echo "📦 Uploading Elementor Kit for brand: ${{ matrix.brand }}"
-          KIT="infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit-${{ matrix.brand }}.zip"
-          if [ ! -f "$KIT" ]; then
-            KIT="infra/wordpress/brands/${{ matrix.brand }}/elementor/cursor-sitekit.zip"
-          fi
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" "$KIT" \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/cursor-sitekit.zip
+          echo "📦 Uploading brand directory for: ${{ matrix.brand }} -> brand/${{ matrix.site }}"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/brand/${{ matrix.site }}"
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/brands/${{ matrix.brand }}/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/brand/${{ matrix.site }}/
 
-      # 9. Import Elementor Kit + Activate Theme
-      - name: Import Elementor Kit + Activate Theme
+      # 9. Activate theme and import Elementor kit (auto-detect)
+      - name: Activate theme and import kit
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          echo "🔧 Importing Elementor kit & activating theme..."
+          echo "🔧 Activating theme & importing Elementor kit (auto-detect)..."
           ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
             "bash -lc 'set -e; cd \"${APP_ROOT}\"; \
               echo Activating Hello Child theme...; wp theme activate hello-child --allow-root || true; \
-              echo Importing Elementor Kit...; wp elementor kit import cursor-sitekit.zip --allow-root || true; \
+              KIT_DIR=\"brand/${{ matrix.site }}/elementor\"; \
+              if compgen -G \"$KIT_DIR/*.zip\" > /dev/null; then \
+                KIT=\"$(ls -1 $KIT_DIR/*.zip | head -n 1)\"; echo Importing kit $KIT ...; wp elementor kit import \"$KIT\" --allow-root || true; \
+              elif compgen -G \"$KIT_DIR/*.json\" > /dev/null; then \
+                KIT=\"$(ls -1 $KIT_DIR/*.json | head -n 1)\"; echo Importing kit $KIT ...; wp elementor kit import \"$KIT\" --allow-root || true; \
+              else \
+                echo \"No kit found in $KIT_DIR\"; \
+              fi; \
               echo Flushing cache...; wp cache flush --allow-root || true; \
               if wp plugin is-installed breeze --allow-root; then wp breeze purge --allow-root || true; fi'"
 
