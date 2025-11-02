@@ -128,17 +128,23 @@ jobs:
             infra/wordpress/brands/${{ matrix.brand }}/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/brand/${{ matrix.site }}/
 
-      # 9. Activate theme and import Elementor kit (auto-detect)
-      - name: Activate theme and import kit
+      # 9. Ensure Elementor + parent theme, activate child, import kit
+      - name: Ensure Elementor and parent theme; activate child; import kit
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          echo "🔧 Activating theme & importing Elementor kit (auto-detect)..."
+          echo "🔧 Ensuring Elementor + Hello parent, activating child, and importing kit..."
           ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
             "bash -lc 'set -e; cd \"${APP_ROOT}\"; \
+              # Ensure Elementor installed/active
+              wp plugin is-installed elementor --allow-root || wp plugin install elementor --activate --allow-root; \
+              # Best-effort Pro activation if present (ignore failure)
+              wp plugin activate elementor-pro --allow-root || true; \
+              # Ensure Hello Elementor parent theme
+              wp theme is-installed hello-elementor --allow-root || wp theme install hello-elementor --allow-root; \
               echo Activating Hello Child theme...; wp theme activate hello-child --allow-root || true; \
               KIT_DIR=\"brand/${{ matrix.site }}/elementor\"; \
               if compgen -G \"$KIT_DIR/*.zip\" > /dev/null; then \
