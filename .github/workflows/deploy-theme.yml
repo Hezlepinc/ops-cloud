@@ -148,6 +148,20 @@ jobs:
               echo \"HeaderID=\${H:-none} FooterID=\${F:-none}\"; \
               if [ -z \"\$H\" ] || [ -z \"\$F\" ]; then echo \"❌ Missing Header or Footer after import\" >&2; exit 1; fi'"
 
+      - name: Health check – HTTP 200 on site home
+        env:
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -e
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
+            "bash -lc 'cd \"${APP_ROOT}\"; \
+              URL=\$(wp option get home --allow-root); \
+              echo Checking URL: \$URL; \
+              CODE=\$(curl -s -o /dev/null -w \"%{http_code}\" \"\$URL\"); \
+              echo HTTP \$CODE; \
+              if [ \"\$CODE\" != \"200\" ]; then echo \"❌ Non-200 status\" >&2; exit 1; fi'"
+
       - name: Cleanup SSH key
         if: always()
         run: rm -f key.pem

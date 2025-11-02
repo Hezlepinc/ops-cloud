@@ -55,13 +55,13 @@
 
 ## 2) Environments & Branching
 
-- **Envs:** `dev` → `staging` → `prod`
+- **Envs:** `staging` → `prod`
 - **Branches:**
   - `main`: production
-  - `develop`: staging
-  - feature branches: `feat/*`, `fix/*`
+  - `staging`: staging
+  - feature branches: `feat/*`, `fix/*` (merge into `staging`)
 
-- **Promotion:** PR from feature → `develop`; smoke test on staging; PR `develop` → `main` to release.
+- **Promotion:** PR feature → `staging`; CI deploys to staging; if green, PR `staging` → `main` to release.
 
 ---
 
@@ -336,6 +336,19 @@ run()
 - SSH keys only (no password logins).
 - Principle of least privilege in GitHub + Cloudways + Render.
 - WP hardening: security plugin, reCAPTCHA, limit logins, auto‑minor core updates.
+- Enforce HTTPS (redirect non‑SSL to SSL), disable XML‑RPC if unused.
+- Lock down non‑admins via MU plugin (hide Appearance/Plugins/Tools/Elementor; deny installs/updates).
+ 
+### 13.1 Approved Plugins (baseline)
+
+- Elementor, Elementor Pro
+- Breeze (cache) or equivalent
+- Rank Math (SEO) or equivalent
+- WP Mail SMTP
+- Limit Login Attempts Reloaded (or security suite providing throttling)
+
+Monthly update cycle:
+- Clone staging from prod in Cloudways, update plugins/themes on staging, smoke test, then update prod.
 - Optional: Cloudflare WAF in front of `@`, `cms.`, `api.`
 - Secret rotation every 90 days; separate dev/staging/prod secrets.
 - Dependency scanning via `npm audit` + GitHub Dependabot.

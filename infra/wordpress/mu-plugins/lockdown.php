@@ -11,6 +11,9 @@ if (!defined('ABSPATH')) exit;
 if (! defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
+if (! defined('DISALLOW_FILE_MODS')) {
+    define('DISALLOW_FILE_MODS', true);
+}
 
 /* Remove sensitive admin menus for non-admins */
 add_action('admin_init', function () {
@@ -27,7 +30,8 @@ add_action('admin_init', function () {
 add_filter('map_meta_cap', function ($caps, $cap) {
     $blocked_caps = [
         'switch_themes', 'edit_theme_options', 'install_plugins',
-        'activate_plugins', 'edit_plugins', 'edit_themes', 'update_core'
+        'activate_plugins', 'edit_plugins', 'edit_themes', 'update_core',
+        'update_plugins', 'update_themes'
     ];
     if (in_array($cap, $blocked_caps, true) && ! current_user_can('manage_options')) {
         // add a capability that won't exist - prevents action
@@ -46,5 +50,22 @@ add_action('init', function () {
         }
     }
 });
+
+/* Enforce HTTPS for all requests */
+add_action('template_redirect', function () {
+    if (!is_ssl()) {
+        wp_safe_redirect('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], 301);
+        exit;
+    }
+});
+add_action('admin_init', function () {
+    if (!is_ssl()) {
+        wp_safe_redirect('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], 301);
+        exit;
+    }
+});
+
+/* Disable XML-RPC */
+add_filter('xmlrpc_enabled', '__return_false');
 
 
