@@ -1,68 +1,58 @@
-name: Deploy WP base + overlays + kits
+name: Deploy WP Themes & Kits
 
 on:
   push:
-    branches:
-      - staging
-      - main
-  workflow_dispatch:
+    branches: [staging, main]
 
 jobs:
+  build-matrix:
+    name: Build deploy matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-matrix
+        run: |
+          node -e "const fs=require('fs');
+          const p=JSON.parse(fs.readFileSync('infra/wordpress/config/projects.json','utf8'));
+          const branch='${{ github.ref_name }}';
+          const env = branch==='main' ? 'prod' : 'staging';
+          const include=[];
+          for(const [brand,v] of Object.entries(p)){
+            const envKey = env==='prod'?'production':'staging';
+            include.push({ brand, overlay: v.overlay_theme, domain: v[envKey].domain, app_root_secret: v[envKey].app_root_secret, env });
+          }
+          const out = JSON.stringify({include});
+          console.log(out);
+          fs.writeFileSync(process.env.GITHUB_OUTPUT, `matrix=${out}\n`, {flag:'a'});"
+
   deploy:
+    needs: build-matrix
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Staging
-          - env: staging
-            brand: hezlep-inc
-            overlay_src: infra/wordpress/themes/overlays/ops-professional
-            app_root_secret: APP_ROOT_HEZLEP_STAGING
-          - env: staging
-            brand: sparky-hq
-            overlay_src: infra/wordpress/themes/overlays/ops-information
-            app_root_secret: APP_ROOT_SPARKY_STAGING
-          # Production
-          - env: prod
-            brand: hezlep-inc
-            overlay_src: infra/wordpress/themes/overlays/ops-professional
-            app_root_secret: APP_ROOT_HEZLEP_PROD
-          - env: prod
-            brand: sparky-hq
-            overlay_src: infra/wordpress/themes/overlays/ops-information
-            app_root_secret: APP_ROOT_SPARKY_PROD
-
+      matrix: ${{ fromJson(needs.build-matrix.outputs.matrix).include }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Prepare SSH key
         run: |
-          echo "${{ secrets.CLOUDWAYS_SSH_KEY }}" > key.pem
-          sed -i -e 's/\r$//' key.pem || true
-          chmod 600 key.pem
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CLOUDWAYS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "${{ secrets.CLOUDWAYS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: SSH key fingerprint
-        run: ssh-keygen -lf key.pem
-
-      - name: Skip non-matching env
-        run: |
-          if [[ "${{ github.ref_name }}" == "staging" && "${{ matrix.env }}" != "staging" ]]; then exit 0; fi
-          if [[ "${{ github.ref_name }}" == "main" && "${{ matrix.env }}" != "prod" ]]; then exit 0; fi
-
-      - name: Load APP_ROOT
+      - name: Set APP_ROOT from secret
         run: echo "APP_ROOT=${{ secrets[matrix.app_root_secret] }}" >> $GITHUB_ENV
 
-      - name: Rsync base theme (ops-base)
+      - name: Rsync ops-base
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/ops-base"
-          rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/ops-base"
+          rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
             infra/wordpress/themes/ops-base/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/ops-base/
 
@@ -72,53 +62,24 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          OVERLAY_SRC="${{ matrix.overlay_src }}"
-          OVERLAY_DIR="${OVERLAY_SRC##*/}"
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/$OVERLAY_DIR"
-          rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            "${OVERLAY_SRC}/" \
+          OVERLAY_DIR="${{ matrix.overlay }}"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/$OVERLAY_DIR"
+          rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            infra/wordpress/themes/overlays/${OVERLAY_DIR}/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/$OVERLAY_DIR/
 
-      - name: Upload MU plugins
+      - name: Upload MU plugins, brands, config, and scripts
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/mu-plugins"
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/mu-plugins/ \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/mu-plugins/
-
-      - name: Upload brands (kits)
-        env:
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -e
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress/brands"
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/brands/ \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/brands/
-
-      - name: Upload bootstrap + helper
-        env:
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -e
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress/bin"
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/wp-bootstrap.sh \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/wp-bootstrap.sh
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/bin/import-kits.sh \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/bin/import-kits.sh
-          # Upload config (projects.json)
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress/config"
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/config/ \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/config/
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/mu-plugins ${APP_ROOT}/infra/wordpress/bin ${APP_ROOT}/infra/wordpress/config ${APP_ROOT}/infra/wordpress/brands"
+          rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/mu-plugins/ ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/mu-plugins/
+          rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/brands/     ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/brands/
+          rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/config/     ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/config/
+          rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/wp-bootstrap.sh ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/wp-bootstrap.sh
+          rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/bin/        ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/bin/
 
       - name: Run bootstrap (activate overlay + import kits)
         env:
@@ -126,42 +87,38 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "bash -lc 'cd \"${APP_ROOT}\" && \
-              # normalize line endings and strip BOM if present
-              sed -i -e \"s/\r$//\" infra/wordpress/wp-bootstrap.sh infra/wordpress/bin/import-kits.sh || true; \
-              awk \"NR==1{sub(/^\\xef\\xbb\\xbf/,\"\")}1\" infra/wordpress/wp-bootstrap.sh > /tmp/wp-bootstrap.sh && mv /tmp/wp-bootstrap.sh infra/wordpress/wp-bootstrap.sh; \
-              awk \"NR==1{sub(/^\\xef\\xbb\\xbf/,\"\")}1\" infra/wordpress/bin/import-kits.sh > /tmp/import-kits.sh && mv /tmp/import-kits.sh infra/wordpress/bin/import-kits.sh; \
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
+            "bash -lc 'cd "${APP_ROOT}" && \
+              sed -i -e "s/\r$//" infra/wordpress/wp-bootstrap.sh infra/wordpress/bin/import-kits.sh || true; \
+              awk "NR==1{sub(/^\xef\xbb\xbf/,\"\")}1" infra/wordpress/wp-bootstrap.sh > /tmp/wp-bootstrap.sh && mv /tmp/wp-bootstrap.sh infra/wordpress/wp-bootstrap.sh; \
+              awk "NR==1{sub(/^\xef\xbb\xbf/,\"\")}1" infra/wordpress/bin/import-kits.sh > /tmp/import-kits.sh && mv /tmp/import-kits.sh infra/wordpress/bin/import-kits.sh; \
               chmod +x infra/wordpress/bin/import-kits.sh infra/wordpress/wp-bootstrap.sh && \
-              bash infra/wordpress/wp-bootstrap.sh \"${{ matrix.brand }}\" \"${{ matrix.env }}\"'"
+              bash infra/wordpress/wp-bootstrap.sh "${{ matrix.brand }}" "${{ matrix.env }}"'"
 
-      - name: Health check – require Header and Footer templates
+      - name: HTTP health check
+        run: |
+          echo "Checking https://${{ matrix.domain }}"
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://${{ matrix.domain }})
+            echo "Attempt $i - HTTP $code"
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 5
+          done
+          echo "Health check failed for https://${{ matrix.domain }}" && exit 1
+
+      - name: Remote sanity checks (header/footer present)
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "bash -lc 'cd \"${APP_ROOT}\"; \
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
+            "bash -lc 'cd "${APP_ROOT}"; \
               H=\$(wp post list --post_type=elementor_library --search=Header --field=ID --allow-root | head -n1 || true); \
               F=\$(wp post list --post_type=elementor_library --search=Footer --field=ID --allow-root | head -n1 || true); \
-              echo \"HeaderID=\${H:-none} FooterID=\${F:-none}\"; \
-              if [ -z \"\$H\" ] || [ -z \"\$F\" ]; then echo \"❌ Missing Header or Footer after import\" >&2; exit 1; fi'"
-
-      - name: Health check – HTTP 200 on site home
-        env:
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -e
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "bash -lc 'cd \"${APP_ROOT}\"; \
-              URL=\$(wp option get home --allow-root); \
-              echo Checking URL: \$URL; \
-              CODE=\$(curl -s -o /dev/null -w \"%{http_code}\" \"\$URL\"); \
-              echo HTTP \$CODE; \
-              if [ \"\$CODE\" != \"200\" ]; then echo \"❌ Non-200 status\" >&2; exit 1; fi'"
+              echo HeaderID=\${H:-none} FooterID=\${F:-none}; \
+              test -n "\$H" && test -n "\$F"'"
 
       - name: Cleanup SSH key
         if: always()
-        run: rm -f key.pem
+        run: rm -f ~/.ssh/id_rsa

@@ -41,4 +41,27 @@ add_action('init', function () {
   }
 });
 
+// STAGING PROTECTION: if host contains "staging" or WP_ENV=staging, require login (allow-list via STAGING_ALLOW_IPS)
+add_action('template_redirect', function () {
+  $host = $_SERVER['HTTP_HOST'] ?? '';
+  $env  = getenv('WP_ENV') ?: getenv('ENV') ?: '';
+  $is_staging = (stripos($host, 'staging') !== false) || strtolower($env) === 'staging';
+  if (!$is_staging) {
+    return;
+  }
+  if (is_user_logged_in()) {
+    return;
+  }
+  $allow = getenv('STAGING_ALLOW_IPS') ?: '';
+  if ($allow !== '') {
+    $ips = array_map('trim', explode(',', $allow));
+    $client = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (in_array($client, $ips, true)) {
+      return;
+    }
+  }
+  auth_redirect();
+  exit;
+});
+
 
