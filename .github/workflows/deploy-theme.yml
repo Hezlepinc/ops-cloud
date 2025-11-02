@@ -114,6 +114,11 @@ jobs:
           rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
             infra/wordpress/bin/import-kits.sh \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/bin/import-kits.sh
+          # Upload config (projects.json)
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress/config"
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/config/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/config/
 
       - name: Run bootstrap (activate overlay + import kits)
         env:
@@ -122,7 +127,13 @@ jobs:
         run: |
           set -e
           ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "bash -lc 'cd \"${APP_ROOT}\" && chmod +x infra/wordpress/bin/import-kits.sh infra/wordpress/wp-bootstrap.sh && bash infra/wordpress/wp-bootstrap.sh "${{ matrix.brand }}"'"
+            "bash -lc 'cd \"${APP_ROOT}\" && \
+              # normalize line endings and strip BOM if present
+              sed -i -e \"s/\r$//\" infra/wordpress/wp-bootstrap.sh infra/wordpress/bin/import-kits.sh || true; \
+              awk \"NR==1{sub(/^\\xef\\xbb\\xbf/,\"\")}1\" infra/wordpress/wp-bootstrap.sh > /tmp/wp-bootstrap.sh && mv /tmp/wp-bootstrap.sh infra/wordpress/wp-bootstrap.sh; \
+              awk \"NR==1{sub(/^\\xef\\xbb\\xbf/,\"\")}1\" infra/wordpress/bin/import-kits.sh > /tmp/import-kits.sh && mv /tmp/import-kits.sh infra/wordpress/bin/import-kits.sh; \
+              chmod +x infra/wordpress/bin/import-kits.sh infra/wordpress/wp-bootstrap.sh && \
+              bash infra/wordpress/wp-bootstrap.sh \"${{ matrix.brand }}\"'"
 
       - name: Health check – require Header and Footer templates
         env:
