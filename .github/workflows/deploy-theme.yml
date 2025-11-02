@@ -143,10 +143,10 @@ jobs:
           set -e
           ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
             "bash -lc 'cd \"${APP_ROOT}\"; \
-              H=$(wp post list --post_type=elementor_library --search=Header --field=ID --allow-root | head -n1 || true); \
-              F=$(wp post list --post_type=elementor_library --search=Footer --field=ID --allow-root | head -n1 || true); \
-              echo \"HeaderID=${H:-none} FooterID=${F:-none}\"; \
-              if [ -z \"$H\" ] || [ -z \"$F\" ]; then echo \"❌ Missing Header or Footer after import\" >&2; exit 1; fi'"
+              H=\$(wp post list --post_type=elementor_library --search=Header --field=ID --allow-root | head -n1 || true); \
+              F=\$(wp post list --post_type=elementor_library --search=Footer --field=ID --allow-root | head -n1 || true); \
+              echo \"HeaderID=\${H:-none} FooterID=\${F:-none}\"; \
+              if [ -z \"\$H\" ] || [ -z \"\$F\" ]; then echo \"❌ Missing Header or Footer after import\" >&2; exit 1; fi'"
 
       - name: Cleanup SSH key
         if: always()
