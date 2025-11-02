@@ -1,8 +1,10 @@
 ﻿#!/usr/bin/env bash
-# Usage: ./infra/wordpress/wp-bootstrap.sh <brand-slug>
+# Usage: ./infra/wordpress/wp-bootstrap.sh <brand-slug> <env>
+# env: staging | prod
 set -euo pipefail
-BRAND="${1:-}"
+BRAND="${1:-}"; DEPLOY_ENV="${2:-staging}"
 if [ -z "$BRAND" ]; then echo "brand slug required"; exit 1; fi
+if [[ "$DEPLOY_ENV" != "staging" && "$DEPLOY_ENV" != "prod" ]]; then echo "env must be staging|prod"; exit 1; fi
 
 APP_ROOT="$(pwd)"
 cd "$APP_ROOT"
@@ -32,7 +34,7 @@ if [ -z "$OVERLAY" ]; then echo "No overlay in projects.json for $BRAND"; exit 1
 echo "▶ Activating overlay theme: $OVERLAY"
 wp theme activate "$OVERLAY" --allow-root || true
 
-echo "▶ Importing kits for $BRAND"
-bash infra/wordpress/bin/import-kits.sh "$BRAND"
+echo "▶ Importing kits for $BRAND ($DEPLOY_ENV)"
+bash infra/wordpress/bin/import-kits.sh "$BRAND" "$DEPLOY_ENV"
 
-echo "✅ Bootstrap complete for $BRAND"
+echo "✅ Bootstrap complete for $BRAND ($DEPLOY_ENV)"

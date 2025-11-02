@@ -2,14 +2,34 @@
   "hezlep-inc": {
     "overlay_theme": "ops-professional",
     "kits": [
-      "infra/wordpress/brands/hezlep-inc/elementor/hezlep_template.zip"
-    ]
+      "infra/wordpress/brands/base/elementor/base_kit_v1.zip",
+      "infra/wordpress/brands/industry/professional/elementor/professional_kit_v1.zip",
+      "infra/wordpress/brands/clients/hezlep-inc/elementor/hezlep_client_kit_v1.zip"
+    ],
+    "staging": {
+      "domain": "staging.hezlepinc.com",
+      "app_root_secret": "APP_ROOT_HEZLEP_STAGING"
+    },
+    "production": {
+      "domain": "hezlepinc.com",
+      "app_root_secret": "APP_ROOT_HEZLEP_PROD"
+    }
   },
   "sparky-hq": {
     "overlay_theme": "ops-information",
     "kits": [
-      "infra/wordpress/brands/sparky-hq/elementor/sparky_template.zip"
-    ]
+      "infra/wordpress/brands/base/elementor/base_kit_v1.zip",
+      "infra/wordpress/brands/industry/information/elementor/information_kit_v1.zip",
+      "infra/wordpress/brands/clients/sparky-hq/elementor/sparky_client_kit_v1.zip"
+    ],
+    "staging": {
+      "domain": "staging.sparky-hq.com",
+      "app_root_secret": "APP_ROOT_SPARKY_STAGING"
+    },
+    "production": {
+      "domain": "sparky-hq.com",
+      "app_root_secret": "APP_ROOT_SPARKY_PROD"
+    }
   }
 }
 
