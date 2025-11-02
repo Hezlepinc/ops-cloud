@@ -128,8 +128,8 @@ jobs:
             infra/wordpress/brands/${{ matrix.brand }}/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/brand/${{ matrix.site }}/
 
-      # 9. Ensure Elementor + parent theme, activate child, import kit
-      - name: Ensure Elementor and parent theme; activate child; import kit
+      # 9. Ensure Elementor + parent theme, activate child, import kit (checksum)
+      - name: Ensure Elementor and parent theme; activate child; import kit (checksum)
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
@@ -147,10 +147,21 @@ jobs:
               wp theme is-installed hello-elementor --allow-root || wp theme install hello-elementor --allow-root; \
               echo Activating Hello Child theme...; wp theme activate hello-child --allow-root || true; \
               KIT_DIR=\"brand/${{ matrix.site }}/elementor\"; \
+              KIT=\"\"; \
               if compgen -G \"$KIT_DIR/*.zip\" > /dev/null; then \
-                KIT=\"$(ls -1 $KIT_DIR/*.zip | head -n 1)\"; echo Importing kit $KIT ...; wp elementor kit import \"$KIT\" --allow-root || true; \
+                KIT=\"$(ls -1 $KIT_DIR/*.zip | head -n 1)\"; \
               elif compgen -G \"$KIT_DIR/*.json\" > /dev/null; then \
-                KIT=\"$(ls -1 $KIT_DIR/*.json | head -n 1)\"; echo Importing kit $KIT ...; wp elementor kit import \"$KIT\" --allow-root || true; \
+                KIT=\"$(ls -1 $KIT_DIR/*.json | head -n 1)\"; \
+              fi; \
+              if [ -n \"$KIT\" ] && [ -f \"$KIT\" ]; then \
+                NEW_HASH=\"$(sha256sum \"$KIT\" | awk '{print $1}')\"; \
+                OLD_HASH=\"$(wp option get oc_kit_hash_${{ matrix.site }} --allow-root 2>/dev/null || echo)\"; \
+                if [ \"$NEW_HASH\" = \"$OLD_HASH\" ]; then \
+                  echo \"Kit unchanged (hash=$NEW_HASH). Skipping import.\"; \
+                else \
+                  echo Importing kit $KIT ...; wp elementor kit import \"$KIT\" --allow-root || true; \
+                  wp option update oc_kit_hash_${{ matrix.site }} \"$NEW_HASH\" --allow-root || true; \
+                fi; \
               else \
                 echo \"No kit found in $KIT_DIR\"; \
               fi; \
