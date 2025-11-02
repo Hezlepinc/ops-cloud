@@ -53,6 +53,43 @@ else
   echo "⚠ No kit zip found under $BRAND_DIR. Skipping import."
 fi
 
+# Seed industry pages (brand-specific) if missing (idempotent)
+echo "▶ Seeding brand-specific pages if missing"
+wp eval '
+  function oc_create_page_if_missing($title, $slug, $content = "") {
+    $existing = get_page_by_path($slug, OBJECT, "page");
+    if (!$existing) {
+      $id = wp_insert_post([
+        "post_type" => "page",
+        "post_title" => $title,
+        "post_name" => $slug,
+        "post_status" => "publish",
+        "post_content" => $content,
+      ]);
+      echo "Created page: $title (#$id)\n";
+      return $id;
+    }
+    echo "Page exists: $title\n";
+    return $existing->ID;
+  }
+
+  $brand = getenv("BRAND_SLUG");
+  if ($brand === "hezlep-inc") {
+    oc_create_page_if_missing("Home", "home", "Welcome to Hezlep.");
+    oc_create_page_if_missing("Services", "services", "Our services overview.");
+    oc_create_page_if_missing("Projects", "projects", "Project highlights.");
+    oc_create_page_if_missing("About", "about", "About Hezlep Inc.");
+    oc_create_page_if_missing("Contact", "contact", "Contact us.");
+  } elseif ($brand === "sparky-hq") {
+    oc_create_page_if_missing("Home", "home", "Welcome to Sparky HQ.");
+    oc_create_page_if_missing("Resources", "resources", "Curated resources.");
+    oc_create_page_if_missing("Tools", "tools", "Tools directory.");
+    oc_create_page_if_missing("Guides", "guides", "How-to guides.");
+    oc_create_page_if_missing("About", "about", "About Sparky HQ.");
+    oc_create_page_if_missing("Contact", "contact", "Contact us.");
+  }
+' --allow-root --env=BRAND_SLUG="$BRAND_SLUG"
+
 # Apply display conditions for newest Header and Footer
 echo "▶ Applying display conditions (Entire Site) to newest Header/Footer"
 wp eval '
