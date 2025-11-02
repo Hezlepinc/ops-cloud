@@ -1,10 +1,10 @@
-name: Deploy Child Themes & Elementor Kits to Cloudways
+name: Deploy WP base + overlays + kits
 
 on:
   push:
     branches:
-      - staging # deploys to staging apps
-      - main # deploys to production apps
+      - staging
+      - main
   workflow_dispatch:
 
 jobs:
@@ -14,173 +14,115 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # --- Staging Sites ---
-          - site: sparky
-            env: staging
-            brand: sparky-hq
-            industry: information
-            app_secret: APP_ROOT_SPARKY_STAGING
-          - site: hezlep
-            env: staging
+          # Staging
+          - env: staging
             brand: hezlep-inc
-            industry: professional
-            app_secret: APP_ROOT_HEZLEP_STAGING
-
-          # --- Production Sites ---
-          - site: sparky
-            env: prod
+            overlay_src: infra/wordpress/themes/overlays/ops-professional
+            app_root_secret: APP_ROOT_HEZLEP_STAGING
+          - env: staging
             brand: sparky-hq
-            industry: information
-            app_secret: APP_ROOT_SPARKY_PROD
-          - site: hezlep
-            env: prod
+            overlay_src: infra/wordpress/themes/overlays/ops-information
+            app_root_secret: APP_ROOT_SPARKY_STAGING
+          # Production
+          - env: prod
             brand: hezlep-inc
-            industry: professional
-            app_secret: APP_ROOT_HEZLEP_PROD
+            overlay_src: infra/wordpress/themes/overlays/ops-professional
+            app_root_secret: APP_ROOT_HEZLEP_PROD
+          - env: prod
+            brand: sparky-hq
+            overlay_src: infra/wordpress/themes/overlays/ops-information
+            app_root_secret: APP_ROOT_SPARKY_PROD
 
     steps:
-      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Show runner IP
-      - name: Show runner IP
-        run: |
-          echo "Runner IP: $(curl -s https://api.ipify.org)"
-
-      # 3. Write SSH key and known_hosts
       - name: Prepare SSH key
         run: |
           echo "${{ secrets.CLOUDWAYS_SSH_KEY }}" > key.pem
-          # Normalize CRLF just in case
           sed -i -e 's/\r$//' key.pem || true
           chmod 600 key.pem
           ssh-keyscan -H "${{ secrets.CLOUDWAYS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      # 4. Verify the runner is using the same key (fingerprint)
-      - name: SSH key fingerprint test
-        run: |
-          echo "Runner SSH key fingerprint:"
-          ssh-keygen -lf key.pem
+      - name: SSH key fingerprint
+        run: ssh-keygen -lf key.pem
 
-      # 5. Quick SSH connection check
-      - name: Verify SSH connectivity
+      - name: Skip non-matching env
+        run: |
+          if [[ "${{ github.ref_name }}" == "staging" && "${{ matrix.env }}" != "staging" ]]; then exit 0; fi
+          if [[ "${{ github.ref_name }}" == "main" && "${{ matrix.env }}" != "prod" ]]; then exit 0; fi
+
+      - name: Load APP_ROOT
+        run: echo "APP_ROOT=${{ secrets[matrix.app_root_secret] }}" >> $GITHUB_ENV
+
+      - name: Rsync base theme (ops-base)
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o ConnectTimeout=15 \
-            ${CW_USER}@${CW_HOST} "echo ✅ Connected successfully as $(whoami)"
-
-      # 6. Assemble Hello Child Theme
-      - name: Assemble Hello Child Theme
-        run: |
           set -e
-          echo "🏗️  Building theme for brand: ${{ matrix.brand }} (industry: ${{ matrix.industry }})"
-          rm -rf infra/build/hello-child
-          mkdir -p infra/build/hello-child
-          # Base shared child theme
-          rsync -a infra/wordpress/themes/hello-child/ infra/build/hello-child/
-          # Industry overlay (optional)
-          if [ -d "infra/wordpress/industries/${{ matrix.industry }}/theme" ]; then
-            rsync -a infra/wordpress/industries/${{ matrix.industry }}/theme/ infra/build/hello-child/
-          fi
-          # Brand overlay (optional)
-          if [ -d "infra/wordpress/brands/${{ matrix.brand }}/theme" ]; then
-            rsync -a infra/wordpress/brands/${{ matrix.brand }}/theme/ infra/build/hello-child/
-          fi
-          # Version stamp in style.css
-          if [ -f infra/build/hello-child/style.css ]; then
-            ver=$(date +"%Y.%m.%d-%H%M")
-            sed -i -e "s/^Version:.*/Version: ${ver}/" infra/build/hello-child/style.css || true
-          fi
-
-      # 6b. Copy brand tokens CSS if present
-      - name: Copy brand tokens CSS (optional)
-        run: |
-          set -e
-          mkdir -p infra/build/hello-child/assets/css
-          BRAND_CSS="infra/wordpress/brands/${{ matrix.brand }}/assets/css/cursor.css"
-          IND_CSS="infra/wordpress/industries/${{ matrix.industry }}/assets/css/cursor.css"
-          if [ -f "$BRAND_CSS" ]; then
-            cp "$BRAND_CSS" infra/build/hello-child/assets/css/cursor.css
-            echo "Copied tokens CSS from brand: ${{ matrix.brand }}"
-          elif [ -f "$IND_CSS" ]; then
-            cp "$IND_CSS" infra/build/hello-child/assets/css/cursor.css
-            echo "Copied tokens CSS from industry: ${{ matrix.industry }}"
-          else
-            echo "No tokens CSS found for brand or industry (skipping)"
-          fi
-
-      # 7. Deploy Hello Child Theme
-      - name: Deploy Hello Child Theme
-        env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
-          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
-          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
-        run: |
-          set -e
-          echo "🚀 Deploying Hello Child theme to: $APP_ROOT"
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/hello-child"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/ops-base"
           rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/build/hello-child/ \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/hello-child/
+            infra/wordpress/themes/ops-base/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/ops-base/
 
-      # 8. Upload brand assets (elementor kits, assets, etc.)
-      - name: Upload brand assets
+      - name: Rsync overlay theme
         env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          echo "📦 Uploading brand directory for: ${{ matrix.brand }} -> brand/${{ matrix.site }}"
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/brand/${{ matrix.site }}"
-          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/brands/${{ matrix.brand }}/ \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/brand/${{ matrix.site }}/
+          OVERLAY_DIR="${{ matrix.overlay_src##*/ }}"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/$OVERLAY_DIR"
+          rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            "${{ matrix.overlay_src }}/" \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/$OVERLAY_DIR/
 
-      # 8b. Upload MU plugins (lockdown, etc.)
       - name: Upload MU plugins
         env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          echo "🔐 Uploading MU plugins"
           ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/mu-plugins"
           rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
             infra/wordpress/mu-plugins/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/mu-plugins/
 
-      # 9. Upload and run bootstrap script (idempotent)
-      - name: Upload and run bootstrap script
+      - name: Upload brands (kits)
         env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          echo "🔧 Uploading and executing idempotent bootstrap script..."
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress/brands"
           rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-            infra/wordpress/wp-bootstrap.sh \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/wp-bootstrap.sh
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "bash -lc 'cd \"${APP_ROOT}\" && chmod +x infra/wordpress/wp-bootstrap.sh && bash infra/wordpress/wp-bootstrap.sh "${{ matrix.brand }}" "hello-child"'"
+            infra/wordpress/brands/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/brands/
 
-      # 10. Verify remote theme directory
-      - name: Verify remote theme directory
+      - name: Upload bootstrap + helper
         env:
-          APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "ls -lah ${APP_ROOT}/wp-content/themes/hello-child && echo '✅ Theme deployed successfully'"
+          set -e
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress/bin"
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/wp-bootstrap.sh \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/wp-bootstrap.sh
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/bin/import-kits.sh \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/bin/import-kits.sh
 
-      # 11. Cleanup
+      - name: Run bootstrap (activate overlay + import kits)
+        env:
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -e
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
+            "bash -lc 'cd \"${APP_ROOT}\" && chmod +x infra/wordpress/bin/import-kits.sh infra/wordpress/wp-bootstrap.sh && bash infra/wordpress/wp-bootstrap.sh "${{ matrix.brand }}"'"
+
       - name: Cleanup SSH key
         if: always()
         run: rm -f key.pem

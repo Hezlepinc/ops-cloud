@@ -1,0 +1,14 @@
+/*
+ Theme Name: Ops Information (Sparky)
+ Template: ops-base
+ Version: 1.0.0
+*/
+
+:root {
+  --oc-color-primary: #007AFF; /* bright blue */
+  --oc-color-accent:  #00C2FF;
+  --oc-font-head: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --oc-font-body: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+

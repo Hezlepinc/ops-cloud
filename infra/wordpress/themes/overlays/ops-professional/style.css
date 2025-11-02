@@ -1,0 +1,14 @@
+/*
+ Theme Name: Ops Professional (Hezlep)
+ Template: ops-base
+ Version: 1.0.0
+*/
+
+:root {
+  --oc-color-primary: #0A2342; /* navy */
+  --oc-color-accent:  #007AFF;
+  --oc-font-head: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --oc-font-body: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+

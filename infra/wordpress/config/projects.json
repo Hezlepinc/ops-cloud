@@ -1,0 +1,20 @@
+{
+  "hezlep-inc": {
+    "overlay_theme": "ops-professional",
+    "kits": [
+      "infra/wordpress/brands/base/elementor/base_kit_v1.zip",
+      "infra/wordpress/brands/industry/professional/elementor/professional_kit_v1.zip",
+      "infra/wordpress/brands/clients/hezlep-inc/elementor/hezlep_client_kit_v1.zip"
+    ]
+  },
+  "sparky-hq": {
+    "overlay_theme": "ops-information",
+    "kits": [
+      "infra/wordpress/brands/base/elementor/base_kit_v1.zip",
+      "infra/wordpress/brands/industry/information/elementor/information_kit_v1.zip",
+      "infra/wordpress/brands/clients/sparky-hq/elementor/sparky_client_kit_v1.zip"
+    ]
+  }
+}
+
+
