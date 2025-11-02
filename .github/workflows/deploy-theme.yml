@@ -18,20 +18,24 @@ jobs:
           - site: sparky
             env: staging
             brand: sparky-hq
+            industry: information
             app_secret: APP_ROOT_SPARKY_STAGING
           - site: hezlep
             env: staging
             brand: hezlep-inc
+            industry: professional
             app_secret: APP_ROOT_HEZLEP_STAGING
 
           # --- Production Sites ---
           - site: sparky
             env: prod
             brand: sparky-hq
+            industry: information
             app_secret: APP_ROOT_SPARKY_PROD
           - site: hezlep
             env: prod
             brand: hezlep-inc
+            industry: professional
             app_secret: APP_ROOT_HEZLEP_PROD
 
     steps:
@@ -72,11 +76,15 @@ jobs:
       - name: Assemble Hello Child Theme
         run: |
           set -e
-          echo "🏗️  Building theme for brand: ${{ matrix.brand }}"
+          echo "🏗️  Building theme for brand: ${{ matrix.brand }} (industry: ${{ matrix.industry }})"
           rm -rf infra/build/hello-child
           mkdir -p infra/build/hello-child
           # Base shared child theme
           rsync -a infra/wordpress/themes/hello-child/ infra/build/hello-child/
+          # Industry overlay (optional)
+          if [ -d "infra/wordpress/industries/${{ matrix.industry }}/theme" ]; then
+            rsync -a infra/wordpress/industries/${{ matrix.industry }}/theme/ infra/build/hello-child/
+          fi
           # Brand overlay (optional)
           if [ -d "infra/wordpress/brands/${{ matrix.brand }}/theme" ]; then
             rsync -a infra/wordpress/brands/${{ matrix.brand }}/theme/ infra/build/hello-child/
@@ -92,12 +100,16 @@ jobs:
         run: |
           set -e
           mkdir -p infra/build/hello-child/assets/css
-          CSS_SRC="infra/wordpress/brands/${{ matrix.brand }}/assets/css/cursor.css"
-          if [ -f "$CSS_SRC" ]; then
-            cp "$CSS_SRC" infra/build/hello-child/assets/css/cursor.css
-            echo "Copied tokens CSS for ${{ matrix.brand }}"
+          BRAND_CSS="infra/wordpress/brands/${{ matrix.brand }}/assets/css/cursor.css"
+          IND_CSS="infra/wordpress/industries/${{ matrix.industry }}/assets/css/cursor.css"
+          if [ -f "$BRAND_CSS" ]; then
+            cp "$BRAND_CSS" infra/build/hello-child/assets/css/cursor.css
+            echo "Copied tokens CSS from brand: ${{ matrix.brand }}"
+          elif [ -f "$IND_CSS" ]; then
+            cp "$IND_CSS" infra/build/hello-child/assets/css/cursor.css
+            echo "Copied tokens CSS from industry: ${{ matrix.industry }}"
           else
-            echo "No tokens CSS at $CSS_SRC (skipping)"
+            echo "No tokens CSS found for brand or industry (skipping)"
           fi
 
       # 7. Deploy Hello Child Theme

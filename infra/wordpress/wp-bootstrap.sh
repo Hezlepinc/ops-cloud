@@ -24,6 +24,22 @@ wp plugin activate elementor-pro --allow-root || true
 BRAND_DIR="brand/${BRAND_SLUG}/elementor"
 KIT="$(ls "${BRAND_DIR}"/*.zip 2>/dev/null | head -n 1 || true)"
 
+# Fallback to industry kit if brand kit not found
+if [ -z "$KIT" ]; then
+  INDUSTRY_SLUG=""
+  case "$BRAND_SLUG" in
+    hezlep-inc) INDUSTRY_SLUG="professional" ;;
+    sparky-hq) INDUSTRY_SLUG="information" ;;
+  esac
+  if [ -n "$INDUSTRY_SLUG" ]; then
+    IND_DIR="industries/${INDUSTRY_SLUG}/elementor"
+    KIT="$(ls "${IND_DIR}"/*.zip 2>/dev/null | head -n 1 || true)"
+    if [ -n "$KIT" ]; then
+      echo "▶ Using industry kit fallback: ${KIT}"
+    fi
+  fi
+fi
+
 # Convert slug to a human-ish search prefix for deleting previous templates
 BRAND_SEARCH="$(echo "${BRAND_SLUG}" | sed -E 's/-/ /g' | awk '{for(i=1;i<=NF;i++){ $i = toupper(substr($i,1,1)) substr($i,2) }}1' | sed 's/  */ /g')"
 echo "▶ Brand search prefix: $BRAND_SEARCH"

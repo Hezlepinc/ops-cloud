@@ -1,0 +1,23 @@
+:root {
+  --brand-font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --brand-color-primary: #0a3d62;
+  --brand-color-accent: #f9a825;
+  --brand-color-dark: #1a1a1a;
+  --brand-color-light: #f7f9fc;
+
+  --brand-spacing-1: 4px;
+  --brand-spacing-2: 8px;
+  --brand-spacing-3: 16px;
+  --brand-spacing-4: 24px;
+  --brand-radius-sm: 6px;
+  --brand-radius-md: 10px;
+}
+body {
+  font-family: var(--brand-font-sans);
+  background: var(--brand-color-light);
+  color: var(--brand-color-dark);
+}
+a { color: var(--brand-color-primary); }
+a:hover { color: var(--brand-color-accent); }
+
+
