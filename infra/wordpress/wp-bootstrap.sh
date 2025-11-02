@@ -35,10 +35,33 @@ if [ "${THEME_SLUG}" = "hello-child" ] || [ "${THEME_SLUG}" = "marketing" ]; the
   wp theme is-installed hello-elementor || wp theme install hello-elementor --quiet
 fi
 
-# === BRAND / KIT IMPORT (Cursor) ===
+# === BRAND / KIT IMPORT ===
 BRAND_PATH="./brand/${DEPLOY_SITE:-}"
-KIT_PATH_JSON="${BRAND_PATH}/elementor/cursor-sitekit.json"
-KIT_PATH_ZIP="${BRAND_PATH}/elementor/cursor-sitekit.zip"
+KIT_DIR="${BRAND_PATH}/elementor"
+
+# Auto-detect kit files (prefer .zip; fallback to first .json)
+KIT_PATH_ZIP=""
+if [ -d "$KIT_DIR" ]; then
+  for f in "$KIT_DIR"/*.zip; do
+    [ -e "$f" ] || break
+    if [ -f "$f" ]; then
+      KIT_PATH_ZIP="$f"
+      break
+    fi
+  done
+fi
+
+KIT_PATH_JSON=""
+if [ -z "$KIT_PATH_ZIP" ] && [ -d "$KIT_DIR" ]; then
+  for f in "$KIT_DIR"/*.json; do
+    [ -e "$f" ] || break
+    if [ -f "$f" ]; then
+      KIT_PATH_JSON="$f"
+      break
+    fi
+  done
+fi
+
 BRAND_CSS_SRC="${BRAND_PATH}/assets/css/cursor.css"
 THEME_CSS_DST="./wp-content/themes/${THEME_SLUG}/assets/css/cursor.css"
 
@@ -57,12 +80,12 @@ else
 fi
 
 # 3) Import Elementor Site Kit if present (.zip preferred, fallback to .json)
-if [ -f "$KIT_PATH_ZIP" ]; then
+if [ -n "$KIT_PATH_ZIP" ] && [ -f "$KIT_PATH_ZIP" ]; then
   wp elementor kit import "$KIT_PATH_ZIP" || echo "Kit import failed or requires Elementor Pro."
-elif [ -f "$KIT_PATH_JSON" ]; then
+elif [ -n "$KIT_PATH_JSON" ] && [ -f "$KIT_PATH_JSON" ]; then
   wp elementor kit import "$KIT_PATH_JSON" || echo "Kit import failed or requires Elementor Pro."
 else
-  echo "Kit not found at $KIT_PATH_ZIP or $KIT_PATH_JSON"
+  echo "No Elementor kit found in $KIT_DIR (zip or json)"
 fi
 
 # 3b) Import additional Elementor templates if present (header/footer/single-page)
