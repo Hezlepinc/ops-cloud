@@ -1,143 +1,73 @@
 ﻿#!/usr/bin/env bash
 set -euo pipefail
 
-# Read from env vars; fall back to .env file if present
-if [ -f .env ]; then
-  set -a
-  # shellcheck disable=SC1091
-  . ./.env
-  set +a
-fi
+BRAND_SLUG="${1:-sparky-hq}"
+THEME_SLUG="${2:-hello-child}"
 
-SITE_NAME="${SITE_NAME:-${WP_SITE_NAME:-WordPress Site}}"
-DOMAIN="${DOMAIN:-${WP_DOMAIN:-example.com}}"
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@${DOMAIN}}"
-THEME_SLUG="${THEME_SLUG:-hello-child}"
-PLUGINS_CSV="${PLUGINS:-}" # comma-separated list
+# Assume running in app public_html
+APP_ROOT="$(pwd)"
+cd "$APP_ROOT"
 
-wp option update blogname "${SITE_NAME}"
-wp option update siteurl "https://${DOMAIN}"
-wp option update home "https://${DOMAIN}"
-wp user update 1 --user_email="${ADMIN_EMAIL}" || true
+echo "▶ Activating theme: $THEME_SLUG"
+wp theme activate "$THEME_SLUG" --allow-root || true
 
-IFS=',' read -r -a PLUGINS_ARR <<< "${PLUGINS_CSV}"
-for plugin_slug in "${PLUGINS_ARR[@]}"; do
-  if [ -n "${plugin_slug}" ]; then
-    wp plugin activate "${plugin_slug}" || true
-  fi
-done
+echo "▶ Ensuring Elementor (free) active"
+wp plugin activate elementor --allow-root || wp plugin install elementor --activate --allow-root
 
-# Activate theme
-wp theme activate "${THEME_SLUG}" || true
+# Optional: activate Pro if present (already installed in your stack)
+wp plugin activate elementor-pro --allow-root || true
 
-# Ensure Hello Elementor parent is installed when using our child themes
-if [ "${THEME_SLUG}" = "hello-child" ] || [ "${THEME_SLUG}" = "marketing" ]; then
-  wp theme is-installed hello-elementor || wp theme install hello-elementor --quiet
-fi
+BRAND_DIR="brand/${BRAND_SLUG}/elementor"
+KIT="$(ls "${BRAND_DIR}"/*.zip 2>/dev/null | head -n 1 || true)"
 
-# === BRAND / KIT IMPORT ===
-BRAND_PATH="./brand/${DEPLOY_SITE:-}"
-KIT_DIR="${BRAND_PATH}/elementor"
+# 1) Pre-clean duplicates for this brand's Elementor templates
+BRAND_TITLE_PREFIX="$(echo "${BRAND_SLUG}" | sed 's/-/ /g' | sed -E "s/\b(.)/\u\1/g" | sed 's/Inc/Inc./g' )"
+# Examples: "Sparky Hq" or "Hezlep Inc." — our templates are prefixed "Sparky -" / "Hezlep -"
+echo "▶ Removing previous ${BRAND_TITLE_PREFIX} Elementor templates (if any)"
+wp post delete $(wp post list --post_type=elementor_library --search="${BRAND_TITLE_PREFIX}" --format=ids) --force --allow-root || true
 
-# Auto-detect kit files (prefer .zip; fallback to first .json)
-KIT_PATH_ZIP=""
-if [ -d "$KIT_DIR" ]; then
-  for f in "$KIT_DIR"/*.zip; do
-    [ -e "$f" ] || break
-    if [ -f "$f" ]; then
-      KIT_PATH_ZIP="$f"
-      break
-    fi
-  done
-fi
-
-KIT_PATH_JSON=""
-if [ -z "$KIT_PATH_ZIP" ] && [ -d "$KIT_DIR" ]; then
-  for f in "$KIT_DIR"/*.json; do
-    [ -e "$f" ] || break
-    if [ -f "$f" ]; then
-      KIT_PATH_JSON="$f"
-      break
-    fi
-  done
-fi
-
-BRAND_CSS_SRC="${BRAND_PATH}/assets/css/cursor.css"
-THEME_CSS_DST="./wp-content/themes/${THEME_SLUG}/assets/css/cursor.css"
-
-echo "Running Cursor kit import for ${DEPLOY_SITE:-unset}..."
-
-# 1) Ensure Elementor installed/active; Elementor Pro activation is manual one-time
-wp plugin is-installed elementor || wp plugin install elementor --activate
-wp plugin activate elementor-pro || echo "Elementor Pro not found (upload once manually)."
-
-# 2) Copy brand cursor.css into child theme tokens path
-if [ -f "$BRAND_CSS_SRC" ]; then
-  mkdir -p "$(dirname "$THEME_CSS_DST")"
-  cp "$BRAND_CSS_SRC" "$THEME_CSS_DST"
+# 2) Import kit (if present)
+if [ -n "$KIT" ]; then
+  echo "▶ Importing kit: $KIT"
+  wp eval '
+    require_once WP_PLUGIN_DIR . "/elementor/includes/import-export/kit-importer.php";
+    $zip = getenv("KIT_PATH") ?: "";
+    if ($zip && file_exists($zip)) {
+      $imp = new \Elementor\Import_Export\Kit_Importer();
+      $res = $imp->import_kit($zip);
+      echo "Imported: ".json_encode($res).PHP_EOL;
+    } else {
+      echo "No kit file found.\n";
+    }
+  ' --allow-root --env=KIT_PATH="$KIT"
 else
-  echo "No brand cursor.css at $BRAND_CSS_SRC"
+  echo "⚠ No Elementor kit found under ${BRAND_DIR}; skipping import."
 fi
 
-# 3) Import Elementor Site Kit if present (.zip preferred, fallback to .json)
-if [ -n "$KIT_PATH_ZIP" ] && [ -f "$KIT_PATH_ZIP" ]; then
-  wp elementor kit import "$KIT_PATH_ZIP" || echo "Kit import failed or requires Elementor Pro."
-elif [ -n "$KIT_PATH_JSON" ] && [ -f "$KIT_PATH_JSON" ]; then
-  wp elementor kit import "$KIT_PATH_JSON" || echo "Kit import failed or requires Elementor Pro."
-else
-  echo "No Elementor kit found in $KIT_DIR (zip or json)"
-fi
+# 3) Apply display conditions for newest Header & Footer
+echo "▶ Applying display conditions (Entire Site) for newest Header/Footer"
+wp eval '
+  $latest = function($needle){
+    $p = get_posts(["post_type"=>"elementor_library","s"=>$needle,"numberposts"=>1,"orderby"=>"date","order"=>"DESC"]);
+    return $p ? $p[0]->ID : 0;
+  };
+  $h = $latest("Header"); $f = $latest("Footer");
+  if ($h) update_post_meta($h, "_elementor_conditions", [["type"=>"entire_site","operator"=>"include"]]);
+  if ($f) update_post_meta($f, "_elementor_conditions", [["type"=>"entire_site","operator"=>"include"]]);
+  echo "HeaderID=$h FooterID=$f\n";
+' --allow-root
 
-# 3b) Import additional Elementor templates if present (header/footer/single-page)
-TEMPLATES_DIR="${BRAND_PATH}/elementor"
-if [ -d "$TEMPLATES_DIR" ]; then
-  for tpl in "${TEMPLATES_DIR}"/*.json; do
-    [ -e "$tpl" ] || continue
-    base="$(basename "$tpl")"
-    # Skip the sitekit JSON if present; it was handled above
-    if [ "$base" = "cursor-sitekit.json" ]; then
-      continue
-    fi
-    wp elementor import "$tpl" || echo "Skipped $tpl"
-  done
-fi
+# 4) Set front page to "Home" if it exists
+echo "▶ Setting static front page to 'Home' (if exists)"
+wp eval '
+  $home = get_page_by_title("Home");
+  if ($home) { update_option("page_on_front",$home->ID); update_option("show_on_front","page"); echo "Front page set.\n"; }
+' --allow-root
 
-# 4) Disable Elementor default schemes
-wp option update elementor_disable_color_schemes "yes"
-wp option update elementor_disable_typography_schemes "yes"
+# 5) Flush caches
+echo "▶ Flushing Elementor + WP caches"
+wp elementor flush_css --allow-root || true
+wp cache flush --allow-root || true
+wp breeze purge --cache=all --allow-root || true
 
-# Create starter pages if missing
-create_page_if_missing() {
-  local title="$1"
-  local slug="$2"
-  local content="$3"
-  if ! wp post list --post_type=page --name="$slug" --field=ID | grep -qE '^[0-9]+$'; then
-    wp post create --post_type=page --post_title="$title" --post_name="$slug" --post_status=publish --post_content="$content" >/dev/null
-  fi
-}
-
-create_page_if_missing "Home" "home" "Welcome to ${SITE_NAME}."
-create_page_if_missing "Resources" "resources" "Resources page."
-create_page_if_missing "Tools" "tools" "Tools page."
-create_page_if_missing "About" "about" "About us."
-create_page_if_missing "Contact" "contact" "Contact page."
-
-# Assign Home as front page
-HOME_ID=$(wp post list --post_type=page --name=home --field=ID)
-if [ -n "$HOME_ID" ]; then
-  wp option update show_on_front page
-  wp option update page_on_front "$HOME_ID"
-fi
-
-# Ensure primary menu exists and assigned
-if ! wp menu list --fields=slug | grep -q '^primary$'; then
-  wp menu create primary >/dev/null
-fi
-wp menu location assign primary primary || true
-
-# Permalinks
-wp rewrite structure '/%postname%/' --hard
-wp option update blogdescription 'Modern electrical tools & content'
-
-# Final cache flush
-wp cache flush || true
+echo "✅ Bootstrap complete for ${BRAND_SLUG} using theme ${THEME_SLUG}"

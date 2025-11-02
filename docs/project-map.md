@@ -170,7 +170,7 @@ infra/
 ```
 
 - **`themes/hello-child`**: brand-agnostic child theme assembled and deployed.
-- **`themes/marketing` / `themes/sparky-hq`**: theme sources/templates in repo.
+- **`themes/marketing` / `themes/sparky-hq`**: LEGACY (not deployed). Use `brands/<brand>/theme/` overlays instead.
 - **`brands/<brand>/elementor/*.zip`**: Elementor kit archives for import.
 - **`mu-plugins/loader.php`**: autoloads required must-use plugins.
 - **`wp-bootstrap.sh`**: WP-CLI bootstrap for provisioning.

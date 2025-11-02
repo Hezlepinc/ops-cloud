@@ -128,45 +128,35 @@ jobs:
             infra/wordpress/brands/${{ matrix.brand }}/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/brand/${{ matrix.site }}/
 
-      # 9. Ensure Elementor + parent theme, activate child, import kit (checksum)
-      - name: Ensure Elementor and parent theme; activate child; import kit (checksum)
+      # 8b. Upload MU plugins (lockdown, etc.)
+      - name: Upload MU plugins
         env:
           APP_ROOT: ${{ secrets[matrix.app_secret] }}
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          echo "🔧 Ensuring Elementor + Hello parent, activating child, and importing kit..."
+          echo "🔐 Uploading MU plugins"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/mu-plugins"
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/mu-plugins/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/mu-plugins/
+
+      # 9. Upload and run bootstrap script (idempotent)
+      - name: Upload and run bootstrap script
+        env:
+          APP_ROOT: ${{ secrets[matrix.app_secret] }}
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -e
+          echo "🔧 Uploading and executing idempotent bootstrap script..."
+          ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/infra/wordpress"
+          rsync -azP --no-perms --no-times -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+            infra/wordpress/wp-bootstrap.sh \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/wp-bootstrap.sh
           ssh -i key.pem -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "bash -lc 'set -e; cd \"${APP_ROOT}\"; \
-              # Ensure Elementor installed/active
-              wp plugin is-installed elementor --allow-root || wp plugin install elementor --activate --allow-root; \
-              # Best-effort Pro activation if present (ignore failure)
-              wp plugin activate elementor-pro --allow-root || true; \
-              # Ensure Hello Elementor parent theme
-              wp theme is-installed hello-elementor --allow-root || wp theme install hello-elementor --allow-root; \
-              echo Activating Hello Child theme...; wp theme activate hello-child --allow-root || true; \
-              KIT_DIR=\"brand/${{ matrix.site }}/elementor\"; \
-              KIT=\"\"; \
-              if compgen -G \"$KIT_DIR/*.zip\" > /dev/null; then \
-                KIT=\"$(ls -1 $KIT_DIR/*.zip | head -n 1)\"; \
-              elif compgen -G \"$KIT_DIR/*.json\" > /dev/null; then \
-                KIT=\"$(ls -1 $KIT_DIR/*.json | head -n 1)\"; \
-              fi; \
-              if [ -n \"$KIT\" ] && [ -f \"$KIT\" ]; then \
-                NEW_HASH=\"$(sha256sum \"$KIT\" | awk '{print $1}')\"; \
-                OLD_HASH=\"$(wp option get oc_kit_hash_${{ matrix.site }} --allow-root 2>/dev/null || echo)\"; \
-                if [ \"$NEW_HASH\" = \"$OLD_HASH\" ]; then \
-                  echo \"Kit unchanged (hash=$NEW_HASH). Skipping import.\"; \
-                else \
-                  echo Importing kit $KIT ...; wp elementor kit import \"$KIT\" --allow-root || true; \
-                  wp option update oc_kit_hash_${{ matrix.site }} \"$NEW_HASH\" --allow-root || true; \
-                fi; \
-              else \
-                echo \"No kit found in $KIT_DIR\"; \
-              fi; \
-              echo Flushing cache...; wp cache flush --allow-root || true; \
-              if wp plugin is-installed breeze --allow-root; then wp breeze purge --allow-root || true; fi'"
+            "bash -lc 'cd \"${APP_ROOT}\" && chmod +x infra/wordpress/wp-bootstrap.sh && bash infra/wordpress/wp-bootstrap.sh "${{ matrix.brand }}" "hello-child"'"
 
       # 10. Verify remote theme directory
       - name: Verify remote theme directory
