@@ -88,15 +88,16 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} <<'SSH'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} <<EOF
           set -e
-          cd "${APP_ROOT}"
+          APP_ROOT="${APP_ROOT}"
+          cd "$APP_ROOT"
           sed -i -e 's/\r$//' infra/wordpress/wp-bootstrap.sh infra/wordpress/bin/import-kits.sh || true
           awk 'NR==1{sub(/^\xef\xbb\xbf/,"")}1' infra/wordpress/wp-bootstrap.sh > /tmp/wp-bootstrap.sh && mv /tmp/wp-bootstrap.sh infra/wordpress/wp-bootstrap.sh
           awk 'NR==1{sub(/^\xef\xbb\xbf/,"")}1' infra/wordpress/bin/import-kits.sh > /tmp/import-kits.sh && mv /tmp/import-kits.sh infra/wordpress/bin/import-kits.sh
           chmod +x infra/wordpress/bin/import-kits.sh infra/wordpress/wp-bootstrap.sh
           bash infra/wordpress/wp-bootstrap.sh '${{ matrix.brand }}' '${{ matrix.env }}'
-          SSH
+          EOF
 
       - name: HTTP health check
         run: |
@@ -115,14 +116,15 @@ jobs:
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} <<'SSH'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} <<EOF
           set -e
-          cd "${APP_ROOT}"
+          APP_ROOT="${APP_ROOT}"
+          cd "$APP_ROOT"
           H=$(wp post list --post_type=elementor_library --search=Header --field=ID --allow-root | head -n1 || true)
           F=$(wp post list --post_type=elementor_library --search=Footer --field=ID --allow-root | head -n1 || true)
           echo "HeaderID=${H:-none} FooterID=${F:-none}"
           test -n "$H" && test -n "$F"
-          SSH
+          EOF
 
       - name: Cleanup SSH key
         if: always()
