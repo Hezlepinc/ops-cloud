@@ -46,7 +46,7 @@ for kit in "${KITS[@]}"; do
     if (! class_exists("\\Elementor\\Import_Export\\Kit_Importer")) {
       require_once WP_PLUGIN_DIR . "/elementor/includes/import-export/kit-importer.php";
     }
-    $imp = new \\Elementor\\Import_Export\\Kit_Importer();
+    $imp = new \Elementor\Import_Export\Kit_Importer();
     $res = $imp->import_kit($path);
     echo "Imported ".basename($path)."\n";
   ' --allow-root
@@ -64,7 +64,7 @@ if [[ "$imported_any" -eq 0 ]]; then
       if (! class_exists("\\Elementor\\Import_Export\\Kit_Importer")) {
         require_once WP_PLUGIN_DIR . "/elementor/includes/import-export/kit-importer.php";
       }
-      $imp = new \\Elementor\\Import_Export\\Kit_Importer();
+      $imp = new \Elementor\Import_Export\Kit_Importer();
       $res = $imp->import_kit($path);
       echo "Imported ".basename($path)."\n";
     ' --allow-root || true
