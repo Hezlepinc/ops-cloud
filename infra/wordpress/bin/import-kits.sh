@@ -39,17 +39,8 @@ for kit in "${KITS[@]}"; do
   IDS=$(wp post list --post_type=elementor_library --s="$PREFIX - " --format=ids --allow-root || true)
   [[ -n "${IDS:-}" ]] && wp post delete $IDS --force --allow-root || true
 
-  echo ">>> Importing kit: $kit"
-  KIT_PATH="$kit" wp eval '
-    $path = getenv("KIT_PATH");
-    if (! file_exists($path)) { echo "Missing $path\n"; return; }
-    if (! class_exists("\\Elementor\\Import_Export\\Kit_Importer")) {
-      require_once WP_PLUGIN_DIR . "/elementor/includes/import-export/kit-importer.php";
-    }
-    $imp = new \Elementor\Import_Export\Kit_Importer();
-    $res = $imp->import_kit($path);
-    echo "Imported ".basename($path)."\n";
-  ' --allow-root
+  echo ">>> Importing kit (CLI): $kit"
+  wp elementor kit import "$kit" --allow-root || echo "Kit import command returned non-zero (continuing)"
   imported_any=1
 done
 
@@ -57,17 +48,8 @@ done
 if [[ "$imported_any" -eq 0 ]]; then
   fallback_zip=$(ls infra/wordpress/brands/${BRAND}/elementor/*.zip 2>/dev/null | head -n 1 || true)
   if [[ -n "$fallback_zip" && -f "$fallback_zip" ]]; then
-    echo ">>> Fallback importing brand kit: $fallback_zip"
-    KIT_PATH="$fallback_zip" wp eval '
-      $path = getenv("KIT_PATH");
-      if (! file_exists($path)) { echo "Missing $path\n"; return; }
-      if (! class_exists("\\Elementor\\Import_Export\\Kit_Importer")) {
-        require_once WP_PLUGIN_DIR . "/elementor/includes/import-export/kit-importer.php";
-      }
-      $imp = new \Elementor\Import_Export\Kit_Importer();
-      $res = $imp->import_kit($path);
-      echo "Imported ".basename($path)."\n";
-    ' --allow-root || true
+    echo ">>> Fallback importing brand kit (CLI): $fallback_zip"
+    wp elementor kit import "$fallback_zip" --allow-root || echo "Fallback kit import returned non-zero (continuing)"
   else
     echo "No fallback brand kit found under infra/wordpress/brands/${BRAND}/elementor/"
   fi
