@@ -65,6 +65,85 @@ wp eval '
 # Set static home if "Home" exists
 wp eval '$p=get_page_by_title("Home"); if($p){ update_option("show_on_front","page"); update_option("page_on_front",$p->ID); echo "Front page set\n"; }' --allow-root
 
+# Seed brand-specific page content for visible changes (idempotent via marker)
+if [[ "$BRAND" == "hezlep-inc" ]]; then
+  HOME_ID=$(wp post list --post_type=page --name=home --field=ID --allow-root || true)
+  if [[ -n "$HOME_ID" ]]; then
+    read -r -d '' HEZLEP_HOME_CONTENT <<'HTML'
+<!-- oc_seed:hezlep_home_v1 -->
+<section class="oc-section" style="background: linear-gradient(90deg,#0A2342 0%,#007AFF 100%); color:#fff;">
+  <div class="container">
+    <h1>Systems for builders, by builders.</h1>
+    <p>Confident, analytical, precise. We design and deploy operating systems that scale.</p>
+    <a class="oc-btn-primary" href="/contact">Book a Consultation</a>
+  </div>
+  </section>
+<section class="oc-section">
+  <div class="container">
+    <h2>Capabilities</h2>
+    <div class="grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;">
+      <div class="oc-card"><h3>Automation</h3><p>Zapier/Make, CRM workflows, AI assistance.</p></div>
+      <div class="oc-card"><h3>Web Ops</h3><p>WordPress, hosting, CI/CD, performance.</p></div>
+      <div class="oc-card"><h3>Growth Systems</h3><p>Analytics, SEO, lead pipelines, reporting.</p></div>
+    </div>
+  </div>
+</section>
+<section class="oc-section">
+  <div class="container">
+    <div class="oc-card" style="text-align:center;">
+      <h2>Let’s Design Your Ops System</h2>
+      <a class="oc-btn-primary" href="/contact">Start a Project</a>
+    </div>
+  </div>
+</section>
+HTML
+    if ! wp post get "$HOME_ID" --field=post_content --allow-root | grep -q 'oc_seed:hezlep_home_v1'; then
+      wp post update "$HOME_ID" --post_content="$HEZLEP_HOME_CONTENT" --allow-root >/dev/null
+    fi
+  fi
+  # Ensure key subpages exist
+  for slug in consulting automation-systems contact; do
+    if ! wp post list --post_type=page --name="$slug" --field=ID --allow-root | grep -qE '^[0-9]+$'; then
+      title=$(echo "$slug" | sed 's/-/ /g;s/.*/\u&/');
+      wp post create --post_type=page --post_status=publish --post_name="$slug" --post_title="$title" --post_content="<!-- oc_seed:$slug -->" --allow-root >/dev/null
+    fi
+  done
+fi
+
+if [[ "$BRAND" == "sparky-hq" ]]; then
+  HOME_ID=$(wp post list --post_type=page --name=home --field=ID --allow-root || true)
+  if [[ -n "$HOME_ID" ]]; then
+    read -r -d '' SPARKY_HOME_CONTENT <<'HTML'
+<!-- oc_seed:sparky_home_v1 -->
+<section class="oc-section" style="background:#FBFCFE;">
+  <div class="container">
+    <h1>Electric trade intelligence.</h1>
+    <p>Clear, context‑driven tools vetted by professionals. No prompts, just answers.</p>
+  </div>
+</section>
+<section class="oc-section">
+  <div class="container">
+    <div class="grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;">
+      <div class="oc-card"><h3>Learn</h3><p>Guides, resources, and best practices for electricians.</p></div>
+      <div class="oc-card"><h3>Calculate</h3><p>Voltage drop and more — pro tools with NEC assumptions.</p></div>
+      <div class="oc-card"><h3>Connect</h3><p>Newsletter, community, and partner resources.</p></div>
+    </div>
+  </div>
+</section>
+HTML
+    if ! wp post get "$HOME_ID" --field=post_content --allow-root | grep -q 'oc_seed:sparky_home_v1'; then
+      wp post update "$HOME_ID" --post_content="$SPARKY_HOME_CONTENT" --allow-root >/dev/null
+    fi
+  fi
+  # Ensure key pages exist
+  for slug in resources tools; do
+    if ! wp post list --post_type=page --name="$slug" --field=ID --allow-root | grep -qE '^[0-9]+$'; then
+      title=$(echo "$slug" | sed 's/-/ /g;s/.*/\u&/');
+      wp post create --post_type=page --post_status=publish --post_name="$slug" --post_title="$title" --post_content="<!-- oc_seed:$slug -->" --allow-root >/dev/null
+    fi
+  done
+fi
+
 # Menus: assign "Primary" and "Footer" if present
 wp eval '
   $locs = get_theme_mod("nav_menu_locations", []);
