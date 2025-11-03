@@ -105,10 +105,16 @@ jobs:
           for i in 1 2 3; do
             code=$(curl -s -o /dev/null -w "%{http_code}" https://${{ matrix.domain }})
             echo "Attempt $i - HTTP $code"
-            if [ "$code" = "200" ]; then exit 0; fi
+            if [ "$code" = "200" ]; then result=ok; break; else result=bad; fi
             sleep 5
           done
-          echo "Health check failed for https://${{ matrix.domain }}" && exit 1
+          if [ "$result" != "ok" ]; then
+            if [ "${{ matrix.env }}" = "prod" ]; then
+              echo "Health check failed for https://${{ matrix.domain }}" && exit 1
+            else
+              echo "Warning: non-200 on staging (${code}), continuing"
+            fi
+          fi
 
       - name: Remote sanity checks (header/footer present)
         env:

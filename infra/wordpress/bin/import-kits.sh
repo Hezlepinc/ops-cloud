@@ -27,6 +27,8 @@ echo "▶ Kits: ${KITS[*]:-<none>}"
 wp plugin install elementor --activate --allow-root || wp plugin activate elementor --allow-root || true
 wp plugin activate elementor-pro --allow-root || true
 
+imported_any=0
+
 # Delete & import in order
 for kit in "${KITS[@]}"; do
   [[ -z "${kit:-}" ]] && continue
@@ -48,7 +50,28 @@ for kit in "${KITS[@]}"; do
     $res = $imp->import_kit($path);
     echo "Imported ".basename($path)."\n";
   ' --allow-root
+  imported_any=1
 done
+
+# Fallback: if nothing imported from declared kits, try brand-level zip(s)
+if [[ "$imported_any" -eq 0 ]]; then
+  fallback_zip=$(ls infra/wordpress/brands/${BRAND}/elementor/*.zip 2>/dev/null | head -n 1 || true)
+  if [[ -n "$fallback_zip" && -f "$fallback_zip" ]]; then
+    echo ">>> Fallback importing brand kit: $fallback_zip"
+    KIT_PATH="$fallback_zip" wp eval '
+      $path = getenv("KIT_PATH");
+      if (! file_exists($path)) { echo "Missing $path\n"; return; }
+      if (! class_exists("\\Elementor\\Import_Export\\Kit_Importer")) {
+        require_once WP_PLUGIN_DIR . "/elementor/includes/import-export/kit-importer.php";
+      }
+      $imp = new \\Elementor\\Import_Export\\Kit_Importer();
+      $res = $imp->import_kit($path);
+      echo "Imported ".basename($path)."\n";
+    ' --allow-root || true
+  else
+    echo "No fallback brand kit found under infra/wordpress/brands/${BRAND}/elementor/"
+  fi
+fi
 
 # Apply newest Header/Footer site-wide
 wp eval '
