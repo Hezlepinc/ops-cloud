@@ -39,8 +39,8 @@ for kit in "${KITS[@]}"; do
   IDS=$(wp post list --post_type=elementor_library --s="$PREFIX - " --format=ids --allow-root || true)
   [[ -n "${IDS:-}" ]] && wp post delete $IDS --force --allow-root || true
 
-  echo ">>> Importing kit (CLI): $kit"
-  wp elementor kit import "$kit" --allow-root --user=1 || true
+  echo ">>> Importing kit (PHP): $kit"
+  KIT_PATH="$kit" APP_ROOT="$(pwd)" php infra/wordpress/bin/kit-import.php || true
   imported_any=1
 done
 
@@ -48,8 +48,8 @@ done
 if [[ "$imported_any" -eq 0 ]]; then
   fallback_zip=$(ls infra/wordpress/brands/${BRAND}/elementor/*.zip 2>/dev/null | head -n 1 || true)
   if [[ -n "$fallback_zip" && -f "$fallback_zip" ]]; then
-    echo ">>> Fallback importing brand kit (CLI): $fallback_zip"
-    wp elementor kit import "$fallback_zip" --allow-root --user=1 || true
+    echo ">>> Fallback importing brand kit (PHP): $fallback_zip"
+    KIT_PATH="$fallback_zip" APP_ROOT="$(pwd)" php infra/wordpress/bin/kit-import.php || true
   else
     echo "No fallback brand kit found under infra/wordpress/brands/${BRAND}/elementor/"
   fi
