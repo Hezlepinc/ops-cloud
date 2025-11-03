@@ -14,18 +14,19 @@ jobs:
       - uses: actions/checkout@v4
       - id: set-matrix
         run: |
-          node -e "const fs=require('fs');
-          const p=JSON.parse(fs.readFileSync('infra/wordpress/config/projects.json','utf8'));
-          const branch='${{ github.ref_name }}';
-          const env = branch==='main' ? 'prod' : 'staging';
-          const include=[];
-          for(const [brand,v] of Object.entries(p)){
-            const envKey = env==='prod'?'production':'staging';
-            include.push({ brand, overlay: v.overlay_theme, domain: v[envKey].domain, app_root_secret: v[envKey].app_root_secret, env });
-          }
-          const out = JSON.stringify({include});
-          console.log(out);
-          fs.writeFileSync(process.env.GITHUB_OUTPUT, `matrix=${out}\n`, {flag:'a'});"
+          node -e '
+            const fs = require("fs");
+            const p = JSON.parse(fs.readFileSync("infra/wordpress/config/projects.json", "utf8"));
+            const branch = process.env.GITHUB_REF_NAME;
+            const env = branch === "main" ? "prod" : "staging";
+            const include = [];
+            for (const [brand, v] of Object.entries(p)) {
+              const envKey = env === "prod" ? "production" : "staging";
+              include.push({ brand, overlay: v.overlay_theme, domain: v[envKey].domain, app_root_secret: v[envKey].app_root_secret, env });
+            }
+            process.stdout.write(JSON.stringify({ include }));
+          ' > matrix.json
+          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
 
   deploy:
     needs: build-matrix
