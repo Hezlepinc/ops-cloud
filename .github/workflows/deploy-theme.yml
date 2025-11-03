@@ -32,7 +32,7 @@ jobs:
     needs: build-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.build-matrix.outputs.matrix).include }}
+      matrix: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
 
