@@ -83,6 +83,38 @@ try {
 	}
 	$baseDir = dirname($manifestPath);
 
+	// Helpers to handle zips that used backslashes as path separators
+	$endsWith = function(string $haystack, string $needle): bool {
+		if ($needle === '') return true;
+		$len = strlen($needle);
+		return substr($haystack, -$len) === $needle;
+	};
+
+	$findTemplatePath = function(string $root, string $templateId) use ($endsWith): ?string {
+		$targetUnix = '/templates/' . $templateId . '.json';
+		$targetWin  = DIRECTORY_SEPARATOR === '\\'
+			? '\\templates\\' . $templateId . '.json' // unlikely on linux, but keep for symmetry
+			: '\\templates\\' . $templateId . '.json';
+		$rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
+		foreach ($rii as $file) {
+			if (!$file->isFile()) {
+				continue;
+			}
+			$path = $file->getPathname();
+			$lower = strtolower($path);
+			if ($endsWith($lower, strtolower($targetUnix)) || $endsWith($lower, strtolower($targetWin))) {
+				return $path;
+			}
+			// In some exotic zips the whole "templates\22.json" may be the filename itself
+			$fname = $file->getFilename();
+			$fl = strtolower($fname);
+			if ($fl === ($templateId . '.json') || $endsWith($fl, '\\' . $templateId . '.json') || $endsWith($fl, '/' . $templateId . '.json')) {
+				return $path;
+			}
+		}
+		return null;
+	};
+
 	$elementorVersion = null;
 	if (class_exists('\Elementor\Plugin')) {
 		try {
@@ -103,7 +135,12 @@ try {
 		$conditions = isset($meta['conditions']) && is_array($meta['conditions']) ? $meta['conditions'] : [];
 		$jsonPath = $baseDir . '/templates/' . $id . '.json';
 		if (!file_exists($jsonPath)) {
-			continue;
+			$foundAlt = $findTemplatePath($baseDir, (string) $id);
+			if ($foundAlt && file_exists($foundAlt)) {
+				$jsonPath = $foundAlt;
+			} else {
+				continue;
+			}
 		}
 		$data = json_decode(file_get_contents($jsonPath), true);
 		if (!is_array($data)) {
