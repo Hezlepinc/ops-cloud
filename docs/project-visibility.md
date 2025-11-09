@@ -210,3 +210,59 @@ Redis + Postgres + Pinecone back unified context, audit, and semantic search.
 Dashboard and daily GPT reports provide continuous operational visibility.
 
 Every deployment and command is observable, auditable, and AI-assisted.
+
+## Appendix: Project Map (Repository Structure)
+
+```text
+apps/
+  marketing-site/
+  sparky-hq/
+
+infra/
+  wordpress/
+    brands/
+      sparky-hq/
+        theme/
+        elementor/
+          sparky_template.zip
+      hezlep-inc/
+        theme/
+        elementor/
+          hezlep_template.zip
+    themes/
+      hello-child/
+    mu-plugins/
+    wp-bootstrap.sh
+
+config/
+  projects.json
+
+scripts/
+  deploy.sh
+  build-cursor-theme.js
+
+.github/
+  workflows/
+    deploy-theme.yml
+
+docs/
+  template-instructions/
+    sparky-hq.template.md
+    hezlep-inc.template.md
+  docker-compose.yml
+  playbook.md
+  07_ROADMAP.md
+
+tools/
+  cloudflare-dns.sh
+
+package.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
+README.md
+```
+
+Key points:
+- Brand overlays live in `infra/wordpress/brands/<brand>/` and are assembled into `themes/hello-child/` at deploy time.
+- Elementor kits are zipped per brand under `infra/wordpress/brands/<brand>/elementor/` and imported via WP-CLI.
+- Deployments run via a single workflow matrix (staging/production).
