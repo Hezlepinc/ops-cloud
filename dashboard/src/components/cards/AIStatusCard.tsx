@@ -12,16 +12,18 @@ export default function AIStatusCard() {
   ];
 
   return (
-    <div className="app-card p-4">
-      <h3 className="font-semibold text-lg mb-2">AI Systems Connectivity</h3>
-      <ul className="text-sm space-y-1">
-        {systems.map((sys: any) => (
-          <li key={sys.name} className="flex justify-between">
-            <span>{sys.name}</span>
-            <StatusLight status={sys.status} />
-          </li>
-        ))}
-      </ul>
+    <div className="app-card">
+      <div className="app-card-header">AI Systems Connectivity</div>
+      <div className="app-card-body">
+        <ul className="text-sm space-y-1">
+          {systems.map((sys: any) => (
+            <li key={sys.name} className="flex justify-between">
+              <span>{sys.name}</span>
+              <StatusLight status={sys.status} />
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

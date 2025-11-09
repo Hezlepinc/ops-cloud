@@ -1,0 +1,17 @@
+{
+  "nodes": [
+    { "id": "render", "position": { "x": 0, "y": -80 }, "data": { "label": "Render Deployments", "description": "Static dashboard + Node services" }, "style": { "backgroundColor": "#22c55e" }, "type": "custom" },
+    { "id": "cloudways", "position": { "x": 0, "y": 80 }, "data": { "label": "Cloudways WP Stack", "description": "WordPress hosting apps" }, "style": { "backgroundColor": "#f59e0b" }, "type": "custom" },
+    { "id": "orchestrator", "position": { "x": 240, "y": 0 }, "data": { "label": "Orchestrator", "description": "AI ops API & caching" }, "style": { "backgroundColor": "#0ea5e9" }, "type": "custom" },
+    { "id": "sparky", "position": { "x": 480, "y": -60 }, "data": { "label": "Sparky WP", "description": "staging + production" }, "type": "custom" },
+    { "id": "hezlep", "position": { "x": 480, "y": 60 }, "data": { "label": "Hezlep WP", "description": "staging + production" }, "type": "custom" },
+    { "id": "github", "position": { "x": 240, "y": -160 }, "data": { "label": "GitHub", "description": "CI/CD + Actions" }, "type": "custom" }
+  ],
+  "edges": [
+    { "id": "e1", "source": "github", "target": "render", "label": "Push → Build", "markerEnd": { "typeStr": "ArrowClosed", "color": "#16a34a" } },
+    { "id": "e2", "source": "orchestrator", "target": "cloudways", "label": "API", "markerEnd": { "typeStr": "ArrowClosed", "color": "#0ea5e9" } },
+    { "id": "e3", "source": "cloudways", "target": "sparky", "label": "hosting", "markerEnd": { "typeStr": "ArrowClosed", "color": "#f59e0b" } },
+    { "id": "e4", "source": "cloudways", "target": "hezlep", "label": "hosting", "markerEnd": { "typeStr": "ArrowClosed", "color": "#f59e0b" } }
+  ]
+}
+
