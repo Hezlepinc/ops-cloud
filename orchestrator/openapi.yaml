@@ -4,43 +4,53 @@ info:
   version: 1.0.0
 servers:
   - url: https://ops-orchestrator.onrender.com
+
 components:
   securitySchemes:
     apiKeyAuth:
       type: apiKey
       in: header
       name: x-api-key
+  schemas: {} # <-- added empty object so “schemas” exists
+
 paths:
   /ai/status:
     get:
+      operationId: getStatus
       summary: Cached Cloudways + GitHub status
       security:
         - apiKeyAuth: []
       parameters:
         - in: query
           name: forceRefresh
-          schema: { type: string, enum: ["true","false"] }
+          schema: { type: string, enum: ['true', 'false'] }
           required: false
           description: Force live Cloudways fetch (can hit rate limit)
       responses:
         '200':
           description: OK
+
   /ai/live:
     get:
+      operationId: getLiveSnapshot
       summary: Cached snapshot (Cloudways + GitHub)
       security:
         - apiKeyAuth: []
       responses:
         '200': { description: OK }
+
   /ai/test/openai:
     get:
+      operationId: testOpenAI
       summary: GPT-5 summary of orchestrator status
       security:
         - apiKeyAuth: []
       responses:
         '200': { description: OK }
+
   /ai/cloudways/{action}:
     post:
+      operationId: cloudwaysAction
       summary: Cloudways action (deploy | purge | restart)
       security:
         - apiKeyAuth: []
@@ -60,8 +70,10 @@ paths:
                 server_id: { type: integer }
       responses:
         '200': { description: OK }
+
   /ai/wordpress/{brand}:
     get:
+      operationId: getWordPressHealth
       summary: WordPress REST health for brand
       security:
         - apiKeyAuth: []
@@ -72,8 +84,10 @@ paths:
           schema: { type: string, enum: [sparky-hq, hezlep-inc] }
       responses:
         '200': { description: OK }
+
   /ai/elementor/{brand}:
     get:
+      operationId: getElementorKits
       summary: Elementor kit list via WP REST for brand
       security:
         - apiKeyAuth: []
@@ -84,21 +98,44 @@ paths:
           schema: { type: string, enum: [sparky-hq, hezlep-inc] }
       responses:
         '200': { description: OK }
+
   /ai/metrics:
     get:
+      operationId: getMetrics
       summary: Orchestrator cache metrics
       security:
         - apiKeyAuth: []
       responses:
         '200': { description: OK }
+
   /ai/audit:
     get:
+      operationId: getAudit
       summary: Read audit log
       security:
         - apiKeyAuth: []
       responses:
         '200': { description: OK }
+  /ai/github/dispatch:
     post:
+      operationId: triggerGitHubAction
+      summary: Trigger a GitHub workflow dispatch
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_type: { type: string }
+                client_payload: { type: object }
+      responses:
+        '200': { description: OK }
+
+    post:
+      operationId: postAudit
       summary: Append an audit entry
       security:
         - apiKeyAuth: []
@@ -113,5 +150,3 @@ paths:
                 data: { type: object }
       responses:
         '200': { description: OK }
-
-
