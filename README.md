@@ -21,7 +21,7 @@ repo.
 ## What's live now (staging CI/CD)
 
 - Hello Child theme (`infra/wordpress/themes/hello-child`) deployed to Cloudways via GitHub Actions
-  - Workflow: `.github/workflows/deploy-staging.yml`
+  - Workflow: `.github/workflows/deploy-theme.yml`
   - Matrix deploys for `sparky` and `hezlepinc`
   - Post-deploy script activates the theme and clears cache gracefully: `deploy/post-deploy.sh`
 - SSH connectivity validated in `.github/workflows/test-cloudways.yml`
@@ -40,7 +40,7 @@ Optional repo secrets (production, when enabling prod workflow):
 
 Triggering a deploy:
 
-- Push to `staging` → runs “Deploy to Staging (Hello Child)” for both sites
+- Push to `develop` → runs “Deploy to Staging (Hello Child)” for both sites
 
 ## Setting Up a New WordPress Site (Staging + Production)
 
@@ -66,7 +66,7 @@ Triggering a deploy:
 
 6. Deploy:
 
-- Push to `staging` → deploys Hello Child to staging apps for configured sites
+- Push to `develop` → deploys Hello Child to staging apps for configured sites
 - Push to `main` → deploys to production (when production workflow/secrets are configured)
 
 ### Duplicate this setup for a new brand/site
@@ -77,11 +77,11 @@ Triggering a deploy:
 2. GitHub Secrets: add `APP_ROOT_<BRAND>_STAGING` (and `APP_ROOT_<BRAND>_PROD` when ready) with the
    full app root.
 
-3. Workflow Matrix: in `.github/workflows/deploy-staging.yml`, add the brand key to
+3. Workflow Matrix: in `.github/workflows/deploy-theme.yml`, add the brand key to
    `matrix.site: [sparky, hezlepinc, <brand>]` and map its secret name if it differs from the
    convention.
 
-4. Push to `staging` and watch Actions. The job rsyncs `infra/wordpress/themes/hello-child/` and
+4. Push to `develop` and watch Actions. The job rsyncs `infra/wordpress/themes/hello-child/` and
    runs `deploy/post-deploy.sh` to activate the theme.
 
 5. Verify in WP Admin → Appearance → Themes, or via CLI
@@ -89,10 +89,10 @@ Triggering a deploy:
 
 ## Promotion Flow (Git-driven)
 
-- Develop on feature branches → merge into `staging`.
-- Verify staging deployment (auto from `staging` pushes).
+- Develop on feature branches → merge into `develop`.
+- Verify staging deployment (auto from `develop` pushes).
 - Manually promote to production using GitHub Actions → Promote Staging to Production (merges
-  `staging` → `main`).
+  `develop` → `main`).
 - Production deploy runs automatically from `main` push.
 
 ## Cursor Design System: Build + Deploy
@@ -123,8 +123,8 @@ Examples:
 
 ### Deploy workflow (GitHub Actions)
 
-- On push to `staging` or `main`, `.github/workflows/deploy-cloudways.yml`:
-  - Determines env from branch
+- On push to `develop` or `main`, `.github/workflows/deploy-theme.yml`:
+  - Determines env from branch (`main` → production, `develop` → staging)
   - Calls `scripts/deploy.sh` with `DEPLOY_SITE` and env
   - Rsyncs theme and uploads `wp-bootstrap.sh`
   - Bootstrap script activates theme, creates pages/menu, sets permalinks

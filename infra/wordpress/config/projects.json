@@ -4,11 +4,15 @@
     "kits": [],
     "staging": {
       "domain": "staging.hezlepinc.com",
-      "app_root_secret": "APP_ROOT_HEZLEP_STAGING"
+			"app_root_secret": "APP_ROOT_HEZLEP_STAGING",
+			"app_id": "YOUR_APP_ID",
+			"app_dir": "your_hezlep_staging_app_dir"
     },
     "production": {
       "domain": "hezlepinc.com",
-      "app_root_secret": "APP_ROOT_HEZLEP_PROD"
+			"app_root_secret": "APP_ROOT_HEZLEP_PROD",
+			"app_id": "YOUR_APP_ID",
+			"app_dir": "your_hezlep_prod_app_dir"
     }
   },
   "sparky-hq": {
@@ -16,11 +20,15 @@
     "kits": [],
     "staging": {
       "domain": "staging.sparky-hq.com",
-      "app_root_secret": "APP_ROOT_SPARKY_STAGING"
+			"app_root_secret": "APP_ROOT_SPARKY_STAGING",
+			"app_id": "YOUR_APP_ID",
+			"app_dir": "your_sparky_staging_app_dir"
     },
     "production": {
       "domain": "sparky-hq.com",
-      "app_root_secret": "APP_ROOT_SPARKY_PROD"
+			"app_root_secret": "APP_ROOT_SPARKY_PROD",
+			"app_id": "YOUR_APP_ID",
+			"app_dir": "your_sparky_prod_app_dir"
     }
   }
 }

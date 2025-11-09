@@ -31,6 +31,13 @@
       ]
     },
     {
+      "name": "start local wordpress",
+      "description": "Start local Docker WordPress stack",
+      "run": [
+        "docker compose -f docs/docker-compose.yml up -d"
+      ]
+    },
+    {
       "name": "restart orchestrator",
       "description": "Quick restart for orchestrator service (local dev)",
       "run": [

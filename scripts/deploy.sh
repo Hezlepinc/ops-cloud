@@ -41,6 +41,12 @@ if [[ -z "$APP_ID" || "$APP_ID" == "null" ]]; then
   exit 1
 fi
 
+# Validate placeholders
+if [[ "$APP_ID" == "YOUR_APP_ID" || "$APP_ID" == "YOUR_STAGING_APP_ID" || "$APP_ID" == "YOUR_PROD_APP_ID" ]]; then
+  echo "❌ Missing Cloudways app_id in infra/wordpress/config/projects.json for site=$SITE env=$DEPLOY_ENV" >&2
+  exit 1
+fi
+
 TARGET_DOMAIN="$DOMAIN"
 
 echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN app_dir=${APP_DIR:-unset}"

@@ -2,7 +2,7 @@ name: Deploy WP Themes & Kits
 
 on:
   push:
-    branches: [staging, main]
+    branches: [develop, main]
 
 jobs:
   build-matrix:
