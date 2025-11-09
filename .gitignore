@@ -1,3 +1,6 @@
+# Local Cursor secrets
+.cursor/cursor.env
+
 # Dependencies
 node_modules/
 .pnpm-store/

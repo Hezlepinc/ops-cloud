@@ -141,19 +141,37 @@
     },
     {
       "name": "daily",
-      "description": "Alias: orchestrator + WP health + git snapshot",
+      "description": "Orchestrator + WP health + git snapshot",
       "run": [
-        "echo '== Orchestrator status ==' && curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/status | jq",
-        "echo '== WordPress (sparky-hq) ==' && curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/wordpress/sparky-hq | jq",
-        "echo '== WordPress (hezlep-inc) ==' && curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/wordpress/hezlep-inc | jq",
-        "echo '== Git status ==' && git status -sb && echo '== Last commit ==' && git log -1 --oneline"
+        "bash .cursor/scripts/daily.sh"
+      ]
+    },
+    {
+      "name": "status",
+      "description": "Quick Cloudways + WordPress health snapshot",
+      "run": [
+        "bash -lc 'source .cursor/cursor.env 2>/dev/null || true; curl -sS -H \"x-api-key:$OPENAI_API_KEY\" ${ORCHESTRATOR_URL:-https://ops-orchestrator.onrender.com}/ai/status | jq'"
+      ]
+    },
+    {
+      "name": "deploy staging",
+      "description": "Deploy brand to staging via orchestrator",
+      "run": [
+        "bash .cursor/scripts/deploy-staging.sh sparky-hq staging"
+      ]
+    },
+    {
+      "name": "update docs",
+      "description": "Pull latest docs and rebuild bundles",
+      "run": [
+        "bash .cursor/scripts/update-docs.sh"
       ]
     },
     {
       "name": "daily suggestions",
       "description": "Get daily AI suggestions from orchestrator",
       "run": [
-        "curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/suggestions/daily | jq"
+        "bash -lc 'source .cursor/cursor.env 2>/dev/null || true; curl -sS -H \"x-api-key:$OPENAI_API_KEY\" ${ORCHESTRATOR_URL:-https://ops-orchestrator.onrender.com}/ai/suggestions/daily | jq'"
       ]
     }
   ]
