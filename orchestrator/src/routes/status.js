@@ -35,9 +35,18 @@ router.get("/", async (_req, res) => {
       result.errors.push(msg);
     }
   } catch (e) {
-    const msg = `Cloudways error: ${e?.message || "failed"}`;
-    console.error("❌", msg);
-    result.errors.push(msg);
+    // On Cloudways fetch failure (including rate limit non‑JSON 200), try to serve cached data
+    const cachedServers = getServersFromCache(true);
+    const cachedApps = getAppsFromCache(true);
+    if (cachedServers && cachedApps) {
+      result.cloudways = { servers: cachedServers, apps: cachedApps };
+      result.notice = "Using cached Cloudways data (rate limited; 10 min TTL)";
+      console.warn("⚠️ Cloudways API limited; served cached results");
+    } else {
+      const msg = `Cloudways error: ${e?.message || "failed"}`;
+      console.error("❌", msg);
+      result.errors.push(msg);
+    }
   }
 
   // ---- GitHub Section ----
