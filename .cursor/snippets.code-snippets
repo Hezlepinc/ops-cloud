@@ -1,0 +1,32 @@
+{
+  "Template Manifest Mapping (page)": {
+    "prefix": "tmpl-map-page",
+    "body": [
+      "{ \"type\": \"page\", \"src\": \"templates/pages/${1:slug}.json\", \"slug\": \"${1:slug}\" }"
+    ],
+    "description": "Add a page mapping to template.manifest.json"
+  },
+  "CI: Import Templates (staging)": {
+    "prefix": "ci-import-staging",
+    "body": [
+      "name: Import Elementor Templates (Staging)",
+      "on:",
+      "  push:",
+      "    branches: [ \"staging\" ]",
+      "    paths:",
+      "      - \"templates/**\"",
+      "jobs:",
+      "  import-templates:",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      "      - uses: actions/checkout@v4",
+      "      - run: node scripts/wp/build-kit.js --manifest templates/template.manifest.json --out kit.zip",
+      "      - run: scp -o StrictHostKeyChecking=no kit.zip ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_STG }}:/home/master/imports/kit-staging.zip",
+      "      - run: |",
+      "          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_STG }} \\",
+      "          'cd /home/master/htdocs/public_html && wp elementor kit import /home/master/imports/kit-staging.zip --include=templates,site-settings --skip-content && wp option update hezlep_kit_version \"$(jq -r .version /home/master/imports/template.manifest.json)\"'"
+    ],
+    "description": "Workflow to import templates on staging"
+  }
+}
+

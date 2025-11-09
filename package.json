@@ -14,7 +14,11 @@
     "deploy:hezlepinc": "pnpm run deploy -- --site=hezlepinc",
     "deploy:sparky": "pnpm run deploy -- --site=sparky",
     "build-cursor": "node scripts/build-cursor-theme.js",
-    "daily": "node scripts/daily.mjs"
+    "daily": "node scripts/daily.mjs",
+    "docs:gpt:bundle": "node scripts/docs/build-gpt-bundle.js",
+    "templates:validate": "node scripts/wp/validate-manifest.js templates/template.manifest.json",
+    "templates:build-kit": "node scripts/wp/build-kit.js --manifest templates/template.manifest.json --out dist/kit.zip",
+    "orchestrator:pre-dev-day-sync": "node scripts/orchestrator/pre-dev-day-sync.js"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
