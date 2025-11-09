@@ -55,5 +55,3 @@ Run from Cursor’s Command Palette:
 - 401 Unauthorized: ensure `OPENAI_API_KEY` matches Render’s value
 - Cloudways rate-limit: `/ai/status` is cache-first; use `?forceRefresh=true` only when necessary
 - Dashboard “Connections” empty: wait for the scheduled “Auto Update Maps” workflow to run or trigger it via GitHub Actions → Workflows → “Auto Update Maps” → Run
-
-
