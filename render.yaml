@@ -14,11 +14,17 @@ services:
         value: 3000
       # Secrets are stored in Render dashboard; this group is referenced here
       - fromGroup: orchestrator-common
-  - type: static
+  - type: web
     name: ops-dashboard
-    rootDir: .
-    buildCommand: "cd dashboard && npm install && npm run build && npm run export"
-    staticPublishPath: "dashboard/out"
+    env: node
+    plan: starter
+    region: oregon
+    rootDir: apps/ops-dashboard
+    buildCommand: "corepack enable && pnpm install && pnpm build"
+    startCommand: "corepack enable && pnpm start"
+    envVars:
+      - key: NODE_VERSION
+        value: 20
 
 envVarGroups:
   - name: orchestrator-common
