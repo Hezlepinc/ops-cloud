@@ -18,6 +18,12 @@ repo.
 3. Start WordPress: docker compose up -d
 4. Visit: http://localhost:8081
 
+## Docs
+
+- Operations Playbook: `docs/DEV_CYCLE.md`
+- Orchestrator API & usage: `docs/orchestrator.md`
+- Roadmap and remaining tasks: `docs/roadmap.md`
+
 ## What's live now (staging CI/CD)
 
 - Hello Child theme (`infra/wordpress/themes/hello-child`) deployed to Cloudways via GitHub Actions
