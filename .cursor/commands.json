@@ -128,6 +128,16 @@
       "run": [
         "npm --prefix orchestrator run dev"
       ]
+    },
+    {
+      "name": "pre-dev-day sync",
+      "description": "Quick orchestrator + WP health and local git snapshot",
+      "run": [
+        "echo '== Orchestrator status ==' && curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/status | jq",
+        "echo '== WordPress (sparky-hq) ==' && curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/wordpress/sparky-hq | jq",
+        "echo '== WordPress (hezlep-inc) ==' && curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/wordpress/hezlep-inc | jq",
+        "echo '== Git status ==' && git status -sb && echo '== Last commit ==' && git log -1 --oneline"
+      ]
     }
   ]
 }
