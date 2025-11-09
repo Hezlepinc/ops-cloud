@@ -1,0 +1,38 @@
+{
+  "nodes": [
+    { "id": "opscloud", "data": { "label": "OpsCloud" }, "position": { "x": 0, "y": 300 }, "style": { "backgroundColor": "#2563eb", "color": "#fff" } },
+
+    { "id": "render", "data": { "label": "Render\n(Deployment)" }, "position": { "x": 200, "y": 100 } },
+    { "id": "orchestrator", "data": { "label": "Orchestrator" }, "position": { "x": 200, "y": 200 } },
+    { "id": "cursor", "data": { "label": "Cursor" }, "position": { "x": 200, "y": 300 } },
+    { "id": "docs", "data": { "label": "Documentation" }, "position": { "x": 200, "y": 400 } },
+    { "id": "templates", "data": { "label": "Themes & Templates" }, "position": { "x": 200, "y": 500 } },
+
+    { "id": "clients", "data": { "label": "Clients" }, "position": { "x": 400, "y": 300 } },
+    { "id": "client-a", "data": { "label": "Client A\n(Hezlep Inc)" }, "position": { "x": 600, "y": 200 } },
+    { "id": "prod-a", "data": { "label": "Production" }, "position": { "x": 800, "y": 150 } },
+    { "id": "staging-a", "data": { "label": "Staging" }, "position": { "x": 800, "y": 250 } },
+
+    { "id": "home-a", "data": { "label": "Home Page" }, "position": { "x": 1000, "y": 100 } },
+    { "id": "about-a", "data": { "label": "About Page" }, "position": { "x": 1000, "y": 200 } },
+    { "id": "contact-a", "data": { "label": "Contact Page" }, "position": { "x": 1000, "y": 300 } },
+
+    { "id": "seo-a", "data": { "label": "SEO / Analytics" }, "position": { "x": 800, "y": 400 }, "style": { "backgroundColor": "#e5e7eb", "color": "#9ca3af" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "opscloud", "target": "render" },
+    { "id": "e2", "source": "opscloud", "target": "orchestrator" },
+    { "id": "e3", "source": "opscloud", "target": "cursor" },
+    { "id": "e4", "source": "opscloud", "target": "docs" },
+    { "id": "e5", "source": "opscloud", "target": "templates" },
+    { "id": "e6", "source": "opscloud", "target": "clients" },
+    { "id": "e7", "source": "clients", "target": "client-a" },
+    { "id": "e8", "source": "client-a", "target": "prod-a" },
+    { "id": "e9", "source": "client-a", "target": "staging-a" },
+    { "id": "e10", "source": "prod-a", "target": "home-a" },
+    { "id": "e11", "source": "prod-a", "target": "about-a" },
+    { "id": "e12", "source": "prod-a", "target": "contact-a" },
+    { "id": "e13", "source": "client-a", "target": "seo-a" }
+  ]
+}
+
