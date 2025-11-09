@@ -52,7 +52,7 @@ app.listen(PORT, () => {
 });
 
 // Background sync jobs
-setInterval(syncCloudways, 1000 * 60 * 5);
-setInterval(syncGitHub, 1000 * 60 * 2);
+setInterval(syncCloudways, 1000 * 60 * 10); // every 10 minutes
+setInterval(syncGitHub, 1000 * 60 * 5);     // every 5 minutes
 
 

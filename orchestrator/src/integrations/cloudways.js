@@ -1,4 +1,6 @@
 import fetch from "node-fetch";
+import fs from "fs";
+import path from "path";
 
 const CW_AUTH = "https://api.cloudways.com/api/v1/oauth/access_token";
 const CW_BASE = "https://api.cloudways.com/api/v1";
@@ -39,15 +41,45 @@ export async function getAccessToken() {
 }
 
 export async function getServers(token) {
-	return await fetchJsonSafe(`${CW_BASE}/server`, {
+	// Cache layer
+	const cacheDir = "/tmp";
+	const serverCacheFile = path.join(cacheDir, "cloudways-servers.json");
+	try {
+		const stat = fs.statSync(serverCacheFile);
+		const ageMin = (Date.now() - stat.mtimeMs) / 60000;
+		if (ageMin < 10) {
+			return JSON.parse(fs.readFileSync(serverCacheFile, "utf8"));
+		}
+	} catch {}
+
+	const data = await fetchJsonSafe(`${CW_BASE}/server`, {
 		headers: { Authorization: `Bearer ${token}` }
 	});
+	try {
+		fs.writeFileSync(serverCacheFile, JSON.stringify(data, null, 2));
+	} catch {}
+	return data;
 }
 
 export async function getApps(token) {
-	return await fetchJsonSafe(`${CW_BASE}/app`, {
+	// Cache layer
+	const cacheDir = "/tmp";
+	const appCacheFile = path.join(cacheDir, "cloudways-apps.json");
+	try {
+		const stat = fs.statSync(appCacheFile);
+		const ageMin = (Date.now() - stat.mtimeMs) / 60000;
+		if (ageMin < 10) {
+			return JSON.parse(fs.readFileSync(appCacheFile, "utf8"));
+		}
+	} catch {}
+
+	const data = await fetchJsonSafe(`${CW_BASE}/app`, {
 		headers: { Authorization: `Bearer ${token}` }
 	});
+	try {
+		fs.writeFileSync(appCacheFile, JSON.stringify(data, null, 2));
+	} catch {}
+	return data;
 }
 
 

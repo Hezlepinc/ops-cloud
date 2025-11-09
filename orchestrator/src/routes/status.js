@@ -20,6 +20,7 @@ router.get("/", async (_req, res) => {
       console.log("🔹 [Cloudways] Token:", token ? "✅ received" : "❌ undefined");
       const [servers, apps] = await Promise.all([getServers(token), getApps(token)]);
       result.cloudways = { servers, apps };
+      result.notice = "Using cached Cloudways data (10 min TTL)";
     } else {
       const msg = "Cloudways credentials not set";
       console.warn("⚠️", msg);
