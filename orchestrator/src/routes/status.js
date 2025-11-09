@@ -4,24 +4,52 @@ import { getRepoStatus } from "../integrations/github.js";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-	try {
-		const token = await getAccessToken();
-		const [servers, apps, git] = await Promise.all([
-			getServers(token),
-			getApps(token),
-			getRepoStatus(process.env.GITHUB_REPO || "")
-		]);
-		res.json({
-			cloudways: { servers, apps },
-			git,
-			timestamp: new Date().toISOString()
-		});
-	} catch (err) {
-		res.status(500).json({ error: err?.message || "unknown error" });
-	}
+router.get("/", async (_req, res) => {
+  console.log("🔹 [AI/Status] Request received");
+
+  const result = {
+    timestamp: new Date().toISOString(),
+    errors: []
+  };
+
+  // ---- Cloudways Section ----
+  try {
+    if (process.env.CW_EMAIL && process.env.CW_API_KEY) {
+      console.log("🔹 [Cloudways] Credentials detected, requesting access token...");
+      const token = await getAccessToken();
+      console.log("🔹 [Cloudways] Token:", token ? "✅ received" : "❌ undefined");
+      const [servers, apps] = await Promise.all([getServers(token), getApps(token)]);
+      result.cloudways = { servers, apps };
+    } else {
+      const msg = "Cloudways credentials not set";
+      console.warn("⚠️", msg);
+      result.errors.push(msg);
+    }
+  } catch (e) {
+    const msg = `Cloudways error: ${e?.message || "failed"}`;
+    console.error("❌", msg);
+    result.errors.push(msg);
+  }
+
+  // ---- GitHub Section ----
+  try {
+    if (process.env.GITHUB_REPO && process.env.GITHUB_TOKEN) {
+      console.log("🔹 [GitHub] Checking repo status...");
+      const git = await getRepoStatus(process.env.GITHUB_REPO);
+      result.git = git;
+    } else {
+      const msg = "GitHub env not set";
+      console.warn("⚠️", msg);
+      result.errors.push(msg);
+    }
+  } catch (e) {
+    const msg = `GitHub error: ${e?.message || "failed"}`;
+    console.error("❌", msg);
+    result.errors.push(msg);
+  }
+
+  // ---- Response ----
+  res.json(result);
 });
 
 export default router;
-
-
