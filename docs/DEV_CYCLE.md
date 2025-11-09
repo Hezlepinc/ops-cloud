@@ -128,6 +128,20 @@ Confirm all endpoints still pass tests.
 | Summarize          | “Summarize current system health and suggest next actions.” |
 | Verify templates   | “Check Elementor kits for Sparky and Hezlep.”               |
 
+## 🧠 Smart Prompt Library
+
+| Intent | Prompt |
+| --- | --- |
+| Daily Check | “Run the morning Pre-Dev-Day Sync and summarize system health.” |
+| Force Refresh | “Force refresh Cloudways and summarize new data.” |
+| Deploy | “Deploy latest commit to staging and confirm completion.” |
+| Restart PHP | “Restart PHP service on staging and verify uptime.” |
+| Cache Purge | “Purge cache for Sparky-HQ.” |
+| GitHub Insight | “List the last 5 commits to develop and describe the most changed files.” |
+| Template Audit | “Compare Elementor kits and WordPress themes between Sparky and Hezlep.” |
+| Error Review | “Summarize orchestrator errors from the last day and suggest next actions.” |
+| Context Reset | “Reset daily context.” |
+
 ## 🧰 Troubleshooting Quick List
 
 | Issue                          | Fix                                                                            |
