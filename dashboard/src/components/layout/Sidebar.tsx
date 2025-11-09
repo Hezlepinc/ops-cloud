@@ -14,7 +14,8 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex md:flex-col w-60 border-r border-zinc-100 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/60 backdrop-blur">
       <div className="h-16 px-4 flex items-center gap-2 border-b border-zinc-100 dark:border-zinc-800">
-        <img src="/logo.svg" alt="Logo" className="h-7 w-auto" />
+        <img src="/logo.svg" alt="Logo" className="h-7 w-auto dark:hidden" />
+        <img src="/logo-dark.svg" alt="Logo" className="h-7 w-auto hidden dark:inline" />
       </div>
       <nav className="p-3 space-y-1">
         {NAV.map(({ href, label }) => {
