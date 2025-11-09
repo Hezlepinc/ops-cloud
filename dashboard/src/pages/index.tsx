@@ -1,4 +1,6 @@
 import Link from "next/link";
+import SEOPanel from "../components/SEOPanel";
+import SocialPanel from "../components/SocialPanel";
 
 export default function Home() {
   return (
@@ -12,11 +14,12 @@ export default function Home() {
           Open Architecture Maps
         </Link>
         <Link href="/maps" style={{ padding: "10px 14px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb" }}>
-          AI Connections
-        </Link>
-        <Link href="/maps" style={{ padding: "10px 14px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb" }}>
           Environments & Pages
         </Link>
+      </div>
+      <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <SEOPanel />
+        <SocialPanel />
       </div>
     </div>
   );
