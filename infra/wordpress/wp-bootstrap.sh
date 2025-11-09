@@ -10,16 +10,7 @@ APP_ROOT="$(pwd)"
 cd "$APP_ROOT"
 
 echo "▶ APP_ROOT = $APP_ROOT"
-echo "▶ Ensuring Elementor active"
-wp plugin install elementor --activate --allow-root || wp plugin activate elementor --allow-root || true
-wp plugin activate elementor-pro --allow-root || true
-
-# Ensure Elementor (free) active
-echo "▶ Ensuring Elementor plugin is active"
-wp plugin install elementor --activate --allow-root || wp plugin activate elementor --allow-root || true
-
-# Try to activate Pro if present (do not fail if missing)
-wp plugin activate elementor-pro --allow-root || true
+echo "▶ Skipping Elementor plugin management (handled manually)"
 
 echo "▶ Activating overlay based on projects.json and importing kits"
 
