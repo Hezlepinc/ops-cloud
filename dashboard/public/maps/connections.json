@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-11-09T15:47:20.665Z",
+  "results": [
+    {
+      "component": "Orchestrator",
+      "check": "root",
+      "status": "ok"
+    },
+    {
+      "component": "Orchestrator",
+      "check": "status",
+      "status": "unknown"
+    },
+    {
+      "component": "Render",
+      "check": "services",
+      "status": "unknown"
+    },
+    {
+      "component": "Cloudways",
+      "check": "oauth",
+      "status": "unknown"
+    },
+    {
+      "component": "WordPress (sparky-hq staging)",
+      "check": "wp-json",
+      "status": "ok"
+    }
+  ]
+}
