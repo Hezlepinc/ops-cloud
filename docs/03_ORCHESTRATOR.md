@@ -11,7 +11,7 @@ Endpoints (x-api-key):
 - GET/POST /ai/audit — read/append audit entries
 - GET /ai/suggestions/daily — AI suggestions feed
 
-Base URL: https://ops-orchestrator.onrender.com  
+Base URL: https://ops-orchestrator.onrender.com
 Header: x-api-key: $OPENAI_API_KEY
 
 Environment:

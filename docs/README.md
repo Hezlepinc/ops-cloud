@@ -11,6 +11,7 @@ Use these documents for day-to-day operations, deployments, and development.
 - 06_PLAYBOOK.md — Operations SOPs
 - 08_ROADMAP.md — Roadmap and remaining tasks
 - 09_CURSOR_GUIDE.md — Cursor commands and setup
+- 10_FUTURE.md — North‑star architecture and automation backlog
 - kit-workflow.md — Elementor kit editing, extract/pack, and deployment
 - hello-child-deploy.md — Hello Child theme deployment guide
 - template-instructions/ — Brand-specific notes and templates
