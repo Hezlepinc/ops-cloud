@@ -20,7 +20,7 @@ services:
     plan: starter
     region: oregon
     rootDir: dashboard
-    buildCommand: 'npm install && npm run build && npm run export'
+    buildCommand: 'npm install && npm run build'
     startCommand: 'npx serve -s out -l $PORT'
     envVars:
       - key: NODE_VERSION
