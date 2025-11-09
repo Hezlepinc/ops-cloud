@@ -1,12 +1,15 @@
 import { useMemo, useState, useCallback } from "react";
 import useSWR from "swr";
-import ReactFlow, { Background, Controls, ReactFlowProvider, MarkerType, Node, Edge } from "reactflow";
+import ReactFlow, { Background, Controls, ReactFlowProvider, MarkerType, Node, Edge, Handle, Position } from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "dagre";
 
 function CustomNode({ data }: any) {
   return (
-    <div style={{ padding: 8, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.1)", background: "#fff", border: "1px solid #e5e7eb" }}>
+    <div style={{ position: "relative", padding: 8, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.1)", background: "#fff", border: "1px solid #e5e7eb" }}>
+      {/* Left/Right handles for cleaner horizontal connections */}
+      <Handle type="target" position={Position.Left} style={{ background: "#6b7280" }} />
+      <Handle type="source" position={Position.Right} style={{ background: "#6b7280" }} />
       <div style={{ fontWeight: 600 }}>{data.label}</div>
       {data.description ? <div style={{ fontSize: 12, color: "#6b7280" }}>{data.description}</div> : null}
     </div>
@@ -27,6 +30,8 @@ export default function MapViewer() {
   // Expansion state
   const [cloudwaysExpanded, setCloudwaysExpanded] = useState<boolean>(true);
   const [expandedApps, setExpandedApps] = useState<Record<string, boolean>>({});
+  const [opsDownExpanded, setOpsDownExpanded] = useState<boolean>(false);
+  const [opsUpExpanded, setOpsUpExpanded] = useState<boolean>(false);
 
   const toggleApp = useCallback((appId: string) => {
     setExpandedApps((prev) => ({ ...prev, [appId]: !prev[appId] }));
@@ -87,6 +92,36 @@ export default function MapViewer() {
     addEdge("cloudways", "orchestrator");
     addEdge("orchestrator", "github");
 
+    // Optional expansions around Ops Cloud
+    if (opsDownExpanded) {
+      // Downward: core project components beneath Ops Cloud
+      const comps = [
+        { id: "comp:docs", label: "Docs" },
+        { id: "comp:scripts", label: "Scripts" },
+        { id: "comp:templates", label: "Templates" },
+        { id: "comp:cicd", label: "CI/CD" },
+      ];
+      comps.forEach(c => {
+        addNode(c.id, c.label);
+        // Connect from Ops Cloud to component (downward visually via dagre LR y-positioning)
+        addEdge("ops-cloud", c.id);
+      });
+    }
+
+    if (opsUpExpanded) {
+      // Upward: tech stack that feeds into Ops Cloud
+      const stack = [
+        { id: "stack:next", label: "Next.js" },
+        { id: "stack:tailwind", label: "TailwindCSS" },
+        { id: "stack:reactflow", label: "ReactFlow" },
+      ];
+      stack.forEach(s => {
+        addNode(s.id, s.label);
+        // Connect stack → Ops Cloud (incoming)
+        addEdge(s.id, "ops-cloud");
+      });
+    }
+
     // Expand Cloudways → Server → Apps
     if (cloudwaysExpanded) {
       addNode("cw-server", "Cloudways Server");
@@ -142,13 +177,25 @@ export default function MapViewer() {
     });
 
     return { nodes: laidOutNodes, edges: builtEdges };
-  }, [base, envs, sites, cloudwaysExpanded, expandedApps]);
+  }, [base, envs, sites, cloudwaysExpanded, expandedApps, opsDownExpanded, opsUpExpanded]);
 
-  const onNodeDoubleClick = useCallback((_e: any, node: Node) => {
+  const onNodeDoubleClick = useCallback((e: any, node: Node) => {
     if (node.id.startsWith("app:")) {
       toggleApp(node.id);
-    } else if (node.id === "cloudways") {
+      return;
+    }
+    if (node.id === "cloudways") {
       setCloudwaysExpanded((v) => !v);
+      return;
+    }
+    if (node.id === "ops-cloud") {
+      // Default double‑click toggles downward components; Shift+double‑click toggles upward stack
+      if (e.shiftKey) {
+        setOpsUpExpanded(v => !v);
+      } else {
+        setOpsDownExpanded(v => !v);
+      }
+      return;
     }
   }, [toggleApp]);
 
