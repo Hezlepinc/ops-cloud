@@ -99,15 +99,15 @@ Intent‑surge radar: Monitor SERP volatility & social mentions; if a topic spik
 ## 10) Concrete flows you can build next
 
 ### A) High‑intent lead autopilot
-Trigger: user submits “pricing” or “demo” form  
+Trigger: user submits “pricing” or “demo” form
 Actions: verify email → enrich → score → route to rep + Slack ping → create CRM opp → offer calendar slots → if no book within 2h, send 1 helpful asset → if booked, send agenda + 2 discovery questions → after call, auto‑send summary + next steps.
 
 ### B) Post‑publish syndication
-Trigger: post.published  
+Trigger: post.published
 Actions: generate OG/meta, internal link suggestions, FAQ schema → draft LinkedIn/Twitter/FB posts → schedule email digest slot → ping sitemap + IndexNow → post to Google Business Profile (if local) → update “related articles” blocks.
 
 ### C) Woo checkout value uplift
-Trigger: order.paid  
+Trigger: order.paid
 Actions: dynamic thank‑you page offer → 7‑day how‑to + review request → 30‑day upsell/reorder → if support ticket within 14 days, pause promos and send help‑first content → if NPS ≥ 9, invite to referral program.
 
 ## 11) Minimal implementation details (safe defaults)

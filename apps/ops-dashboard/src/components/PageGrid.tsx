@@ -7,13 +7,16 @@ export default function PageGrid() {
   const [query, setQuery] = useState("");
   const { data } = useSWR("https://staging.sparky-hq.com/wp-json/wp/v2/pages?per_page=100", fetcher);
   const { data: templates } = useSWR("https://staging.sparky-hq.com/wp-json/elementor/v1/templates", fetcher);
-  if (!data) return <p>Loading pages…</p>;
+
+  const pages = Array.isArray(data) ? data : [];
+  const isLoading = !data;
 
   const filtered = useMemo(() => {
-    if (!query) return data;
+    const list = pages;
+    if (!query) return list;
     const q = query.toLowerCase();
-    return data.filter((p: any) => (p.title?.rendered || "").toLowerCase().includes(q) || (p.slug || "").toLowerCase().includes(q));
-  }, [data, query]);
+    return list.filter((p: any) => (p.title?.rendered || "").toLowerCase().includes(q) || (p.slug || "").toLowerCase().includes(q));
+  }, [pages, query]);
 
   return (
     <div>
@@ -25,7 +28,7 @@ export default function PageGrid() {
           style={{ border: "1px solid #d1d5db", borderRadius: 6, padding: "6px 10px", width: 280 }}
         />
         <span style={{ color: "#6b7280", fontSize: 12 }}>
-          {filtered.length} / {data.length} pages {templates ? `(templates: ${Array.isArray(templates) ? templates.length : 0})` : ""}
+          {isLoading ? "Loading…" : `${filtered.length} / ${pages.length} pages`} {templates ? `(templates: ${Array.isArray(templates) ? templates.length : 0})` : ""}
         </span>
       </div>
       <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #e5e7eb" }}>

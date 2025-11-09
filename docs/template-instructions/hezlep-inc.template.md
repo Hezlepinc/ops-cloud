@@ -1,186 +1,241 @@
-Hezlep Inc — WordPress Template Specification
-Corporate / Consulting / Automation Brand
+# Hezlep Inc — WordPress Template Specification
 
-1. Brand Tone & Design Language
-   Attribute Description
-   Brand Personality Confident, analytical, precise, and trustworthy.
-   Core Message “Systems for builders, by builders.”
-   Style Vibe Clean corporate layout, grid-based whitespace, subtle motion, neutral backgrounds, rich contrast blues.
-   Imagery Blueprint textures, field-to-boardroom visuals (construction meets technology), people-in-process scenes.
-   Typography Feel Modern sans-serif with technical edge.
-   Motion / Interaction Framer-style slide-in fades, subtle underline animations, counter animations for metrics.
-2. Global Design System
-   🎨 Colors
-   Role Color Usage
-   Primary #0A2342 Headers, footers, text emphasis
-   Accent / CTA #007AFF Buttons, links, highlights
-   Secondary #00C2FF Gradients, icon lines
-   Background #FFFFFF / #F7F9FB Sections, cards
-   Text Dark #1E1E1E Body copy
-   Divider / Border #E5E7EB Section separators
-   ✍️ Typography
-   Element Font Weight / Size
-   Headings Poppins 700 – 600 / H1 48px, H2 36px, H3 24px
-   Body Inter 400 – 500 / 16–18px
-   Quote / Accent IBM Plex Mono 400 / 16px for taglines or stats
-   🧱 Layout Tokens
+**Type:** Corporate / Consulting / Automation
+**Stack:** WordPress + Hello Elementor + Elementor Pro
+**Deploy:** GitHub Actions → Cloudways → `wp elementor kit import`
 
-Section padding: 100px top / 80px bottom desktop → 60/40 mobile
+---
 
-Grid gap: 32 desktop → 16 mobile
+## 1️⃣ Brand Tone & Design Language
 
-Card padding: 32px; radius 12px; shadow 0 4px 14px rgba(0,0,0,0.08)
+| Attribute           | Description                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| **Personality**     | Confident · Analytical · Trustworthy                                                          |
+| **Message**         | _Systems for builders, by builders._                                                          |
+| **Vibe**            | Clean corporate grid layout · ample whitespace · subtle motion · navy contrast + gold accents |
+| **Imagery**         | Blueprint textures · field-to-boardroom scenes · people-in-process                            |
+| **Typography Feel** | Editorial serif headlines + modern sans-serif body                                            |
+| **Motion**          | Smooth Framer-style slide/fade · underline link hover · button lift                           |
 
-Buttons: 16px text, radius 8px, primary → hover darken 10%
+---
 
-Icons: Lucide or LineIcons — outlined, single color
+## 2️⃣ Global Design System
 
-3. Site Architecture (Top-Level Pages)
-   Page Purpose Key Blocks
-   Home High-impact overview + CTA Hero / Mission / Capabilities / Case Studies / CTA
-   About Story, leadership, credibility Founder Intro / Timeline / Certifications
-   Consulting Core services Service Grid / Process / Pricing CTA
-   Automation & Systems Showcase backend/AI tools Workflow Illustrations / Integrations / Demo CTA
-   Clients & Case Studies Proof + results Carousel / Stats Grid / Testimonials
-   Insights Blog / News / Resources Card Archive + Categories
-   Contact / Consult Conversion Contact Form → CRM + Map + Schedule CTA
+### 🎨 Colors
 
-Optional:
+| Role                | HEX       | Usage                            |
+| ------------------- | --------- | -------------------------------- |
+| **Primary / Navy**  | `#0B3D91` | Headers · CTAs · Accents         |
+| **Navy Dark**       | `#082C6F` | Button hover · depth             |
+| **Accent / Gold**   | `#E1A100` | Highlights · Focus rings · Icons |
+| **Surface / White** | `#FFFFFF` | Base background                  |
+| **Surface Alt**     | `#F7F9FB` | Alternating bands                |
+| **Text Dark**       | `#1E1E1E` | Body copy                        |
+| **Text Muted**      | `#555555` | Secondary text                   |
+| **Divider**         | `#E5E7EB` | Borders · Input lines            |
 
-Careers (future)
+### ✍️ Typography
 
-Partner Portal (login redirect)
+| Element    | Font                | Weight / Size    | Line Height | Use         |
+| ---------- | ------------------- | ---------------- | ----------- | ----------- |
+| H1         | Merriweather        | 700 · 44-52 px   | 1.2         | Hero        |
+| H2         | Merriweather        | 700 · 36 px      | 1.25        | Section     |
+| H3         | Merriweather        | 600 · 28 px      | 1.3         | Sub         |
+| H4/H5      | Merriweather        | 600 · 22 / 18 px | 1.35-1.4    | Cards       |
+| Body       | Inter               | 400 · 18 px      | 1.6         | Paragraph   |
+| Small      | Inter               | 400 · 16 px      | 1.5         | Captions    |
+| Button/Nav | Inter               | 600 · 16-18 px   | 1.4         | UI          |
+| Quote      | Merriweather Italic | 400 · 22-24 px   | 1.4         | Pull quotes |
 
-4. Elementor Section Blueprints
-   🏠 Home Page
-   Section Structure Notes
-   Hero 2-col (50/50) layout; left = headline + CTA; right = image/Lottie Background gradient navy→blue; CTA = “Book a Consultation”
-   Mission Statement Centered text block Tagline: “Turning field experience into scalable systems.”
-   Capabilities Grid 3 cols Automation / Web Ops / Growth Systems; icons above headings
-   Case Study Preview Horizontal cards with images + metrics Example: “Reduced lead handling time by 70%”
-   CTA Banner Full width gradient → button “Let’s Design Your Ops System”
-   💼 Consulting Page
+Fallbacks:
+`Merriweather, Georgia, serif`
+`Inter, "Helvetica Neue", Helvetica, Arial, sans-serif`
 
-Intro paragraph → Accordion (“What We Fix”)
+### 🧱 Layout Tokens
 
-3-step process grid (“Discover → Design → Deploy”)
+- **Container Width:** 1200 – 1280 px
+- **Section Padding:** 96 – 120 px desktop → 64 px mobile
+- **Grid Gap:** 32 → 16 px
+- **Card:** 32 px padding · 12 px radius · shadow `rgba(0,0,0,0.05) 0 4 12 px`
+- **Buttons:** Primary navy → hover navy-dark; Secondary outline navy → hover fill
+- **Focus Ring:** 2 px solid `#E1A100`
+- **Icons:** Lucide / LineIcons (outlined mono)
 
-Callout quote section (“Built by practitioners”)
+**Accessibility:** WCAG 2.2 AA contrast ≥ 4.5 · keyboard navigation · visible focus · alt text · ARIA labels
 
-Pricing table (Starter / Growth / Enterprise)
+---
 
-CTA → Schedule consult form
+## 3️⃣ Site Architecture (2–3 Page MVP)
 
-⚙️ Automation & Systems Page
+| Page                     | Purpose             | Key Blocks                                                   |
+| ------------------------ | ------------------- | ------------------------------------------------------------ |
+| **Home**                 | Core overview + CTA | Hero · Value Pillars · Method · Proof · CTA Band             |
+| **About / Capabilities** | Story + Services    | Mission · Capabilities Grid · Leadership · Testimonial · CTA |
+| **Contact**              | Conversion          | Form · Reassurance · Alternate Contact · FAQ                 |
 
-Hero with “See it in Action” button → optional modal video
+**Optional:** Insights (blog) · Case Studies · Consulting · Automation & Systems · Careers · Partner Portal
 
-Icons row (CRM, Zapier, Render, Cloudways, OpenAI)
+---
 
-Integration flow diagram (can embed SVG/Lottie)
+## 4️⃣ Elementor Section Blueprints
 
-AI Tools Section: preview of “Ops Cloud Dashboard”
+### 🏠 Home
 
-🧾 Insights Page
+1. **Hero (50/50):** H1 + subtext + CTA “Book Consultation”; trust logos.
+2. **Value Pillars:** 3 cards → Discover / Design / Deploy.
+3. **Method Stepper:** 4 steps horizontal + CTA.
+4. **Proof Snapshot:** 2-3 metrics + testimonial.
+5. **CTA Band:** Full-width navy section · white text · single button.
 
-Blog archive layout → cards × 3
+### 💼 About / Capabilities
 
-Sidebar: categories (“Automation,” “Leadership,” “Growth”)
+- Mission statement (2-3 sentences)
+- Capabilities grid (4–6 items)
+- Leadership photo + bio + principles
+- Testimonial + CTA
 
-Subscribe widget → CRM newsletter list
+### 📞 Contact
 
-📞 Contact Page
+- Form fields: Name · Work Email · Company · Role · Interest · Message · Consent
+- Reassurance text (SLA, confidentiality)
+- Alternate contact (email + scheduler)
+- FAQ accordion
 
-Split layout (map left / form right)
+---
 
-Form → Zapier webhook → CRM Pipeline
+## 5️⃣ Header & Footer
 
-Add FAQ accordion under form
+**Header:** Logo left · Menu center · Gold button right (“Book Consultation”) → Sticky with blur scroll effect.
+**Footer:** 3–4 columns (About · Services · Resources · Contact) + copyright bar on navy with thin gold line.
 
-5. Header & Footer Layout
-   Header
+---
 
-Logo left, menu center, CTA button right (“Book Consult”)
+## 6️⃣ Elementor Theme Builder Templates
 
-Sticky on scroll; subtle blur background
+| Template          | Scope       | Notes                              |
+| ----------------- | ----------- | ---------------------------------- |
+| Header            | Entire Site | Transparent home → solid on scroll |
+| Footer            | Entire Site | Dynamic year + social icons        |
+| Single Page       | All Pages   | Used for Home · About · Contact    |
+| (Opt) Single Post | Insights    | Blog article                       |
+| (Opt) Archive     | Insights    | Blog grid                          |
+| (Opt) Case Study  | CPT         | KPI band + testimonial             |
+| Popup             | Global      | “Book Consult” modal               |
 
-Mobile: hamburger menu slide-in from right
+---
 
-Footer
+## 7️⃣ Plugins & Integrations
 
-4 cols: About | Services | Resources | Contact
+| Plugin                 | Use             |
+| ---------------------- | --------------- |
+| Elementor Pro          | Core builder    |
+| ACF Pro                | Case Study meta |
+| Yoast / RankMath       | SEO             |
+| WP Rocket / Breeze     | Cache           |
+| WPForms / Fluent Forms | Contact         |
+| Cloudways Bot          | Monitor         |
+| Plausible + GTM        | Analytics       |
+| Zapier for WP          | CRM automation  |
+| CPT UI                 | Custom types    |
+| WPGraphQL (optional)   | Headless API    |
 
-Bottom bar with © Hezlep Inc 2025 + social icons
+---
 
-Footer accent stripe blue→navy gradient
+## 8️⃣ AI / Automation (Optional)
 
-6. Elementor Theme Builder Structure
-   Template Scope Notes
-   Header Global Transparent on home, solid on scroll
-   Footer Global Dynamic year + social icons
-   Single Post Insights articles Sidebar optional; breadcrumb top
-   Archive Insights categories Masonry cards
-   Single Case Study Custom post type KPI section + testimonial
-   Popup Global CTA “Book Consult” modal via Elementor Popup
-7. Plugins & Integrations
-   Plugin Use
-   Elementor Pro Core page builder
-   ACF Pro Case Studies + Service meta
-   Yoast SEO / RankMath SEO structure
-   WP Rocket / Cloudways Breeze Caching
-   WPForms / Fluent Forms Contact submission
-   Cloudways Bot Server monitoring
-   Plausible Analytics + GTM Analytics + tracking
-   Zapier for WP Form → CRM automation
-   Custom Post Types UI Case Studies, Testimonials
-   WPGraphQL (optional) Future headless integration
-8. Future AI / Automation Integration
+- Embed **Architect GPT** widget in Automation page.
+- Backend “AI Command Prompt” to auto-generate Elementor JSON sections.
+- CRM sync via API (Airtable / HubSpot / Pipedrive).
+- Optional Render cron for lead sync.
 
-Embed Architect GPT widget in “Automation & Systems” page.
+---
 
-Add “AI Command Prompt” backend widget to auto-generate Elementor JSON sections.
+## 9️⃣ Technical & Deployment
 
-Integrate CRM (Airtable / HubSpot / Pipedrive) via API.
+**Hosting:** Cloudways (DO 4 GB +) · Varnish + Redis + SSL
+**Base Theme:** Hello Elementor (+ optional hello-child)
 
-Optional Render cron to sync leads nightly.
+infra/
+brands/
+hezlepinc/
+elementor/
+sitekit.json
+header.json
+footer.json
+single-page.json
+TEMPLATE-SPEC.md
 
-9. Technical Structure / Deployment
+bash
+Copy code
 
-Hosted on Cloudways (DigitalOcean 4 GB+)
+**CI/CD**
 
-Git Deploy → wp-content/themes/hezlep-inc
+```bash
+wp elementor kit import ./infra/brands/hezlepinc/elementor/sitekit.json --allow-root
+for f in ./infra/brands/hezlepinc/elementor/*.json; do
+  wp elementor import "$f" --allow-root || echo "Skipped $f"
+done
+Secrets: CLOUDWAYS_HOST · CLOUDWAYS_USER · CLOUDWAYS_SSH_KEY · APP_ROOT_*
+Backups daily via Cloudways; staging branch for design iterations.
 
-Daily backups + Varnish + Redis enabled
+🔟 Visual Identity & Assets
+Asset	Spec
+Logo	Polished navy gradient (#0B3D91→#082C6F) + gold accent; transparent PNG 1024 px
+Profile Photo	Color-balanced portrait · 4:5 ratio · 1600 px height
+Exports	/assets/branding/hezlepinc-logo-polished.png · hezlepinc-favicon-64.png
+Image Tone	Natural · Editorial · Minimal backgrounds
 
-SSL enabled (Let’s Encrypt)
+11️⃣ Performance · SEO · Compliance
+WebP / AVIF images · lazy load · no layout shift
 
-Use staging site for design iterations
+Preconnect fonts · minify CSS/JS via cache plugin
 
-10. Visual Identity Examples
-    Area Treatment
-    Hero Banner Blueprint overlay / animated lines / gradient navy→blue
-    Cards & Sections Minimal shadows, white cards on gray bg
-    Typography Contrast Large headings, light body copy
-    Imagery Tone Mix of real photos + vector icons
-    Micro-animations Button hover lift, grid fade-ins
-11. Example Elementor Block Naming Convention
-    Section: hero_main
-    Section: capabilities_grid
-    Section: process_steps
-    Section: case_study_teasers
-    Section: contact_banner
-    GlobalWidget: button_primary
-    GlobalWidget: heading_subtle
-    Popup: consult_modal
+Unique meta title & H1 · OpenGraph image
 
-Keep a consistent naming pattern for global template reuse across client clones.
+Schema: Organization + WebSite
 
-12. Deliverables for Initial Build
-    Item Description
-    hezlep-inc-theme Custom child theme folder on Cloudways
-    global-style.json Elementor global style kit
-    page-home.json Elementor template export
-    page-consulting.json Elementor template export
-    page-contact.json Elementor template export
-    WPForms Template Contact form → Zapier hook
-    Assets Folder Logos, SVG icons, background Lotties
+Events: Hero CTA click · Header CTA · Form Submit
+
+Privacy & Accessibility statements in footer
+
+12️⃣ Naming Convention (Elementor)
+css
+Copy code
+section_hero-main
+section_value-pillars
+section_method-stepper
+section_proof-snapshot
+section_contact-cta
+global_button-primary
+global_heading-section
+popup_consult-modal
+13️⃣ Deliverables for Initial Build
+Item	Description
+sitekit.json	Global colors + fonts + container widths
+header.json	Theme builder header
+footer.json	Theme builder footer
+single-page.json	Base layout
+WPForms Template	Contact → Zapier hook
+/assets folder	Logos · Icons · Profile image
+(Opt) hello-child	Shared CSS/PHP hooks
+
+Export & Commit
+
+bash
+Copy code
+git add infra/brands/hezlepinc/elementor/*.json
+git commit -m "Hezlep Inc – Site Kit + Header/Footer/Single-Page"
+git push origin staging
+14️⃣ Acceptance Criteria
+✅ Global colors & fonts consistent
+✅ Header/footer responsive & sticky blur
+✅ Home · About · Contact pages publish-ready
+✅ Accessibility (contrast · keyboard · alt text)
+✅ Performance ≥ 90 PageSpeed · no CLS
+✅ CI imports cleanly on fresh deploy
+✅ README explains update / export workflow
+
+Maintainer Note:
+All brand and layout assets for Hezlep Inc are canonical within this folder.
+Updates should be committed via staging and merged to main after CI verification.
+```

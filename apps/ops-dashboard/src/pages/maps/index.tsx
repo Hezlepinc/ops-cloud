@@ -1,7 +1,7 @@
 import { useState } from "react";
-import MapViewer from "../../../components/MapViewer";
-import EnvTree from "../../../components/EnvTree";
-import PageGrid from "../../../components/PageGrid";
+import MapViewer from "../../components/MapViewer";
+import EnvTree from "../../components/EnvTree";
+import PageGrid from "../../components/PageGrid";
 
 export default function MapsHome() {
   const [tab, setTab] = useState<"architecture" | "environments" | "pages">("architecture");

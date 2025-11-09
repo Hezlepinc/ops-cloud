@@ -1,20 +1,18 @@
 ## Project Visibility Roadmap — Hezlep Ops Orchestrator
 
-**Version:** 1.0  
-**Owner:** Hezlep Systems Architecture  
+**Version:** 1.0
+**Owner:** Hezlep Systems Architecture
 **Goal:** Achieve total operational visibility of all project layers (GitHub, GPT-5, Cursor, Cloudways, and WordPress) through the central Orchestrator API.
-
 
 ## 0️⃣ Overview
 
-| Layer | Role | Endpoint Prefix |
-|---|---|---|
-| GPT-5 (Hezlep Ops Assistant) | Conversational command layer | `/ai/*` (via OpenAPI) |
-| Cursor IDE | Developer execution environment | `/ai/cursor/*` |
-| GitHub | Source of truth for repos | `/ai/github/*` |
-| Cloudways / WordPress | Hosting and front-end | `/ai/cloudways/*`, `/ai/wordpress/*` |
-| Orchestrator (Render) | Central coordination and visibility plane | N/A |
-
+| Layer                        | Role                                      | Endpoint Prefix                      |
+| ---------------------------- | ----------------------------------------- | ------------------------------------ |
+| GPT-5 (Hezlep Ops Assistant) | Conversational command layer              | `/ai/*` (via OpenAPI)                |
+| Cursor IDE                   | Developer execution environment           | `/ai/cursor/*`                       |
+| GitHub                       | Source of truth for repos                 | `/ai/github/*`                       |
+| Cloudways / WordPress        | Hosting and front-end                     | `/ai/cloudways/*`, `/ai/wordpress/*` |
+| Orchestrator (Render)        | Central coordination and visibility plane | N/A                                  |
 
 ## 1️⃣ Phase 1 — Unified Interface Foundation
 
@@ -49,7 +47,6 @@ Example:
 
 **Outcome:** All systems share one communication plane and a shared context snapshot.
 
-
 ## 2️⃣ Phase 2 — GitHub Integration and Indexing
 
 **Goal:** Grant full repo visibility via summarized, queryable APIs.
@@ -73,7 +70,6 @@ Example:
   - Returns top-k semantic matches with file context.
 
 **Outcome:** GPT and Cursor can ask semantic questions across the entire repo.
-
 
 ## 3️⃣ Phase 3 — Cursor ↔ GPT Synchronization Layer
 
@@ -102,7 +98,6 @@ Example:
 
 **Outcome:** Both interfaces operate cooperatively on the same live state.
 
-
 ## 4️⃣ Phase 4 — Full Visibility Dashboard
 
 **Goal:** Human-readable monitoring UI.
@@ -122,7 +117,6 @@ Example:
 - Hosted on Render Web Service
 
 **Outcome:** Real-time web dashboard consolidating system health and developer activity.
-
 
 ## 5️⃣ Phase 5 — Intent & Policy Engine
 
@@ -151,17 +145,15 @@ Example:
 
 **Outcome:** Safe automated orchestration loop with full human oversight.
 
-
 ## 6️⃣ Phase 6 — Performance & Optimization
 
-| Concern | Mitigation |
-|---|---|
-| Token usage | Summarize and pre-embed large files; return concise JSON. |
-| Latency | Use Redis caching; co-locate Render and Pinecone region. |
-| Cost | Batch embeddings nightly; incremental diff indexing. |
-| Security | No raw code exposed to GPT; only summaries and vector matches. |
-| Reliability | `/ai/metrics` endpoint + uptime cron monitor. |
-
+| Concern     | Mitigation                                                     |
+| ----------- | -------------------------------------------------------------- |
+| Token usage | Summarize and pre-embed large files; return concise JSON.      |
+| Latency     | Use Redis caching; co-locate Render and Pinecone region.       |
+| Cost        | Batch embeddings nightly; incremental diff indexing.           |
+| Security    | No raw code exposed to GPT; only summaries and vector matches. |
+| Reliability | `/ai/metrics` endpoint + uptime cron monitor.                  |
 
 ## 7️⃣ Phase 7 — Final Integration & Rollout
 
@@ -173,43 +165,39 @@ Example:
 - Validate Cursor plugin (send + receive).
 - Promote to `main` once latency < 4 s and context coherence > 95%.
 
-
 ## 🧠 Expected Benefits
 
-| Category | Impact |
-|---|---|
-| Visibility | GPT and Cursor share identical project view |
-| Security | GitHub token and repo data isolated in Render |
-| Efficiency | No large uploads; GPT receives only summaries |
-| Auditability | Every action logged in `/ai/audit` |
-| Scalability | Vector recall supports multi-repo visibility |
-| Governance | Policy engine enforces safe automation |
-
+| Category     | Impact                                        |
+| ------------ | --------------------------------------------- |
+| Visibility   | GPT and Cursor share identical project view   |
+| Security     | GitHub token and repo data isolated in Render |
+| Efficiency   | No large uploads; GPT receives only summaries |
+| Auditability | Every action logged in `/ai/audit`            |
+| Scalability  | Vector recall supports multi-repo visibility  |
+| Governance   | Policy engine enforces safe automation        |
 
 ## 🔒 Key Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| OPENAI_API_KEY | Embeddings + GPT recall |
-| GITHUB_TOKEN | GitHub API access |
-| GITHUB_REPO | Target repository |
-| REDIS_URL | Context + session storage |
-| POSTGRES_URL | Audit + intents DB |
-| x-api-key | GPT/Cursor authentication |
-| CW_EMAIL / CW_API_KEY | Cloudways control |
-| WP_REST_ENDPOINT | WordPress health checks |
-
+| Variable              | Purpose                   |
+| --------------------- | ------------------------- |
+| OPENAI_API_KEY        | Embeddings + GPT recall   |
+| GITHUB_TOKEN          | GitHub API access         |
+| GITHUB_REPO           | Target repository         |
+| REDIS_URL             | Context + session storage |
+| POSTGRES_URL          | Audit + intents DB        |
+| x-api-key             | GPT/Cursor authentication |
+| CW_EMAIL / CW_API_KEY | Cloudways control         |
+| WP_REST_ENDPOINT      | WordPress health checks   |
 
 ## 🗓️ Maintenance Cadence
 
-| Frequency | Task |
-|---|---|
-| Daily | pre-dev-day sync + `/ai/status` check |
-| Nightly | Repo re-index + cache warm-up |
-| Weekly | Audit log rotation + dependency update |
-| Monthly | Security review + vector DB pruning |
+| Frequency | Task                                    |
+| --------- | --------------------------------------- |
+| Daily     | pre-dev-day sync + `/ai/status` check   |
+| Nightly   | Repo re-index + cache warm-up           |
+| Weekly    | Audit log rotation + dependency update  |
+| Monthly   | Security review + vector DB pruning     |
 | Quarterly | Orchestrator load test + rollback drill |
-
 
 ## ✅ End State
 
@@ -218,5 +206,3 @@ After completing all phases:
 - GPT-5, Cursor, and Render Orchestrator operate as a single, stateful ecosystem.
 - Every edit, deploy, or query passes through the same context and audit channel.
 - “Project review” becomes a first-class operation — GPT has full visibility without ever overloading context or exposing credentials.
-
-

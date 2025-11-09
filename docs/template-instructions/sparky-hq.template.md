@@ -1,338 +1,247 @@
-# Sparky‑HQ Project Template
+Sparky-HQ — Cursor-Integrated Project Template (v3, Nov 2025)
 
-A drop‑in project README you can paste into any new Sparky‑HQ site or client repo. It captures the **why**, **what**, and **how**: impact, revenue paths, tech stack (Cloudways + Render), and the exact build steps (Elementor Pro + WordPress) to get from zero → launch.
+Purpose:
+Unified build + deploy guide for all Sparky-HQ WordPress + Elementor + CI/CD projects.
+Ready for Cursor AI workflows, Cloudways deployments, and Elementor SiteKit imports.
+Includes local dev, CI pipeline, design tokens, and automated template import.
 
----
+🧭 0) Mission and Impact
 
-## 0) Why Sparky‑HQ Exists (Impact)
+For builders
 
-**For you (the builder):**
+Build the trusted electric-trade intelligence platform (own traffic + data).
 
-- Become the trusted _electric trade intelligence_ brand (not just another AI prompt).
-- Own search traffic, data, and lead flow (feeds Lenhart/InCharge or partners).
-- Build compounding SEO assets (posts, tools, calculators).
-- Control integrations and monetization (affiliates, courses, pro tools).
+Automate repeatable site builds (Cursor + CI + Cloudways).
 
-**For users (electricians & homeowners):**
+Control integrations and monetization (affiliates, lead gen, courses).
 
-- Clear, context‑driven tools (with NEC assumptions/safety baked in).
-- Trust (vetted by professionals) + transparency.
-- Accessibility (no prompt engineering—just use the tool).
-- Community and shared progress over time.
+For users
 
-> In short: **ChatGPT gives information. Sparky‑HQ gives implementation.**
+Clear, context-driven tools (no prompt engineering needed).
 
----
+Vetted information → implementation.
 
-## 1) Tech Stack (Sparky Stack)
+Accessibility, speed, and trust.
 
-| Layer                | Platform                             | Purpose                                                          |
-| -------------------- | ------------------------------------ | ---------------------------------------------------------------- |
-| Domains/DNS          | GoDaddy (or Cloudflare)              | Centralized brand & client DNS/email                             |
-| Managed WP (CMS)     | **Cloudways (DigitalOcean)**         | Main site + client sites; staging, backups, Git deploy           |
-| Apps/APIs/Automation | **Render**                           | Node/Express APIs, cron jobs (e.g., PowerPlay ingestor), workers |
-| Front‑end (optional) | Vercel **or** Render Web Service     | Next.js tools/calculators; headless WP front                     |
-| Database             | MongoDB Atlas **or** Render Postgres | Leads, logs, calculator telemetry                                |
-| CI/CD                | GitHub Actions                       | Build → test → deploy (Cloudways/Render/Vercel)                  |
-| Integrations         | Zapier/Make                          | No‑code automations (forms → CRM, alerts)                        |
-| Analytics/SEO        | Plausible + Google Search Console    | Traffic + indexing                                               |
+⚙️ 1) Tech Stack
+Layer Platform Purpose
+CMS Cloudways (WordPress + Elementor Pro) Main content system
+CI/CD GitHub Actions + Cursor Ops Auto-deploy to staging / prod
+Automation / APIs Render (Express + Workers) Calculators, cron jobs
+Front-end (optional) Vercel / Render Next.js tools hub
+Database MongoDB Atlas / Render Postgres Leads + telemetry
+Analytics Plausible + GSC SEO & KPIs
+Orchestration Cursor Dev flow automation, codegen, doc sync
 
-**Environments:** `dev` → `staging` → `prod`
-**Branches:** `main` (prod), `develop` (staging), `feat/*` (feature).
+Branches → staging (deploys to staging) • main (production)
 
----
+🧱 2) Repo Layout
+repo/
+├── README.md
+├── infra/
+│ ├── brands/
+│ │ └── sparky/
+│ │ └── elementor/
+│ │ ├── header.json
+│ │ ├── footer.json
+│ │ ├── home.json
+│ │ ├── loop-item-post.json
+│ │ ├── loop-item-tool.json
+│ │ └── cursor-sitekit.json
+│ └── wordpress/
+│ └── themes/
+│ └── hello-child/ (optional CSS + PHP hooks)
+├── .github/workflows/
+│ ├── deploy-cloudways-staging.yml
+│ └── deploy-cloudways-prod.yml
+├── api/ # Optional Express API
+├── frontend/ # Optional Next.js UI
+└── automation-workers/ # Jobs / cron scripts
 
-## 2) Repo Layout (suggested)
-
-```
-repos/
-  README.md                       # this file
-  infra-docs/                     # diagrams, runbooks
-  main-business-wp-theme/         # WP theme + build pipeline
-  client-theme-template/          # golden image (plugins/settings)
-  sparkyhq-frontend/              # Next.js (optional)
-  sparkyhq-api/                   # Express API (Render web service)
-  automation-workers/             # cron jobs, ingestors, emailers
-```
-
----
-
-## 3) Environment Variables (standard)
-
-```
+🔐 3) Environment Variables
 APP_ENV=production|staging|dev
-LOG_LEVEL=info
-WEB_BASE_URL=https://sparky-hq.com
-API_BASE_URL=https://api.sparky-hq.com
-WP_REST_ENDPOINT=https://cms.sparky-hq.com/wp-json
-WP_GRAPHQL_ENDPOINT=https://cms.sparky-hq.com/graphql
-MONGO_URI=...
-POSTGRES_URL=...
-REDIS_URL=...
+CLOUDWAYS_HOST=...
+CLOUDWAYS_USER=...
+CLOUDWAYS_SSH_KEY=...
+APP_ROOT_SPARKY_STAGING=/home/master/applications/xpzgjptrwn/public_html
+APP_ROOT_SPARKY_PROD=/home/master/applications/tgmbbcupen/public_html
+DEPLOY_SITE=sparky
 OPENAI_API_KEY=...
 SENDGRID_API_KEY=...
-POWERPLAY_CREDENTIALS_JSON=...   # encrypted credentials JSON
-```
 
-Store in: **GitHub Actions Secrets** + Render/Vercel env stores. (Cloudways only if your PHP reads a `.env`).
+Stored as GitHub Actions Secrets.
 
----
+🌐 4) DNS Map
+Host Target Purpose
+@ Cloudways server IP Main WP
+cms.sparky-hq.com Cloudways app IP Headless WP
+api.sparky-hq.com Render service Express API
+tools.sparky-hq.com Vercel/Render Tools UI
+🎨 5) Global Design System (Elementor Site Settings)
 
-## 4) DNS Map
+Colors
 
-| Host                  | Target              | Purpose            |
-| --------------------- | ------------------- | ------------------ |
-| `@`                   | Cloudways server IP | Main business WP   |
-| `cms.sparky-hq.com`   | Cloudways app IP    | Headless WordPress |
-| `api.sparky-hq.com`   | Render service      | Express API        |
-| `tools.sparky-hq.com` | Vercel/Render       | Next.js tools      |
-| client roots          | Cloudways server IP | Client WP hosting  |
+Token Hex Use
+Primary #007AFF CTAs / links
+Primary Hover #005FCC Button hover
+Secondary #0E1622 Dark sections / footer
+Accent #FF6A00 Highlights
+Text #1E1E1E Headings
+Text Muted #5F6B7A Paragraph / meta
+Background #FFFFFF Page base
+Surface #F8FAFC Cards
+Divider #E5E7EB Lines
 
-SSL everywhere (Let’s Encrypt/managed certs).
+Fonts (Elementor → Global Fonts)
 
----
+Slot Family Weight Size (D / T / M) LH
+Primary Poppins 700 48 / 36 / 30 1.2
+Secondary Poppins 600 32 / 28 / 24 1.3
+Text Inter 400 16 / 15 / 14 1.7
+Accent Inter 600 16 / 15 / 14 1.5
 
-## 5) WordPress Build (Elementor Pro)
+Spacing
 
-### 5.1 Global Design System
+Section padding 80 → 40 mobile
 
-- **Colors**
-  - Primary `#007AFF` (CTAs)
-  - Secondary `#005FCC` (hover/contrast)
-  - Accent `#00C2FF` (highlights)
-  - Text `#1E1E1E`
-  - Background `#FFFFFF`; Alt `#F8F9FB`; Divider `#E4E6EA`
+Card padding 24, grid gap 32 / 16
 
-- **Fonts**
-  - Headings: **Poppins** 700/600 (H1 48px, H2 36px, H3 28px; LH≈1.3)
-  - Body/Buttons: **Inter** 400/600 (16–18px; LH≈1.6)
+Radius 12 px, shadow 0 4px 14px rgba(0,0,0,0.08)
 
-- **Buttons**: 16px, radius 8px, primary blue, hover dark‑blue, soft shadow
-- **Spacing tokens**: section pad 80/40, card pad 24, grid gap 32/16, radius 12, shadow `0 4px 14px rgba(0,0,0,0.08)`
+🏗️ 6) Core Elementor Templates
+Template Display Condition Notes
+header.json Entire Site Nav + CTA
+footer.json Entire Site Secondary bg + white text
+home.json Front Page Hero → 6 posts → 3 tools → CTA
+loop-item-post.json Loop Blog card (16:9 image + excerpt)
+loop-item-tool.json Loop Tool card (title + desc + CTA)
+🧩 7) Dynamic Sections (Home Page)
+Latest Posts (6)
 
-### 5.2 Core Pages (minimal viable)
+Loop Grid → Query ID top_six_posts
 
-- **Home** — Hero → Value Intro → Feature Trio (Learn/Calculate/Connect) → CTA
-- **Resources** — “Learning Hub” w/ placeholder cards; later becomes blog archive
-- **Tools** — Calculator hub; embed first tool (Voltage Drop) + “coming soon” cards
+Default = latest 6; can filter by category “top”.
 
-### 5.3 Feature Trio (Grid) — quick spec
+Most Used Tools (3)
 
-- Container: **Grid** (3 cols desktop → 1 col mobile), gap 32
-- Card: pad 32, bg Alt `#F8F9FB`, radius 12, shadow subtle
-- Icon (Accent), H3 (Poppins 24–28), paragraph (Inter 16), optional outline button
+CPT tool with meta usage_weight DESC
 
-### 5.4 Typography Setup (one‑time)
+Loop Grid → Query ID most_used_tools
 
-Elementor → **Site Settings → Typography**
+Optional CPT / hook code in hello-child/functions.php (included in v2 template).
 
-- Disable default fonts/colors (Elementor → Settings)
-- Set Body (Inter 16, LH 1.6), Links (Primary/Hover Accent)
-- H1/H2/H3 as above (Poppins 700/600/500)
+💻 8) CI/CD — Cloudways Deploy
 
----
+Staging Workflow (.github/workflows/deploy-cloudways-staging.yml)
 
-## 6) First Tool Embed (Voltage Drop)
-
-**Option A (recommended):** Custom HTML/JS block inside Elementor → HTML widget (branded, lightweight).
-**Option B:** Plugin shortcode (fastest start; replace later).
-
-> Add explainer text + affiliate links (wire size, breakers) under the tool.
-
----
-
-## 7) Cloudways Ops (WP Hosting)
-
-- Provision DO **4GB** server (~$54/mo) → 10–20 light sites.
-- Enable **Varnish + Redis**; daily backups (retain 7–14 days).
-- Apps:
-  - `main-business-site` (prod)
-  - `client-template-site` (golden image → clone per customer)
-
-- **Git Deploy (theme)**: Cloudways → Deployment via Git → repo deploy key → deploy to `wp-content/themes/<theme>`
-- **WP‑CLI bootstrap** (script):
-
-```
-wp option update blogname "{{SITE_NAME}}"
-wp option update siteurl "https://{{DOMAIN}}"
-wp option update home "https://{{DOMAIN}}"
-wp user update 1 --user_email=webmaster@{{DOMAIN}}
-wp plugin activate seo-plugin cache-plugin security-plugin forms-plugin
-```
-
----
-
-## 8) Render Ops (APIs, Workers, Cron)
-
-- Web Service: `sparkyhq-api` (Express: `/healthz`, `/calc` etc.)
-- Worker: `automation-workers` (queues/emailers)
-- Cron: `powerplay-ingestor` (e.g., _/5 _ \* \* \*)
-- DB: Render Postgres or connect Atlas
-- Alerts → email/Slack; autosuspend non‑prod services
-
-**Minimal Express API:**
-
-```ts
-import express from 'express';
-const app = express();
-app.get('/healthz', (_, res) => res.json({ ok: true, ts: Date.now() }));
-app.get('/calc', (req, res) => {
-  const a = +req.query.amps || 0,
-    v = +req.query.volts || 120;
-  res.json({ watts: a * v });
-});
-app.listen(process.env.PORT || 8080, () => console.log('API up'));
-```
-
----
-
-## 9) CI/CD (GitHub Actions)
-
-**WP Theme → Cloudways (rsync):**
-
-```yaml
-name: Deploy WP Theme to Cloudways
+name: Deploy Staging (Cloudways)
 on:
-  push:
-    branches: [main]
-    paths: ['wp-theme/**']
+push:
+branches: [staging]
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build theme assets
-        working-directory: wp-theme
-        run: |
-          npm ci
-          npm run build
-      - name: Rsync to Cloudways
-        uses: burnett01/rsync-deployments@6.0
-        with:
-          switches: -avzr --delete
-          path: wp-theme/
-          remote_path: ${{ secrets.CW_THEME_PATH }}
-          remote_host: ${{ secrets.CW_HOST }}
-          remote_user: ${{ secrets.CW_USER }}
-          remote_key: ${{ secrets.CW_SSH_KEY }}
-```
+deploy:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4 - name: Rsync Hello Child
+if: hashFiles('infra/wordpress/themes/hello-child/\*_') != ''
+uses: burnett01/rsync-deployments@6.0
+with:
+switches: -avzr --delete
+path: infra/wordpress/themes/hello-child/
+remote_path: ${{ secrets.APP_ROOT_SPARKY_STAGING }}/wp-content/themes/hello-child/
+remote_host: ${{ secrets.CLOUDWAYS_HOST }}
+remote_user: ${{ secrets.CLOUDWAYS_USER }}
+remote_key: ${{ secrets.CLOUDWAYS_SSH_KEY }} - name: Import Elementor Templates
+run: |
+for f in ./infra/brands/sparky/elementor/_.json; do
+wp elementor import "$f" --allow-root || echo "Skipped $f"
+          done
+          HOME_ID=$(wp post list --post_type=page --name=home --field=ID --allow-root || true)
+if [ -z "$HOME_ID" ]; then
+HOME_ID=$(wp post create --post_type=page --post_title="Home" --post_status=publish --porcelain --allow-root)
+fi
+wp option update show_on_front 'page' --allow-root
+wp option update page_on_front $HOME_ID --allow-root
+wp cache flush --allow-root
 
-**API → Render (Deploy Hook):**
+Production Workflow (deploy-cloudways-prod.yml)
+→ identical except branch main and path ${{ secrets.APP_ROOT_SPARKY_PROD }}.
 
-```yaml
-name: Deploy API to Render
-on:
-  push:
-    branches: [main]
-    paths: ['api/**']
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          curl -X POST -H 'Content-Type: application/json' \
-          --data '{"clearCache": true}' "${{ secrets.RENDER_DEPLOY_HOOK_API }}"
-```
+🧠 9) Cursor Automation Steps
 
-**Frontend → Vercel (optional):**
+Goal: keep docs, pipeline, and SiteKit in sync.
 
-```yaml
-name: Deploy Frontend to Vercel
-on: { push: { branches: [main], paths: ['frontend/**'] } }
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: frontend
-          prod: true
-```
+Upload or edit templates in /infra/brands/sparky/elementor/.
 
----
+Cursor auto-detects JSON changes → prompts commit message.
+Example:
 
-## 10) Monetization & Revenue Paths
+“Update SiteKit templates – header/footer/home adjusted.”
 
-1. **Affiliate** — Amazon/Home Depot (wire, devices), Generac, hosting referrals (Cloudways/Render).
-2. **Ads** — Ezoic/Mediavine once 5k–50k+ visits.
-3. **Pro Tools** — advanced calculators, NEC references, panel estimator (subscription).
-4. **Courses** — generator mastery, NEC load calc, quoting systems.
-5. **Lead Gen** — forms CTA into Lenhart/InCharge pipelines.
+On save → staging branch push → triggers CI above.
 
-**Early projections (rough):**
+Cloudways → SSH → imports templates via WP-CLI.
 
-- 10k visits/mo → $100–$400 ads; affiliates $200–$600; plus lead‑gen value.
-- 50–100k → $3k–$8k blended, pre‑lead‑gen.
+Site auto-rebuilds (Header + Footer + Home active).
 
----
+Cursor Commands
 
-## 11) Launch Checklist (v1 Minimal)
+@cursor sync templates
+@cursor open infra/brands/sparky/elementor/
+@cursor commit "Update Elementor SiteKit (v1.1)"
+@cursor push staging
 
-- [ ] DNS → `@`, `cms.`, `api.`, (`tools.` optional)
-- [ ] Elementor Pro activated; global colors/typography/buttons set
-- [ ] Pages: Home / Resources / Tools (no broken links; polished placeholders ok)
-- [ ] First tool embedded (or “coming soon”) + explainer copy + affiliate links
-- [ ] Analytics (Plausible) + GSC verified; sitemap submitted
-- [ ] Cache + security plugin enabled; SSL padlock
-- [ ] CI/CD tested: WP theme deploy + API deploy
+🚀 10) Launch Checklist
 
----
+DNS @, cms., api. mapped & SSL padlock green
 
-## 12) Growth Roadmap (phased)
+Elementor Pro active + SiteKit imported
 
-**Phase 1 — Foundation (Week 1–2)**
+Header/Footer visible site-wide
 
-- Build 3 pages; embed first tool; connect analytics; ship.
+Home: 6 posts + 3 tools render correctly
 
-**Phase 2 — Content & Tools (Month 1–2)**
+Analytics (Plausible) + GSC verified
 
-- 6–10 posts; add Load Calc; add Conduit Fill.
-- Internal links: Tools ↔ Guides ↔ CTAs.
+Cache + Security plugins active
 
-**Phase 3 — Monetize (Month 3–6)**
+CI/CD staging → main tested
 
-- Affiliates wired site‑wide; basic ads; newsletter capture.
-- Start Pro Toolbox (auth + advanced calc behind login).
+📈 11) Growth Roadmap
+Phase Focus Duration
+1 – Foundation Launch 5 pages + first tool 1–2 weeks
+2 – Content & Tools 10 posts + Load Calc + Conduit Fill 1–2 months
+3 – Monetize Affiliates + Newsletter + Ads 3–6 months
+4 – Platform Pro Tools + Courses + Partner dashboards 6–12 months
+📊 12) KPIs
 
-**Phase 4 — Platform (6–12 mo)**
+Launch time: < 1 day from clone
 
-- Courses, partnerships, data insights dashboards.
-- Regional landing pages feeding your service orgs.
+LCP: < 2.5 s • CLS: < 0.1
 
----
+Posts / week: 2 • Tools / day: 50+
 
-## 13) KPIs
+Lead conversion: 1–3 %
 
-- Time‑to‑launch page set: < **1 day**
-- Core Web Vitals: LCP < 2.5s, CLS < 0.1
-- Weekly posts: **2**
-- Tools used/day: **50+** (target)
-- Conversion to lead (relevant posts/tools): **1–3%**
+🧰 13) Elementor Quick-Build Reference
 
----
+Hero (Flex) — 50/50 columns, min-height 600, bg #F8FAFC → H1 + button.
+Post Grid (6) — Loop Grid → Query top_six_posts.
+Tools Grid (3) — Loop Grid → Query most_used_tools.
+CTA Band — Primary blue bg, white text, orange button.
+Footer — Dark secondary bg #0E1622 → white links + copyright.
 
-## 14) Client Template SOP (10‑min)
+✅ 14) Client Template SOP (10 min)
 
-1. Clone Cloudways `client-template-site` → new app.
-2. Map domain + SSL; run WP‑CLI bootstrap.
-3. Import brand kit; apply global styles.
-4. Generate starter pages; wire form → CRM; add analytics + GSC.
-5. Snapshot backup; handoff preview.
+Clone staging app → new client Cloudways app.
 
----
+Run WP-CLI bootstrap script.
 
-## 15) Appendix — Elementor Quick Builds
+Import brand SiteKit (JSONs).
 
-**Hero (Flex):** 2‑col (50/50), min‑height 600, bg `#F8F9FB`; H1 + paragraph + primary button; right column image/Lottie; mobile stack.
+Verify Header/Footer/Home.
 
-**Feature Trio (Grid):** 3 cols → 1 col mobile; card pad 32, bg Alt, radius 12; icon → H3 → paragraph → outline button.
+Add client DNS + SSL + analytics.
 
-**Tools Cards:** same as Feature Trio; each links to calculator route or “coming soon” modal.
+Snapshot backup → handoff.
 
----
-
-**End of Template**
+End of Template – Cursor-Integrated Sparky HQ v3

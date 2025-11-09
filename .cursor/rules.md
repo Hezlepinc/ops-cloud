@@ -21,8 +21,8 @@ Operate this monorepo with automation-first principles. Prefer scripts, WP-CLI, 
 - Include path in subject when useful, e.g., `feat(templates): home hero block`
 
 ## When in doubt
-1) Open a draft PR with the minimal diff  
-2) Attach run output (or CI logs)  
+1) Open a draft PR with the minimal diff
+2) Attach run output (or CI logs)
 3) Ping orchestrator `/ai/status` to verify state
 
 

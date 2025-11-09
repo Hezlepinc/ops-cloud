@@ -20,7 +20,7 @@ ${JSON.stringify(statusJson)}
 
 export async function generateDailySuggestions(snapshot) {
 	const prompt = `
-You are the Hezlep Ops reliability coach. Given the snapshot below, produce 3-5 specific, high‑impact suggestions to improve visibility, reliability, or developer velocity. 
+You are the Hezlep Ops reliability coach. Given the snapshot below, produce 3-5 specific, high‑impact suggestions to improve visibility, reliability, or developer velocity.
 Return concise bullets with one actionable sentence each. Prioritize: rate limit hardening, cache warmups, workflow guardrails, and low‑effort UX gains.
 Snapshot:
 ${JSON.stringify(snapshot)}
