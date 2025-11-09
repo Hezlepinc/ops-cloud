@@ -8,11 +8,17 @@ on:
     - cron: "0 */6 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Use PAT if provided, else default GITHUB_TOKEN (requires repo setting: Read and write)
+          token: ${{ secrets.OPS_BOT_TOKEN != '' && secrets.OPS_BOT_TOKEN || github.token }}
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -25,15 +31,18 @@ jobs:
           echo "RENDER_API_KEY=${RENDER_API_KEY}" >> $GITHUB_ENV
           echo "CW_EMAIL=${CW_EMAIL}" >> $GITHUB_ENV
           echo "CW_API_KEY=${CW_API_KEY}" >> $GITHUB_ENV
+      - name: Configure Git identity
+        run: |
+          git config user.name "HezlepOpsBot"
+          git config user.email "ops-bot@hezlep.com"
       - name: Install deps for updater
         run: npm install node-fetch@3
       - name: Run updater
         run: node scripts/update-maps.js
       - name: Commit map data
         run: |
-          git config user.name "HezlepOpsBot"
-          git config user.email "ops-bot@hezlep.com"
           git add data/maps/* dashboard/public/maps/*
           git commit -m "Auto update maps [skip ci]" || echo "No changes"
-          git push
+          # push back to staging explicitly
+          git push origin HEAD:staging
 
