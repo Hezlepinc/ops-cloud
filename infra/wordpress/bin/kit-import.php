@@ -31,6 +31,7 @@ try {
 	}
 	// If Kit_Importer is unavailable (common without Pro), try custom import from src structure
 	$srcDir = null;
+	$manifestPath = null;
 	if (is_dir($kit)) {
 		$srcDir = realpath($kit);
 	} else {
@@ -50,14 +51,37 @@ try {
 		$zip->close();
 		$srcDir = $tmpBase;
 	}
-	if (!$srcDir || !file_exists($srcDir . '/manifest.json')) {
-		throw new \RuntimeException('manifest.json not found in kit src directory.');
+	if (!$srcDir) {
+		throw new \RuntimeException('No source directory available after extraction.');
+	}
+	// Locate manifest.json at root or within a single nested directory
+	if (file_exists($srcDir . '/manifest.json')) {
+		$manifestPath = $srcDir . '/manifest.json';
+	} else {
+		// Search one level deeper first; if multiple manifests, pick the first
+		$candidates = glob($srcDir . '/*/manifest.json');
+		if (!$candidates) {
+			// Fallback: recursive search (first match)
+			$rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($srcDir, \FilesystemIterator::SKIP_DOTS));
+			foreach ($rii as $file) {
+				if (strtolower($file->getFilename()) === 'manifest.json') {
+					$manifestPath = $file->getPathname();
+					break;
+				}
+			}
+		} else {
+			$manifestPath = $candidates[0];
+		}
+	}
+	if (!$manifestPath || !file_exists($manifestPath)) {
+		throw new \RuntimeException('manifest.json not found in kit.');
 	}
 
-	$manifest = json_decode(file_get_contents($srcDir . '/manifest.json'), true);
+	$manifest = json_decode(file_get_contents($manifestPath), true);
 	if (!is_array($manifest)) {
 		throw new \RuntimeException('Invalid manifest.json format.');
 	}
+	$baseDir = dirname($manifestPath);
 
 	$elementorVersion = null;
 	if (class_exists('\Elementor\Plugin')) {
@@ -77,7 +101,7 @@ try {
 		$title = isset($meta['title']) ? (string) $meta['title'] : ('Template ' . $id);
 		$docType = isset($meta['doc_type']) ? (string) $meta['doc_type'] : 'page';
 		$conditions = isset($meta['conditions']) && is_array($meta['conditions']) ? $meta['conditions'] : [];
-		$jsonPath = $srcDir . '/templates/' . $id . '.json';
+		$jsonPath = $baseDir . '/templates/' . $id . '.json';
 		if (!file_exists($jsonPath)) {
 			continue;
 		}
