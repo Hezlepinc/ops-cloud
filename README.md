@@ -20,9 +20,13 @@ repo.
 
 ## Docs
 
-- Operations Playbook: `docs/DEV_CYCLE.md`
-- Orchestrator API & usage: `docs/orchestrator.md`
-- Roadmap and remaining tasks: `docs/roadmap.md`
+- Docs Index: [docs/README.md](docs/README.md)
+- Daily/Weekly/Monthly Playbook: [docs/DEV_CYCLE.md](docs/DEV_CYCLE.md)
+- Orchestrator API & Usage: [docs/orchestrator.md](docs/orchestrator.md)
+- Roadmap and Remaining Tasks: [docs/roadmap.md](docs/roadmap.md)
+- Repository Map & Workflows: [docs/project-map.md](docs/project-map.md)
+- Elementor Kit Workflow: [docs/kit-workflow.md](docs/kit-workflow.md)
+- Hello Child Deploy Guide: [docs/hello-child-deploy.md](docs/hello-child-deploy.md)
 
 ## What's live now (staging CI/CD)
 
