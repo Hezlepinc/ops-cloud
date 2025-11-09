@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: ops-orchestrator
+    env: node
+    plan: starter
+    region: oregon
+    rootDir: orchestrator
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 3000
+      # Secrets are stored in Render dashboard; this group is referenced here
+      - fromGroup: orchestrator-common
+
+envVarGroups:
+  - name: orchestrator-common
+    envVars:
+      # Cloudways API
+      - key: CW_EMAIL
+        sync: false
+      - key: CW_API_KEY
+        sync: false
+      # Orchestrator auth for /ai/* routes
+      - key: AI_KEY
+        sync: false
+      # GitHub status (optional but used by /ai/status in this repo)
+      - key: GITHUB_REPO
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      # Optional: used by future GPT integrations
+      - key: OPENAI_API_KEY
+        sync: false
+
+
