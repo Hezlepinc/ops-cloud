@@ -7,9 +7,12 @@ import dagre from "dagre";
 function CustomNode({ data }: any) {
   return (
     <div style={{ position: "relative", padding: 8, borderRadius: 8, boxShadow: "0 1px 2px rgba(0,0,0,0.1)", background: "#fff", border: "1px solid #e5e7eb" }}>
-      {/* Left/Right handles for cleaner horizontal connections */}
+      {/* Default handles for LR flow */}
       <Handle type="target" position={Position.Left} style={{ background: "#6b7280" }} />
       <Handle type="source" position={Position.Right} style={{ background: "#6b7280" }} />
+      {/* Top/bottom handles for special cases like top-chain out of Ops Cloud */}
+      <Handle type="source" position={Position.Top} style={{ background: "#6b7280" }} />
+      <Handle type="target" position={Position.Bottom} style={{ background: "#6b7280" }} />
       <div style={{ fontWeight: 600 }}>{data.label}</div>
       {data.description ? <div style={{ fontSize: 12, color: "#6b7280" }}>{data.description}</div> : null}
     </div>
@@ -84,13 +87,11 @@ export default function MapViewer() {
     addNode("ops-cloud", "Ops Cloud");
     addNode("render", "Render");
     addNode("cloudways", "Cloudways");
-    addNode("orchestrator", "Orchestrator");
     addNode("github", "GitHub");
 
     addEdge("ops-cloud", "render");
     addEdge("render", "cloudways");
-    addEdge("cloudways", "orchestrator");
-    addEdge("orchestrator", "github");
+    addEdge("cloudways", "github");
 
     // Optional expansions around Ops Cloud
     if (opsDownExpanded) {
@@ -100,6 +101,7 @@ export default function MapViewer() {
         { id: "comp:scripts", label: "Scripts" },
         { id: "comp:templates", label: "Templates" },
         { id: "comp:cicd", label: "CI/CD" },
+        { id: "comp:orchestrator", label: "Orchestrator API" },
       ];
       comps.forEach(c => {
         addNode(c.id, c.label);
@@ -153,10 +155,15 @@ export default function MapViewer() {
           Object.keys(sites || {})[0];
         const pages = (sites && brandDisplay && sites[brandDisplay]) ? Object.entries<string>(sites[brandDisplay]) : [];
         // Add at most first 12 pages for readability
-        pages.slice(0, 12).forEach(([slug, link], idx) => {
+        pages.slice(0, 12).forEach(([slug], idx) => {
           const pageId = `${appId}:page:${slug}`;
           addNode(pageId, slug);
-          addEdge(appId, pageId);
+          // Alternate sides: even to the right (app -> page), odd to the left (page -> app)
+          if (idx % 2 === 0) {
+            addEdge(appId, pageId);
+          } else {
+            addEdge(pageId, appId);
+          }
         });
       });
     }
