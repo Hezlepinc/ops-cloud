@@ -18,10 +18,10 @@ Use this file each morning before development begins.
 
 ### 🔹 1. Pre-Dev-Day Sync (inside Cursor)
 
-Run once before coding (Cursor command palette):
+Run once before coding:
 
-- pre-dev-day sync
-- daily (alias)
+- Cursor command palette: `pre-dev-day sync` (or `daily` alias), or
+- Terminal: `npm run daily`
 
 Outputs
 
