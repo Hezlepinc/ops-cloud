@@ -23,9 +23,15 @@ IFS=';' read -r -a KITS <<< "$KITS_STR"
 echo "▶ Importing kits for brand=$BRAND env=$DEPLOY_ENV overlay=$OVERLAY"
 echo "▶ Kits: ${KITS[*]:-<none>}"
 
-# Ensure Elementor active
-wp plugin install elementor --activate --allow-root || wp plugin activate elementor --allow-root || true
-wp plugin activate elementor-pro --allow-root || true
+# Respect manual plugin management: only detect status, do not install/activate
+if ! wp plugin is-active elementor --allow-root >/dev/null 2>&1; then
+  echo "⚠ Elementor is not active. Skipping kit import."
+  SKIP_IMPORT=1
+fi
+if ! wp plugin is-active elementor-pro --allow-root >/dev/null 2>&1; then
+  echo "⚠ Elementor Pro is not active. Skipping kit import."
+  SKIP_IMPORT=1
+fi
 
 imported_any=0
 
@@ -80,7 +86,7 @@ for kit in "${KITS[@]}"; do
 done
 
 # Fallback: if nothing imported from declared kits, try brand-level zip(s)
-if [[ "$imported_any" -eq 0 ]]; then
+if [[ "${SKIP_IMPORT:-0}" != "1" && "$imported_any" -eq 0 ]]; then
   # Prefer *template*.zip and newest by mtime; otherwise any newest .zip
   fallback_zip=$(ls -t infra/wordpress/brands/${BRAND}/elementor/*template*.zip 2>/dev/null | head -n 1 || true)
   if [[ -z "${fallback_zip:-}" ]]; then
