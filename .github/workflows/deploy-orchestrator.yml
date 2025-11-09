@@ -16,14 +16,24 @@ jobs:
           cd orchestrator
           npm ci
 
-      - name: Trigger Render deployment
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+      - name: Trigger Render deployment (optional)
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          curl -sS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" || true
+          if [ -n "$RENDER_DEPLOY_HOOK_URL" ]; then
+            curl -sS -X POST "$RENDER_DEPLOY_HOOK_URL" || true
+          else
+            echo "Render deploy hook not set; skipping"
+          fi
 
-      - name: Trigger Vercel deployment
-        if: ${{ secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
+      - name: Trigger Vercel deployment (optional)
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
         run: |
-          curl -sS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}" || true
+          if [ -n "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            curl -sS -X POST "$VERCEL_DEPLOY_HOOK_URL" || true
+          else
+            echo "Vercel deploy hook not set; skipping"
+          fi
 
 
