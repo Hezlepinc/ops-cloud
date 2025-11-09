@@ -1,208 +1,212 @@
-## Project Visibility Roadmap — Hezlep Ops Orchestrator
+Project Visibility Roadmap — Hezlep Ops Orchestrator (v1.1)
 
-**Version:** 1.0
-**Owner:** Hezlep Systems Architecture
-**Goal:** Achieve total operational visibility of all project layers (GitHub, GPT-5, Cursor, Cloudways, and WordPress) through the central Orchestrator API.
+Owner: Hezlep Systems Architecture
+Goal: Achieve total operational visibility of all project layers (GitHub, GPT-5, Cursor, Cloudways, and WordPress) through the central Orchestrator API.
 
-## 0️⃣ Overview
+0️⃣ Overview
+Layer Role Endpoint Prefix
+✅ GPT-5 (Hezlep Ops Assistant) Conversational command layer /ai/_ (OpenAPI)
+✅ Cursor IDE Developer execution + sync context /ai/cursor/_
+✅ GitHub Source of truth for repos /ai/github/_
+⚙️ Cloudways / WordPress Hosting + health reporting /ai/cloudways/_, /ai/wordpress/\*
+✅ Orchestrator (Render) Central coordination + visibility plane N/A
+1️⃣ Phase 1 — Unified Interface Foundation
 
-| Layer                        | Role                                      | Endpoint Prefix                      |
-| ---------------------------- | ----------------------------------------- | ------------------------------------ |
-| GPT-5 (Hezlep Ops Assistant) | Conversational command layer              | `/ai/*` (via OpenAPI)                |
-| Cursor IDE                   | Developer execution environment           | `/ai/cursor/*`                       |
-| GitHub                       | Source of truth for repos                 | `/ai/github/*`                       |
-| Cloudways / WordPress        | Hosting and front-end                     | `/ai/cloudways/*`, `/ai/wordpress/*` |
-| Orchestrator (Render)        | Central coordination and visibility plane | N/A                                  |
+Goal: Normalize all system communication through the Orchestrator.
 
-## 1️⃣ Phase 1 — Unified Interface Foundation
+Tasks
 
-**Goal:** Normalize all system communication through the Orchestrator.
+[✅] Expand OpenAPI spec with /ai/github/_, /ai/cursor/_, /ai/context, /ai/audit
 
-**Tasks**
+[✅] Standardize security headers (x-api-key, x-client-id)
 
-- Expand OpenAPI spec to include:
-  - `/ai/github/*`
-  - `/ai/cursor/*`
-  - `/ai/context`
-  - `/ai/audit`
+[✅] Add /ai/context endpoint using Redis (Upstash)
 
-- Standardize security headers:
-  - `x-api-key` for GPT and Cursor
-  - `x-client-id` to identify the caller (`gpt` / `cursor` / `cron`)
+[✅] Cache state (TTL 15 min)
 
-- Add `/ai/context` endpoint with Redis store
+[✅] Log all actions to /ai/audit (Redis list)
 
-Example:
+Outcome:
+All systems share one communication plane and unified context.
 
-```json
-{
-  "branch": "staging",
-  "commit": "abc1234",
-  "activeUser": "john",
-  "currentTask": "theme deployment"
-}
-```
+2️⃣ Phase 2 — GitHub Integration + Indexing
 
-- Cache state in Redis (expire 15 min).
+Goal: Full repo visibility via summarized, queryable APIs.
 
-**Outcome:** All systems share one communication plane and a shared context snapshot.
+Tasks
 
-## 2️⃣ Phase 2 — GitHub Integration and Indexing
+[✅] Add endpoints: /ai/github/{commits,runs,repo,search,recall}
 
-**Goal:** Grant full repo visibility via summarized, queryable APIs.
+[✅] Nightly cron job index_repo.ts
 
-**Tasks**
+[⚙️] Upgrade vector index → Pinecone (PINECONE_INDEX=opscloud-repo)
 
-- Add endpoints:
-  - `/ai/github/commits`
-  - `/ai/github/runs`
-  - `/ai/github/repo`
-  - `/ai/github/search`
-  - `/ai/github/recall`
+[⚙️] Embed and upsert repo summaries nightly
 
-- Implement nightly cron:
-  - Pull latest branch.
-  - Chunk and embed repo (LangChain + OpenAIEmbeddings).
-  - Store vectors in Redis or Pinecone.
+[✅] Implement GET /ai/search?q=...
 
-- Add query endpoint:
-  - `GET /ai/search?q=redis+cache+layer`
-  - Returns top-k semantic matches with file context.
+[⚙️] Add GitHub webhook → /ai/audit (pending)
 
-**Outcome:** GPT and Cursor can ask semantic questions across the entire repo.
+Outcome:
+GPT and Cursor can semantically query the entire repo through Orchestrator.
 
-## 3️⃣ Phase 3 — Cursor ↔ GPT Synchronization Layer
+3️⃣ Phase 3 — Cursor ↔ GPT Synchronization Layer
 
-**Goal:** Connect IDE and GPT contexts in real time.
+Goal: Connect IDE and GPT in real time.
 
-**Tasks**
+Tasks
 
-- Create `/ai/cursor/session`:
+[✅] /ai/cursor/session endpoint (active file/diff)
 
-```json
-{
-  "branch": "feature/ui",
-  "file": "components/Header.tsx",
-  "diff": "++ added search bar",
-  "timestamp": "2025-11-09T15:45:00Z"
-}
-```
+[✅] Cursor CLI plugin (cursor sync, cursor listen)
 
-- Build small Cursor CLI plugin:
-  - `cursor sync` → POSTs active file/diff.
-  - `cursor listen` → subscribes to orchestrator events (Redis Pub/Sub).
+[✅] .cursor/commands.json includes “daily” + “daily suggestions”
 
-- Update GPT prompt context from `/ai/context` before each command.
+[✅] GPT context auto-updates from /ai/context
 
-- Implement conflict resolution (last-write-wins + audit entry).
+[✅] Conflict policy (last-write-wins + audit)
 
-**Outcome:** Both interfaces operate cooperatively on the same live state.
+Outcome:
+Cursor and GPT operate on the same state.
+Live session data is mirrored into the orchestrator cache.
 
-## 4️⃣ Phase 4 — Full Visibility Dashboard
+4️⃣ Phase 4 — Full Visibility Dashboard
 
-**Goal:** Human-readable monitoring UI.
+Goal: Human-readable monitoring UI.
 
-**Features**
+Features
 
-- GitHub branch / commit info
-- Cursor session (active file, branch)
-- GPT current context / query log
-- WordPress + Cloudways health cards
-- Audit timeline
+[✅] API Status + Shared Context cards
 
-**Stack**
+[✅] New Connections Tab (/maps)
+→ Displays Redis, Postgres, GitHub, Cloudways, WP
 
-- Next.js / React + Tailwind
-- Data fetched via `/ai/status` and `/ai/context`
-- Hosted on Render Web Service
+[✅] Daily AI Suggestion Feed
 
-**Outcome:** Real-time web dashboard consolidating system health and developer activity.
+[⚙️] Add latency + uptime visualization
 
-## 5️⃣ Phase 5 — Intent & Policy Engine
+[⚙️] Add “Refresh” button to pull live /ai/suggestions/daily
 
-**Goal:** Enable coordinated command execution across GPT and Cursor with human approval.
+Stack
 
-**Tasks**
+Next.js 14 + Tailwind
 
-- Add `/ai/intents` endpoint:
+Data from /maps/connections.json and /maps/suggestions.json
 
-```json
-{
-  "intent": "deploy",
-  "target": "staging",
-  "initiator": "gpt",
-  "approved": false
-}
-```
+Hosted on Render (ops-dashboard)
 
-- Store intents in Postgres (auditable queue).
+Outcome:
+Dashboard shows real-time orchestration health and AI improvement insights.
 
-- Build approval logic:
-  - GPT can propose; human or Cursor must approve.
-  - Policy: GPT cannot deploy to `main`.
+5️⃣ Phase 5 — Intent & Policy Engine
 
-- Mirror results to `/ai/audit`.
+Goal: Coordinate GPT + Cursor actions with human approval.
 
-**Outcome:** Safe automated orchestration loop with full human oversight.
+Tasks
 
-## 6️⃣ Phase 6 — Performance & Optimization
+[✅] /ai/intents endpoint (policy + audit)
 
-| Concern     | Mitigation                                                     |
-| ----------- | -------------------------------------------------------------- |
-| Token usage | Summarize and pre-embed large files; return concise JSON.      |
-| Latency     | Use Redis caching; co-locate Render and Pinecone region.       |
-| Cost        | Batch embeddings nightly; incremental diff indexing.           |
-| Security    | No raw code exposed to GPT; only summaries and vector matches. |
-| Reliability | `/ai/metrics` endpoint + uptime cron monitor.                  |
+[✅] Postgres persistence (intents table)
 
-## 7️⃣ Phase 7 — Final Integration & Rollout
+[✅] GPT policy: cannot deploy to main
 
-- Deploy all new endpoints to staging (`develop` branch).
-- Test GPT-5 orchestration commands:
-  - “Review full project”
-  - “Show last five commits and workflow runs”
-  - “Sync with Cursor session”
-- Validate Cursor plugin (send + receive).
-- Promote to `main` once latency < 4 s and context coherence > 95%.
+[⚙️] Add approval UI to dashboard
 
-## 🧠 Expected Benefits
+[⚙️] Extend /ai/audit filtering + search
 
-| Category     | Impact                                        |
-| ------------ | --------------------------------------------- |
-| Visibility   | GPT and Cursor share identical project view   |
-| Security     | GitHub token and repo data isolated in Render |
-| Efficiency   | No large uploads; GPT receives only summaries |
-| Auditability | Every action logged in `/ai/audit`            |
-| Scalability  | Vector recall supports multi-repo visibility  |
-| Governance   | Policy engine enforces safe automation        |
+Outcome:
+Safe automation with transparent approvals.
 
-## 🔒 Key Environment Variables
+6️⃣ Phase 6 — Performance & Optimization
+Concern Mitigation Status
+Token usage Summarize and embed nightly ✅
+Latency Redis cache + region alignment ✅
+Cost Batch embeddings + incremental index ⚙️
+Security No raw code, only vector matches ✅
+Reliability /ai/metrics endpoint + cron monitor ⚙️
+7️⃣ Phase 7 — Final Integration & Rollout
 
-| Variable              | Purpose                   |
-| --------------------- | ------------------------- |
-| OPENAI_API_KEY        | Embeddings + GPT recall   |
-| GITHUB_TOKEN          | GitHub API access         |
-| GITHUB_REPO           | Target repository         |
-| REDIS_URL             | Context + session storage |
-| POSTGRES_URL          | Audit + intents DB        |
-| x-api-key             | GPT/Cursor authentication |
-| CW_EMAIL / CW_API_KEY | Cloudways control         |
-| WP_REST_ENDPOINT      | WordPress health checks   |
+Deployment Actions
 
-## 🗓️ Maintenance Cadence
+[✅] Staging → Render develop
 
-| Frequency | Task                                    |
-| --------- | --------------------------------------- |
-| Daily     | pre-dev-day sync + `/ai/status` check   |
-| Nightly   | Repo re-index + cache warm-up           |
-| Weekly    | Audit log rotation + dependency update  |
-| Monthly   | Security review + vector DB pruning     |
-| Quarterly | Orchestrator load test + rollback drill |
+[✅] GitHub Actions “Auto Update Maps”
 
-## ✅ End State
+[✅] Secrets set: ORCHESTRATOR_URL, ORCHESTRATOR_API_KEY
 
-After completing all phases:
+[✅] Cursor verified (daily + daily suggestions)
 
-- GPT-5, Cursor, and Render Orchestrator operate as a single, stateful ecosystem.
-- Every edit, deploy, or query passes through the same context and audit channel.
-- “Project review” becomes a first-class operation — GPT has full visibility without ever overloading context or exposing credentials.
+[⚙️] Add Pinecone / Postgres migrations to CI
+
+[⚙️] Promote to main after latency < 4 s & coherence > 95%
+
+8️⃣ Phase 8 — Multi-Data-Layer Expansion
+
+Goal: Integrate full persistent + vector stack.
+
+Component Provider Status
+Redis Upstash (context, audit, metrics) ✅ Configured
+Postgres Render (intents, policies) ✅ Running
+Mongo Atlas (optional) Long audit history ⚙️ Planned
+Pinecone (vectors + semantic recall) ⚙️ Integrating
+Render Worker Nightly embedding job ✅ Configured
+
+Tasks
+
+[✅] Add env vars (REDIS_URL, POSTGRES_URL, PINECONE_API_KEY, PINECONE_INDEX)
+
+[⚙️] Update services/search.ts → Pinecone SDK
+
+[⚙️] Add Mongo audit mirror
+
+[⚙️] Integrate /ai/github/webhook → audit log
+
+Outcome:
+Persistent + semantic visibility across all repos and services.
+
+9️⃣ Phase 9 — Continuous Improvement
+
+Goal: Automated AI diagnostics + proactive suggestions.
+
+Tasks
+
+[✅] /ai/suggestions/daily route implemented
+
+[✅] GitHub Action update-maps.yml updates connections.json + suggestions.json
+
+[⚙️] Add GPT summarizer: convert raw metrics → action text
+
+[⚙️] Extend AI output to Slack / email notifications
+
+Outcome:
+Daily GPT-driven recommendations for performance, reliability, and workflow.
+
+🧾 Maintenance & Monitoring Checklist
+Frequency Task Owner Status
+Daily /ai/status check GPT/Render ✅
+Nightly Repo re-index (worker) Render ✅
+Weekly Audit log rotation DevOps ⚙️
+Monthly Vector DB pruning + dependency audit Systems ⚙️
+Quarterly Load test + rollback drill Systems ⚙️
+🔒 Key Environment Variables
+Variable Purpose
+OPENAI_API_KEY GPT embeddings + suggestions
+GITHUB_TOKEN GitHub API access
+GITHUB_REPO Target repository
+REDIS_URL Upstash cache
+POSTGRES_URL Render DB (intents/audit)
+MONGO_URI Optional extended audit
+PINECONE_API_KEY / PINECONE_INDEX Vector recall
+CW_EMAIL / CW_API_KEY Cloudways control
+WP_REST_ENDPOINT WordPress health checks
+x-api-key GPT / Cursor authentication
+DASHBOARD_ORIGIN CORS allowlist
+✅ End State (Target)
+
+GPT-5, Cursor, and Orchestrator operate as a single, stateful ecosystem.
+
+Redis + Postgres + Pinecone back unified context, audit, and semantic search.
+
+Dashboard and daily GPT reports provide continuous operational visibility.
+
+Every deployment and command is observable, auditable, and AI-assisted.
