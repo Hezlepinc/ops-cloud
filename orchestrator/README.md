@@ -15,16 +15,18 @@ CW_EMAIL=...
 CW_API_KEY=...
 GITHUB_REPO=YourOrg/ops-cloud
 GITHUB_TOKEN=ghp_xxx
-AI_KEY=supersecretkey
+OPENAI_API_KEY=supersecretkey
 
 3) Endpoints:
 
 - GET / -> health
-- GET /ai/status -> Cloudways servers/apps + GitHub branch status (requires x-api-key)
-- POST /ai/deploy { brand, environment } -> trigger repo dispatch (requires x-api-key)
-- GET /ai/wordpress/:brand -> basic WP REST health for brand (requires x-api-key)
-- GET /ai/live -> merged cached Cloudways + GitHub snapshot (requires x-api-key)
-- GET /ai/elementor/:brand -> Elementor kit list via WP REST (requires x-api-key)
+- GET /ai/status -> Cloudways servers/apps + GitHub branch status (requires x-api-key: OPENAI_API_KEY)
+- POST /ai/deploy { brand, environment } -> trigger repo dispatch (requires x-api-key: OPENAI_API_KEY)
+- GET /ai/wordpress/:brand -> basic WP REST health for brand (requires x-api-key: OPENAI_API_KEY)
+- GET /ai/live -> merged cached Cloudways + GitHub snapshot (requires x-api-key: OPENAI_API_KEY)
+- GET /ai/elementor/:brand -> Elementor kit list via WP REST (requires x-api-key: OPENAI_API_KEY)
+
+Remote endpoint (Render): https://ops-orchestrator.onrender.com
 
 Deploy
 

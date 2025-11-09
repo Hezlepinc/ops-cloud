@@ -4,14 +4,14 @@
       "name": "show live ops",
       "description": "Check current Cloudways + GitHub status from orchestrator",
       "run": [
-        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/live"
+        "curl -sS -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/live"
       ]
     },
     {
       "name": "check orchestrator status",
       "description": "Fetch live Cloudways + GitHub data from orchestrator",
       "run": [
-        "curl -s -H 'x-api-key:$AI_KEY' http://localhost:3000/ai/status | jq"
+        "curl -s -H 'x-api-key:$OPENAI_API_KEY' http://localhost:3000/ai/status | jq"
       ]
     },
     {
@@ -26,7 +26,7 @@
       "description": "Test x-api-key authentication",
       "run": [
         "curl -I http://localhost:3000/ai/status",
-        "curl -I -H 'x-api-key:$AI_KEY' http://localhost:3000/ai/status"
+        "curl -I -H 'x-api-key:$OPENAI_API_KEY' http://localhost:3000/ai/status"
       ]
     },
     {
@@ -40,7 +40,7 @@
       "name": "ping orchestrator (Render)",
       "description": "Check deployed orchestrator endpoint on Render",
       "run": [
-        "curl -s -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/status | jq"
+        "curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/status | jq"
       ]
     },
     {
@@ -61,23 +61,23 @@
       "name": "check wordpress health",
       "description": "Get Elementor and WP status for each brand",
       "run": [
-        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/wordpress/sparky-hq",
-        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/wordpress/hezlep-inc"
+        "curl -sS -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/wordpress/sparky-hq",
+        "curl -sS -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/wordpress/hezlep-inc"
       ]
     },
     {
       "name": "check elementor kits",
       "description": "Verify Elementor kit versions for each site",
       "run": [
-        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/elementor/sparky-hq",
-        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/elementor/hezlep-inc"
+        "curl -sS -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/elementor/sparky-hq",
+        "curl -sS -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/elementor/hezlep-inc"
       ]
     },
     {
       "name": "deploy staging",
       "description": "Trigger GitHub Action redeploy workflow",
       "run": [
-        "curl -sS -X POST -H 'x-api-key:$AI_KEY' -H 'Content-Type: application/json' -d '{\"brand\":\"sparky-hq\",\"environment\":\"staging\"}' https://ops.yourdomain.com/ai/deploy"
+        "curl -sS -X POST -H 'x-api-key:$OPENAI_API_KEY' -H 'Content-Type: application/json' -d '{\"brand\":\"sparky-hq\",\"environment\":\"staging\"}' https://ops-orchestrator.onrender.com/ai/deploy"
       ]
     },
     {
