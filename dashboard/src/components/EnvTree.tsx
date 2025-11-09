@@ -12,13 +12,25 @@ export default function EnvTree() {
         <div key={site} style={{ marginBottom: 12 }}>
           <h2 style={{ fontWeight: 600 }}>{site}</h2>
           <ul style={{ marginLeft: 16 }}>
-            {Object.entries(envs as Record<string, string>).map(([env, url]) => (
-              <li key={env}>
-                <a href={url} target="_blank" rel="noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
-                  {env.toUpperCase()} – {url}
-                </a>
-              </li>
-            ))}
+            {Object.entries(envs as Record<string, any>).map(([env, info]) => {
+              const url = typeof info === "string" ? info : info?.url || "";
+              const provider = typeof info === "object" ? (info?.provider || "") : "";
+              const status = typeof info === "object" ? (info?.status || "") : "";
+              return (
+                <li key={env}>
+                  {url ? (
+                    <a href={url} target="_blank" rel="noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
+                      {env.toUpperCase()} – {url}
+                    </a>
+                  ) : (
+                    <span>{env.toUpperCase()}</span>
+                  )}
+                  <span style={{ marginLeft: 8, color: "#6b7280", fontSize: 12 }}>
+                    {provider ? `(${provider})` : ""} {status ? `• ${status}` : ""}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ))}

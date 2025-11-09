@@ -7,13 +7,15 @@ export default function PageGrid() {
   const [query, setQuery] = useState("");
   const { data } = useSWR("https://staging.sparky-hq.com/wp-json/wp/v2/pages?per_page=100", fetcher);
   const { data: templates } = useSWR("https://staging.sparky-hq.com/wp-json/elementor/v1/templates", fetcher);
-  if (!data) return <p>Loading pages…</p>;
 
+  const pages: any[] = Array.isArray(data) ? data : [];
   const filtered = useMemo(() => {
-    if (!query) return data;
+    if (!query) return pages;
     const q = query.toLowerCase();
-    return data.filter((p: any) => (p.title?.rendered || "").toLowerCase().includes(q) || (p.slug || "").toLowerCase().includes(q));
-  }, [data, query]);
+    return pages.filter((p: any) => (p.title?.rendered || "").toLowerCase().includes(q) || (p.slug || "").toLowerCase().includes(q));
+  }, [pages, query]);
+
+  if (!data) return <p>Loading pages…</p>;
 
   return (
     <div>
