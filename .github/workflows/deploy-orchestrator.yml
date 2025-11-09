@@ -1,0 +1,29 @@
+name: Deploy Orchestrator
+
+on:
+  push:
+    paths:
+      - "orchestrator/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          cd orchestrator
+          npm ci
+
+      - name: Trigger Render deployment
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        run: |
+          curl -sS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" || true
+
+      - name: Trigger Vercel deployment
+        if: ${{ secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
+        run: |
+          curl -sS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}" || true
+
+
