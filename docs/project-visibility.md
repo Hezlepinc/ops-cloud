@@ -250,8 +250,8 @@ docs/
     sparky-hq.template.md
     hezlep-inc.template.md
   docker-compose.yml
-  playbook.md
-  07_ROADMAP.md
+  06_PLAYBOOK.md
+  08_ROADMAP.md
 
 tools/
   cloudflare-dns.sh
@@ -263,6 +263,7 @@ README.md
 ```
 
 Key points:
+
 - Brand overlays live in `infra/wordpress/brands/<brand>/` and are assembled into `themes/hello-child/` at deploy time.
 - Elementor kits are zipped per brand under `infra/wordpress/brands/<brand>/elementor/` and imported via WP-CLI.
 - Deployments run via a single workflow matrix (staging/production).
