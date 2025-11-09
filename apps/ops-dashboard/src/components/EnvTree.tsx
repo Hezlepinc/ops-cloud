@@ -1,0 +1,32 @@
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
+export default function EnvTree() {
+  const { data } = useSWR("/maps/environments.json", fetcher);
+  if (!data) return <p>Loading environments…</p>;
+
+  return (
+    <div style={{ paddingLeft: 8 }}>
+      {Object.entries<any>(data).map(([site, envs]) => (
+        <div key={site} style={{ marginBottom: 12 }}>
+          <h2 style={{ fontWeight: 600 }}>{site}</h2>
+          <ul style={{ marginLeft: 16 }}>
+            {Object.entries(envs as Record<string, any>).map(([env, info]) => {
+              const url = typeof info === "string" ? info : info.url || "";
+              return (
+                <li key={env}>
+                  <a href={url} target="_blank" rel="noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
+                    {env.toUpperCase()} – {url}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+

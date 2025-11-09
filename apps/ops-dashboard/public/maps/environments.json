@@ -1,0 +1,11 @@
+{
+  "sparky-hq": {
+    "staging": "https://staging.sparky-hq.com",
+    "production": "https://sparky-hq.com"
+  },
+  "hezlep-inc": {
+    "staging": "https://staging.hezlepinc.com",
+    "production": "https://hezlepinc.com"
+  }
+}
+
