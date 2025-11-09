@@ -9,7 +9,7 @@
     "lint": "turbo lint",
     "format": "prettier -w .",
     "format:check": "prettier -c .",
-    "dashboard:dev": "npm --prefix dashboard run dev -- -p 3001",
+    "dashboard:dev": "npm --prefix dashboard run dev",
     "dashboard:build": "npm --prefix dashboard run build",
     "dashboard:start": "npm --prefix dashboard run start",
     "build:themes": "echo 'No theme build yet'",
