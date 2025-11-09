@@ -10,10 +10,11 @@
     "start": "next start -p 5000"
   },
   "dependencies": {
+    "dagre": "^0.8.5",
     "next": "^14.2.5",
+    "ops-cloud": "file:..",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "dagre": "^0.8.5",
     "reactflow": "^11.10.2",
     "serve": "^14.2.1",
     "swr": "^2.3.0"
