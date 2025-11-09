@@ -16,6 +16,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Set env
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          CW_EMAIL: ${{ secrets.CW_EMAIL }}
+          CW_API_KEY: ${{ secrets.CW_API_KEY }}
+        run: |
+          echo "RENDER_API_KEY=${RENDER_API_KEY}" >> $GITHUB_ENV
+          echo "CW_EMAIL=${CW_EMAIL}" >> $GITHUB_ENV
+          echo "CW_API_KEY=${CW_API_KEY}" >> $GITHUB_ENV
       - name: Install deps for updater
         run: npm install node-fetch@3
       - name: Run updater
