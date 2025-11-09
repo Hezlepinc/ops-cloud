@@ -11,6 +11,7 @@ import cloudwaysActions from "./routes/cloudwaysActions.js";
 import metricsRoute from "./routes/metrics.js";
 import auditRoute from "./routes/audit.js";
 import githubActionRoute from "./routes/githubAction.js";
+import suggestionsRoute from "./routes/suggestions.js";
 import auth from "./middleware/auth.js";
 import { syncCloudways } from "./jobs/syncCloudways.js";
 import { syncGitHub } from "./jobs/syncGitHub.js";
@@ -56,6 +57,7 @@ app.use("/ai/cloudways", cloudwaysActions);
 app.use("/ai/metrics", metricsRoute);
 app.use("/ai/audit", auditRoute);
 app.use("/ai/github", githubActionRoute);
+app.use("/ai/suggestions", suggestionsRoute);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

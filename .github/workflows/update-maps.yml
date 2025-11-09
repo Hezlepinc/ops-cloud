@@ -27,10 +27,14 @@ jobs:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           CW_EMAIL: ${{ secrets.CW_EMAIL }}
           CW_API_KEY: ${{ secrets.CW_API_KEY }}
+          ORCHESTRATOR_URL: ${{ secrets.ORCHESTRATOR_URL }}
+          ORCHESTRATOR_API_KEY: ${{ secrets.ORCHESTRATOR_API_KEY }}
         run: |
           echo "RENDER_API_KEY=${RENDER_API_KEY}" >> $GITHUB_ENV
           echo "CW_EMAIL=${CW_EMAIL}" >> $GITHUB_ENV
           echo "CW_API_KEY=${CW_API_KEY}" >> $GITHUB_ENV
+          if [ -n "${ORCHESTRATOR_URL}" ]; then echo "ORCHESTRATOR_URL=${ORCHESTRATOR_URL}" >> $GITHUB_ENV; fi
+          if [ -n "${ORCHESTRATOR_API_KEY}" ]; then echo "ORCHESTRATOR_API_KEY=${ORCHESTRATOR_API_KEY}" >> $GITHUB_ENV; fi
       - name: Configure Git identity
         run: |
           git config user.name "HezlepOpsBot"

@@ -148,6 +148,13 @@
         "echo '== WordPress (hezlep-inc) ==' && curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/wordpress/hezlep-inc | jq",
         "echo '== Git status ==' && git status -sb && echo '== Last commit ==' && git log -1 --oneline"
       ]
+    },
+    {
+      "name": "daily suggestions",
+      "description": "Get daily AI suggestions from orchestrator",
+      "run": [
+        "curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/suggestions/daily | jq"
+      ]
     }
   ]
 }
