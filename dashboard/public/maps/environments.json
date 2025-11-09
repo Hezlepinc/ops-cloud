@@ -1,11 +1,26 @@
 {
   "sparky-hq": {
-    "staging": "https://staging.sparky-hq.com",
-    "production": "https://sparky-hq.com"
+    "staging": {
+      "url": "https://staging.sparky-hq.com",
+      "provider": "Render",
+      "status": "Unknown"
+    },
+    "production": {
+      "url": "https://sparky-hq.com",
+      "provider": "Cloudways",
+      "status": "Unknown"
+    }
   },
   "hezlep-inc": {
-    "staging": "https://staging.hezlepinc.com",
-    "production": "https://hezlepinc.com"
+    "staging": {
+      "url": "https://staging.hezlepinc.com",
+      "provider": "Render",
+      "status": "Unknown"
+    },
+    "production": {
+      "url": "https://hezlepinc.com",
+      "provider": "Cloudways",
+      "status": "Unknown"
+    }
   }
 }
-
