@@ -7,6 +7,7 @@ import wordpressRoute from "./routes/wordpress.js";
 import liveRoute from "./routes/live.js";
 import elementorRoute from "./routes/elementor.js";
 import testOpenAI from "./routes/testOpenAI.js";
+import cloudwaysActions from "./routes/cloudwaysActions.js";
 import auth from "./middleware/auth.js";
 import { syncCloudways } from "./jobs/syncCloudways.js";
 import { syncGitHub } from "./jobs/syncGitHub.js";
@@ -48,6 +49,7 @@ app.use("/ai/wordpress", wordpressRoute);
 app.use("/ai/live", liveRoute);
 app.use("/ai/elementor", elementorRoute);
 app.use("/ai/test/openai", testOpenAI);
+app.use("/ai/cloudways", cloudwaysActions);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

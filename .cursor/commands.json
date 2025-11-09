@@ -8,6 +8,20 @@
       ]
     },
     {
+      "name": "test openai gpt-5",
+      "description": "Call GPT-5 via orchestrator test route",
+      "run": [
+        "curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/test/openai | jq"
+      ]
+    },
+    {
+      "name": "purge varnish",
+      "description": "Purge Varnish cache via orchestrator Cloudways action",
+      "run": [
+        "curl -s -X POST -H 'x-api-key:$OPENAI_API_KEY' -H 'Content-Type: application/json' -d '{\"app_id\":12345}' https://ops-orchestrator.onrender.com/ai/cloudways/purge | jq"
+      ]
+    },
+    {
       "name": "check orchestrator status",
       "description": "Fetch live Cloudways + GitHub data from orchestrator",
       "run": [
