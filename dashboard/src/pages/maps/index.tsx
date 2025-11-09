@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Link from "next/link";
+import AppShell from "@/components/layout/AppShell";
 import MapViewer from "../../components/MapViewer";
 import EnvTree from "../../components/EnvTree";
 import PageGrid from "../../components/PageGrid";
@@ -8,7 +9,8 @@ import HistoryTimeline from "../../components/HistoryTimeline";
 export default function MapsDashboard() {
   const [tab, setTab] = useState<"architecture" | "environments" | "pages" | "history">("architecture");
   return (
-    <div style={{ padding: 24 }}>
+    <AppShell>
+      <div style={{ padding: 24 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <h1 style={{ fontSize: 24, fontWeight: 600 }}>Ops-Cloud Project Maps</h1>
         <Link href="/" style={{ padding: "6px 10px", border: "1px solid #e5e7eb", borderRadius: 6, background: "#f9fafb" }}>Home</Link>
@@ -23,7 +25,8 @@ export default function MapsDashboard() {
       {tab === "environments" && <EnvTree />}
       {tab === "pages" && <PageGrid />}
       {tab === "history" && <HistoryTimeline />}
-    </div>
+      </div>
+    </AppShell>
   );
 }
 
