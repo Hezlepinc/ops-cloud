@@ -1,0 +1,18 @@
+[
+  {
+    "title": "hourly orchestrator health check",
+    "prompt": "Run 'check orchestrator status' and summarize any errors or downtime.",
+    "schedule": {
+      "RRULE": "FREQ=HOURLY;BYMINUTE=0;BYSECOND=0"
+    }
+  },
+  {
+    "title": "daily orchestrator deployment report",
+    "prompt": "Run 'ping orchestrator (Render)' and save the JSON to orchestrator/logs/daily.json",
+    "schedule": {
+      "RRULE": "FREQ=DAILY;BYHOUR=9;BYMINUTE=0;BYSECOND=0"
+    }
+  }
+]
+
+

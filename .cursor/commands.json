@@ -8,6 +8,56 @@
       ]
     },
     {
+      "name": "check orchestrator status",
+      "description": "Fetch live Cloudways + GitHub data from orchestrator",
+      "run": [
+        "curl -s -H 'x-api-key:$AI_KEY' http://localhost:3000/ai/status | jq"
+      ]
+    },
+    {
+      "name": "restart orchestrator (local)",
+      "description": "Restart local orchestrator service",
+      "run": [
+        "npm --prefix orchestrator run dev"
+      ]
+    },
+    {
+      "name": "verify orchestrator auth",
+      "description": "Test x-api-key authentication",
+      "run": [
+        "curl -I http://localhost:3000/ai/status",
+        "curl -I -H 'x-api-key:$AI_KEY' http://localhost:3000/ai/status"
+      ]
+    },
+    {
+      "name": "check orchestrator logs",
+      "description": "Stream orchestrator logs in real time",
+      "run": [
+        "tail -f orchestrator/logs/orchestrator.log"
+      ]
+    },
+    {
+      "name": "ping orchestrator (Render)",
+      "description": "Check deployed orchestrator endpoint on Render",
+      "run": [
+        "curl -s -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/status | jq"
+      ]
+    },
+    {
+      "name": "deploy sparky staging",
+      "description": "Deploy sparky-hq to staging via scripts/deploy.sh",
+      "run": [
+        "bash scripts/deploy.sh --site=sparky-hq --env=staging"
+      ]
+    },
+    {
+      "name": "deploy hezlep staging",
+      "description": "Deploy hezlep-inc to staging via scripts/deploy.sh",
+      "run": [
+        "bash scripts/deploy.sh --site=hezlep-inc --env=staging"
+      ]
+    },
+    {
       "name": "check wordpress health",
       "description": "Get Elementor and WP status for each brand",
       "run": [
