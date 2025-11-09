@@ -1,4 +1,6 @@
 ﻿packages:
+  - 'dashboard'
+  - 'orchestrator'
   - 'apps/*'
   - 'packages/*'
   - 'packages/themes/*'
