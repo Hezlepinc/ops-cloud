@@ -1,0 +1,30 @@
+name: Auto Update Maps
+
+on:
+  push:
+    branches:
+      - staging
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install deps for updater
+        run: npm install node-fetch@3
+      - name: Run updater
+        run: node scripts/update-maps.js
+      - name: Commit map data
+        run: |
+          git config user.name "HezlepOpsBot"
+          git config user.email "ops-bot@hezlep.com"
+          git add data/maps/* dashboard/public/maps/*
+          git commit -m "Auto update maps [skip ci]" || echo "No changes"
+          git push
+

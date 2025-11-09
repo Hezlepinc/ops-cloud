@@ -1,0 +1,16 @@
+{
+  "nodes": [
+    { "id": "cloudways", "position": { "x": 0, "y": 0 }, "data": { "label": "Cloudways" } },
+    { "id": "orchestrator", "position": { "x": 200, "y": 0 }, "data": { "label": "Orchestrator" } },
+    { "id": "sparky", "position": { "x": 400, "y": -60 }, "data": { "label": "Sparky WP" } },
+    { "id": "hezlep", "position": { "x": 400, "y": 60 }, "data": { "label": "Hezlep WP" } },
+    { "id": "github", "position": { "x": 200, "y": -140 }, "data": { "label": "GitHub" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "orchestrator", "target": "cloudways", "label": "API" },
+    { "id": "e2", "source": "github", "target": "orchestrator", "label": "status" },
+    { "id": "e3", "source": "cloudways", "target": "sparky", "label": "hosting" },
+    { "id": "e4", "source": "cloudways", "target": "hezlep", "label": "hosting" }
+  ]
+}
+
