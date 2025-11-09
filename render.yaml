@@ -5,8 +5,8 @@ services:
     plan: starter
     region: oregon
     rootDir: orchestrator
-    buildCommand: "npm install"
-    startCommand: "npm start"
+    buildCommand: "npm ci || npm install"
+    startCommand: "node src/index.js"
     envVars:
       - key: NODE_VERSION
         value: 20
