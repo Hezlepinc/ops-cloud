@@ -30,14 +30,25 @@ async function fetchJsonSafe(url, options = {}) {
 	return json;
 }
 
+// Simple in-memory token cache (~55 minutes)
+let tokenCache = { token: null, expiresAt: 0 };
+
 export async function getAccessToken() {
+	// reuse token if valid
+	const now = Date.now();
+	if (tokenCache.token && tokenCache.expiresAt > now + 60000) { // 60s buffer
+		return tokenCache.token;
+	}
 	const body = `email=${encodeURIComponent(process.env.CW_EMAIL || "")}&api_key=${encodeURIComponent(process.env.CW_API_KEY || "")}`;
 	const data = await fetchJsonSafe(CW_AUTH, {
 		method: "POST",
 		headers: { "Content-Type": "application/x-www-form-urlencoded" },
 		body
 	});
-	return data.access_token;
+	const token = data.access_token;
+	// Cloudways expires_in is 3600 seconds; set ~55 min
+	tokenCache = { token, expiresAt: now + 55 * 60 * 1000 };
+	return token;
 }
 
 export async function getServers(token) {

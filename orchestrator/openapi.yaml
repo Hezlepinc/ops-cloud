@@ -1,0 +1,117 @@
+openapi: 3.1.0
+info:
+  title: Ops Orchestrator API
+  version: 1.0.0
+servers:
+  - url: https://ops-orchestrator.onrender.com
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+paths:
+  /ai/status:
+    get:
+      summary: Cached Cloudways + GitHub status
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: query
+          name: forceRefresh
+          schema: { type: string, enum: ["true","false"] }
+          required: false
+          description: Force live Cloudways fetch (can hit rate limit)
+      responses:
+        '200':
+          description: OK
+  /ai/live:
+    get:
+      summary: Cached snapshot (Cloudways + GitHub)
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200': { description: OK }
+  /ai/test/openai:
+    get:
+      summary: GPT-5 summary of orchestrator status
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200': { description: OK }
+  /ai/cloudways/{action}:
+    post:
+      summary: Cloudways action (deploy | purge | restart)
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: action
+          required: true
+          schema: { type: string, enum: [deploy, purge, restart] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                app_id: { type: integer }
+                server_id: { type: integer }
+      responses:
+        '200': { description: OK }
+  /ai/wordpress/{brand}:
+    get:
+      summary: WordPress REST health for brand
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: brand
+          required: true
+          schema: { type: string, enum: [sparky-hq, hezlep-inc] }
+      responses:
+        '200': { description: OK }
+  /ai/elementor/{brand}:
+    get:
+      summary: Elementor kit list via WP REST for brand
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: brand
+          required: true
+          schema: { type: string, enum: [sparky-hq, hezlep-inc] }
+      responses:
+        '200': { description: OK }
+  /ai/metrics:
+    get:
+      summary: Orchestrator cache metrics
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200': { description: OK }
+  /ai/audit:
+    get:
+      summary: Read audit log
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Append an audit entry
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event: { type: string }
+                data: { type: object }
+      responses:
+        '200': { description: OK }
+
+

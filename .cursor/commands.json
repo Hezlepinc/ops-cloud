@@ -22,6 +22,27 @@
       ]
     },
     {
+      "name": "get metrics",
+      "description": "Fetch orchestrator cache metrics",
+      "run": [
+        "curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/metrics | jq"
+      ]
+    },
+    {
+      "name": "append audit event",
+      "description": "Append an audit entry to ai_audit.json",
+      "run": [
+        "curl -s -X POST -H 'x-api-key:$OPENAI_API_KEY' -H 'Content-Type: application/json' -d '{\"event\":\"manual_check\",\"data\":{}}' https://ops-orchestrator.onrender.com/ai/audit | jq"
+      ]
+    },
+    {
+      "name": "read audit log",
+      "description": "Read orchestrator audit log",
+      "run": [
+        "curl -s -H 'x-api-key:$OPENAI_API_KEY' https://ops-orchestrator.onrender.com/ai/audit | jq"
+      ]
+    },
+    {
       "name": "check orchestrator status",
       "description": "Fetch live Cloudways + GitHub data from orchestrator",
       "run": [
