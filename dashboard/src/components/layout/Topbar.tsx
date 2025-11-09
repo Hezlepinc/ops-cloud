@@ -4,8 +4,8 @@ export default function Topbar() {
   return (
     <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-zinc-100 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/60 backdrop-blur">
       <div className="flex items-center gap-3 md:hidden">
-        <img src="/logo.svg" alt="Logo" className="h-7 w-auto dark:hidden" />
-        <img src="/logo-dark.svg" alt="Logo" className="h-7 w-auto hidden dark:inline" />
+        <img src="/logo.png" alt="Logo" className="h-7 w-auto dark:hidden" />
+        <img src="/logo-dark.png" alt="Logo" className="h-7 w-auto hidden dark:inline" />
       </div>
       <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
         <span className="hidden sm:inline">Environment:</span>
