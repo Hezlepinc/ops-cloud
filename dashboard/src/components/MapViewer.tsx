@@ -31,6 +31,22 @@ export default function MapViewer() {
   const toggleApp = useCallback((appId: string) => {
     setExpandedApps((prev) => ({ ...prev, [appId]: !prev[appId] }));
   }, []);
+  const resetLayout = useCallback(() => {
+    setCloudwaysExpanded(true);
+    setExpandedApps({});
+  }, []);
+  const expandAllApps = useCallback(() => {
+    const next: Record<string, boolean> = {};
+    if (envs && typeof envs === "object") {
+      Object.entries<any>(envs).forEach(([brand, brandEnvs]) => {
+        Object.keys(brandEnvs || {}).forEach((envName) => {
+          next[`app:${brand}:${envName}`] = true;
+        });
+      });
+    }
+    setCloudwaysExpanded(true);
+    setExpandedApps(next);
+  }, [envs]);
 
   // Build nodes/edges left-to-right using dagre for non-overlapping layout
   const { nodes, edges } = useMemo(() => {
@@ -139,6 +155,14 @@ export default function MapViewer() {
   return (
     <ReactFlowProvider>
       <div style={{ height: "75vh", border: "1px solid #eee" }}>
+        <div style={{ display: "flex", gap: 8, padding: 8 }}>
+          <button onClick={resetLayout} style={{ padding: "6px 10px", border: "1px solid #e5e7eb", borderRadius: 6, background: "#f9fafb" }}>
+            Reset Layout
+          </button>
+          <button onClick={expandAllApps} style={{ padding: "6px 10px", border: "1px solid #e5e7eb", borderRadius: 6, background: "#f9fafb" }}>
+            Expand All Apps
+          </button>
+        </div>
         <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodeDoubleClick={onNodeDoubleClick}>
           <Background />
           <Controls />
