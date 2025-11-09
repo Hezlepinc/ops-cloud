@@ -3,12 +3,10 @@ import Footer from "./Footer";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100">
       <Header />
-      <main className="flex-1 px-4 md:px-6 py-4 overflow-hidden flex items-stretch justify-stretch">
-        <div className="w-full max-w-[1600px] mx-auto flex-1 flex flex-col">
-          {children}
-        </div>
+      <main className="flex-1 px-6 py-4 overflow-hidden flex flex-col items-center justify-start">
+        <div className="w-full max-w-[1600px] h-full">{children}</div>
       </main>
       <Footer />
     </div>
