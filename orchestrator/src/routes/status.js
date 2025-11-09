@@ -4,7 +4,7 @@ import { getRepoStatus } from "../integrations/github.js";
 
 const router = express.Router();
 
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
   console.log("🔹 [AI/Status] Request received");
 
   const result = {
@@ -12,17 +12,22 @@ router.get("/", async (_req, res) => {
     errors: []
   };
 
+  const forceRefresh = String(req.query?.forceRefresh || "").toLowerCase() === "true";
+
   // ---- Cloudways Section ----
   try {
     if (process.env.CW_EMAIL && process.env.CW_API_KEY) {
-      console.log("🔹 [Cloudways] Credentials detected, requesting access token...");
-      // Prefer cache first to avoid rate limit on cold start
+      // Prefer cache first to avoid rate limit
       const cachedServers = getServersFromCache(true);
       const cachedApps = getAppsFromCache(true);
-      if (cachedServers && cachedApps) {
+      if (cachedServers && cachedApps && !forceRefresh) {
         result.cloudways = { servers: cachedServers, apps: cachedApps };
         result.notice = "Using cached Cloudways data (10 min TTL)";
+      } else if (!forceRefresh) {
+        // Cache is cold and we are not forcing a refresh: avoid API call to prevent rate limit
+        result.notice = "Cloudways cache cold; skipping refresh to avoid rate limit (add ?forceRefresh=true to bypass)";
       } else {
+        console.log("🔹 [Cloudways] Credentials detected, requesting access token...");
         const token = await getAccessToken();
         console.log("🔹 [Cloudways] Token:", token ? "✅ received" : "❌ undefined");
         const [servers, apps] = await Promise.all([getServers(token), getApps(token)]);
