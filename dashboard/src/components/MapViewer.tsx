@@ -154,7 +154,7 @@ export default function MapViewer() {
 
   return (
     <ReactFlowProvider>
-      <div style={{ height: "75vh", border: "1px solid #eee" }}>
+      <div style={{ height: "calc(100vh - 120px)", border: "1px solid #eee" }}>
         <div style={{ display: "flex", gap: 8, padding: 8 }}>
           <button onClick={resetLayout} style={{ padding: "6px 10px", border: "1px solid #e5e7eb", borderRadius: 6, background: "#f9fafb" }}>
             Reset Layout
@@ -163,7 +163,16 @@ export default function MapViewer() {
             Expand All Apps
           </button>
         </div>
-        <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodeDoubleClick={onNodeDoubleClick}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeDoubleClick={onNodeDoubleClick}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+          minZoom={0.2}
+          maxZoom={1.5}
+        >
           <Background />
           <Controls />
         </ReactFlow>

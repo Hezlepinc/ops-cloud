@@ -1,8 +1,25 @@
-import MapsDashboard from "./maps";
+import Link from "next/link";
 
 export default function Home() {
-  // Make "/" the primary dashboard view (same as /maps)
-  return <MapsDashboard />;
+  return (
+    <div style={{ padding: 24 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>Ops-Cloud Dashboard</h1>
+      <p style={{ color: "#4b5563", marginBottom: 16 }}>
+        Welcome. Use these quick links to navigate key areas.
+      </p>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <Link href="/maps" style={{ padding: "10px 14px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb" }}>
+          Open Architecture Maps
+        </Link>
+        <Link href="/maps" style={{ padding: "10px 14px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb" }}>
+          AI Connections
+        </Link>
+        <Link href="/maps" style={{ padding: "10px 14px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb" }}>
+          Environments & Pages
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 
