@@ -1,0 +1,43 @@
+{
+  "commands": [
+    {
+      "name": "show live ops",
+      "description": "Check current Cloudways + GitHub status from orchestrator",
+      "run": [
+        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/live"
+      ]
+    },
+    {
+      "name": "check wordpress health",
+      "description": "Get Elementor and WP status for each brand",
+      "run": [
+        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/wordpress/sparky-hq",
+        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/wordpress/hezlep-inc"
+      ]
+    },
+    {
+      "name": "check elementor kits",
+      "description": "Verify Elementor kit versions for each site",
+      "run": [
+        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/elementor/sparky-hq",
+        "curl -sS -H 'x-api-key:$AI_KEY' https://ops.yourdomain.com/ai/elementor/hezlep-inc"
+      ]
+    },
+    {
+      "name": "deploy staging",
+      "description": "Trigger GitHub Action redeploy workflow",
+      "run": [
+        "curl -sS -X POST -H 'x-api-key:$AI_KEY' -H 'Content-Type: application/json' -d '{\"brand\":\"sparky-hq\",\"environment\":\"staging\"}' https://ops.yourdomain.com/ai/deploy"
+      ]
+    },
+    {
+      "name": "restart orchestrator",
+      "description": "Quick restart for orchestrator service (local dev)",
+      "run": [
+        "npm --prefix orchestrator run dev"
+      ]
+    }
+  ]
+}
+
+

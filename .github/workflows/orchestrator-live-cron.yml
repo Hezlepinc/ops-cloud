@@ -1,0 +1,28 @@
+name: Orchestrator Live Cache Snapshot
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 * * * *" # hourly
+
+jobs:
+  live-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch live snapshot
+        env:
+          ORCH_URL: ${{ secrets.ORCHESTRATOR_URL }}
+          AI_KEY: ${{ secrets.AI_KEY }}
+        run: |
+          if [ -z "$ORCH_URL" ] || [ -z "$AI_KEY" ]; then
+            echo "ORCHESTRATOR_URL and AI_KEY secrets are required"; exit 1
+          fi
+          curl -sS -H "x-api-key: $AI_KEY" "$ORCH_URL/ai/live" | tee live.json
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: orchestrator-live-snapshot
+          path: live.json
+          retention-days: 3
+
+
