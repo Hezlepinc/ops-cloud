@@ -1,8 +1,3 @@
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {}
-  }
-};
+// Converted to CJS filename to avoid ESM import issues in Next build
 
 
