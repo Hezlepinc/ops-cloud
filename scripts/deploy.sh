@@ -28,28 +28,17 @@ if [[ ! -f "$PROJECTS_JSON" ]]; then
   exit 1
 fi
 
-APP_ID=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].app_id' "$PROJECTS_JSON")
-# Allow override via env (useful for manual workflows where app_id is provided)
-if [[ -n "${CLOUDWAYS_APP_ID:-}" && "${CLOUDWAYS_APP_ID}" != "null" ]]; then
-  APP_ID="${CLOUDWAYS_APP_ID}"
-fi
 DOMAIN=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].domain' "$PROJECTS_JSON")
 APP_DIR=$(jq -r --arg s "$SITE" --arg e "$DEPLOY_ENV" '.[$s][$e].app_dir // ""' "$PROJECTS_JSON")
 
-if [[ -z "$APP_ID" || "$APP_ID" == "null" ]]; then
-  echo "Unknown site: $SITE" >&2
-  exit 1
-fi
-
-# Validate placeholders
-if [[ "$APP_ID" == "YOUR_APP_ID" || "$APP_ID" == "YOUR_STAGING_APP_ID" || "$APP_ID" == "YOUR_PROD_APP_ID" ]]; then
-  echo "❌ Missing Cloudways app_id in infra/wordpress/config/projects.json for site=$SITE env=$DEPLOY_ENV" >&2
+if [[ -z "$DOMAIN" || "$DOMAIN" == "null" ]]; then
+  echo "Unknown site or env in projects.json: site=$SITE env=$DEPLOY_ENV" >&2
   exit 1
 fi
 
 TARGET_DOMAIN="$DOMAIN"
 
-echo "Deploying site=$SITE env=$DEPLOY_ENV app_id=$APP_ID domain=$TARGET_DOMAIN app_dir=${APP_DIR:-unset}"
+echo "Deploying site=$SITE env=$DEPLOY_ENV domain=$TARGET_DOMAIN app_dir=${APP_DIR:-unset}"
 
 # Determine application root
 if [[ -n "${APP_ROOT:-}" && "${APP_ROOT}" != "null" ]]; then
