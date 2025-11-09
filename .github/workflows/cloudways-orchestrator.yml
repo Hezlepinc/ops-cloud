@@ -1,0 +1,57 @@
+name: Cloudways Orchestrator
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action to run (status | import | diagnose)"
+        required: true
+        default: "status"
+      brand:
+        description: "Brand slug (hezlep-inc | sparky-hq) for import"
+        required: false
+        default: ""
+      environment:
+        description: "Environment (staging | prod)"
+        required: true
+        default: "staging"
+      host:
+        description: "Cloudways SSH host (e.g., 1540390.cloudwaysapps.com)"
+        required: true
+      user:
+        description: "Cloudways SSH user"
+        required: true
+      app_path:
+        description: "Full app public_html path on Cloudways"
+        required: true
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.CLOUDWAYS_SSH_KEY }}
+
+      - name: Add host to known_hosts
+        run: |
+          ssh-keyscan -H "${{ github.event.inputs.host }}" >> ~/.ssh/known_hosts
+
+      - name: Sync repo to Cloudways app (rsync)
+        run: |
+          rsync -az --delete --exclude='.git/' ./ "${{ github.event.inputs.user }}@${{ github.event.inputs.host }}:${{ github.event.inputs.app_path }}/"
+
+      - name: Run orchestrator on Cloudways
+        env:
+          ACTION: ${{ github.event.inputs.action }}
+          BRAND: ${{ github.event.inputs.brand }}
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          APP_PATH: ${{ github.event.inputs.app_path }}
+        run: |
+          ssh "${{ github.event.inputs.user }}@${{ github.event.inputs.host }}" "cd '${{ github.event.inputs.app_path }}' && ACTION='${ACTION}' BRAND='${BRAND}' ENVIRONMENT='${ENVIRONMENT}' APP_PATH='${APP_PATH}' bash scripts/orchestrator.sh"
+
+
