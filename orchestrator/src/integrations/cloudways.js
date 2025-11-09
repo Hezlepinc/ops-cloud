@@ -82,4 +82,29 @@ export async function getApps(token) {
 	return data;
 }
 
+// Helpers to read cache without network (used by status route to avoid rate limits on cold start)
+export function getServersFromCache(allowStale = true) {
+	try {
+		const file = path.join("/tmp", "cloudways-servers.json");
+		const stat = fs.statSync(file);
+		const ageMin = (Date.now() - stat.mtimeMs) / 60000;
+		if (allowStale || ageMin < 10) {
+			return JSON.parse(fs.readFileSync(file, "utf8"));
+		}
+	} catch {}
+	return null;
+}
+
+export function getAppsFromCache(allowStale = true) {
+	try {
+		const file = path.join("/tmp", "cloudways-apps.json");
+	const stat = fs.statSync(file);
+		const ageMin = (Date.now() - stat.mtimeMs) / 60000;
+		if (allowStale || ageMin < 10) {
+			return JSON.parse(fs.readFileSync(file, "utf8"));
+		}
+	} catch {}
+	return null;
+}
+
 
