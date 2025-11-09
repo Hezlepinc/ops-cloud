@@ -186,6 +186,13 @@ export default function MapViewer() {
     return { nodes: laidOutNodes, edges: builtEdges };
   }, [base, envs, sites, cloudwaysExpanded, expandedApps, opsDownExpanded, opsUpExpanded]);
 
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const selectedNode = useMemo(() => (selectedNodeId ? nodes.find(n => n.id === selectedNodeId) : null), [nodes, selectedNodeId]);
+  const selectedEdges = useMemo(() => {
+    if (!selectedNodeId) return [];
+    return edges.filter(e => e.source === selectedNodeId || e.target === selectedNodeId);
+  }, [edges, selectedNodeId]);
+
   const onNodeDoubleClick = useCallback((e: any, node: Node) => {
     if (node.id.startsWith("app:")) {
       toggleApp(node.id);
@@ -206,30 +213,55 @@ export default function MapViewer() {
     }
   }, [toggleApp]);
 
+  const onNodeClick = useCallback((_e: any, node: Node) => {
+    setSelectedNodeId(node?.id || null);
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedNodeId(null), []);
+
   return (
     <ReactFlowProvider>
-      <div style={{ height: "calc(100vh - 120px)", border: "1px solid #eee" }}>
+      <div style={{ height: "calc(100vh - 120px)", border: "1px solid #eee", position: "relative" }}>
         <div style={{ display: "flex", gap: 8, padding: 8 }}>
-          <button onClick={resetLayout} style={{ padding: "6px 10px", border: "1px solid #e5e7eb", borderRadius: 6, background: "#f9fafb" }}>
-            Reset Layout
-          </button>
-          <button onClick={expandAllApps} style={{ padding: "6px 10px", border: "1px solid #e5e7eb", borderRadius: 6, background: "#f9fafb" }}>
-            Expand All Apps
-          </button>
+          <button onClick={resetLayout} className="app-btn-ghost">Reset Layout</button>
+          <button onClick={expandAllApps} className="app-btn-ghost">Expand All Apps</button>
         </div>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodeDoubleClick={onNodeDoubleClick}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          minZoom={0.2}
-          maxZoom={1.5}
-        >
-          <Background />
-          <Controls />
-        </ReactFlow>
+        <div style={{ position: "absolute", inset: "48px 320px 0 0" }}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodeDoubleClick={onNodeDoubleClick}
+            onNodeClick={onNodeClick}
+            onPaneClick={clearSelection}
+            fitView
+            fitViewOptions={{ padding: 0.2 }}
+            minZoom={0.2}
+            maxZoom={1.5}
+          >
+            <Background />
+            <Controls />
+          </ReactFlow>
+        </div>
+        {/* Inspector panel */}
+        <aside style={{ position: "absolute", top: 48, right: 0, bottom: 0, width: 320, borderLeft: "1px solid #e5e7eb", background: "#fff" }}>
+          <div className="p-3 border-b border-zinc-100 text-sm font-medium">Inspector</div>
+          {!selectedNode ? (
+            <div className="p-3 text-sm text-zinc-500">Click a node to see details.</div>
+          ) : (
+            <div className="p-3 text-sm space-y-2">
+              <div><span className="font-semibold">ID:</span> {selectedNode.id}</div>
+              <div><span className="font-semibold">Label:</span> {(selectedNode as any)?.data?.label || selectedNode.id}</div>
+              {(selectedNode as any)?.data?.description ? <div><span className="font-semibold">Note:</span> {(selectedNode as any).data.description}</div> : null}
+              <div className="mt-2 font-semibold">Connections</div>
+              <ul className="list-disc ml-4">
+                {selectedEdges.map(e => (
+                  <li key={e.id}>{e.source} → {e.target}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </aside>
       </div>
     </ReactFlowProvider>
   );
