@@ -2,7 +2,6 @@
 
 Use these documents for day-to-day operations, deployments, and development.
 
-- 00_README.md — Numbered index (start here)
 - 01_OVERVIEW.md — Architecture, visibility plan, and repository map
 - 02_DEV_CYCLE.md — Daily/weekly/monthly playbook with commands and prompts
 - 03_ORCHESTRATOR.md — Orchestrator API, routes, headers, and environment
