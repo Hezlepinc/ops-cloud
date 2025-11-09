@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-09T17:32:15.466Z",
+  "timestamp": "2025-11-09T17:37:21.885Z",
   "results": [
     {
       "component": "Orchestrator",
@@ -24,7 +24,7 @@
     {
       "component": "WordPress (sparky-hq staging)",
       "check": "wp-json",
-      "status": "err:415"
+      "status": "ok"
     }
   ]
 }
