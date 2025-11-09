@@ -34,21 +34,26 @@ fallback_import_from_zip() {
   local zip_path="$1"
   local tmpdir
   tmpdir="$(mktemp -d)"
-  unzip -q "$zip_path" -d "$tmpdir" || return 1
-  shopt -s nullglob
+  unzip -q "$zip_path" -d "$tmpdir" || { rm -rf "$tmpdir"; return 1; }
   local imported=0
-  for f in "$tmpdir"/templates/*.json "$tmpdir"/*/templates/*.json; do
-    [[ -f "$f" ]] || continue
-    echo ">>> Fallback (WP-CLI) importing template: $f"
-    if wp elementor library import "$f" --allow-root >/dev/null 2>&1; then
-      imported=1
-    else
-      # Some environments may not have the subcommand; keep going
-      echo "⚠ WP-CLI import failed for $f (continuing)"
+  # Import only template JSONs (filenames like 22.json, 74.json), skip manifests and taxonomy files
+  while IFS= read -r -d '' f; do
+    base="$(basename "$f")"
+    if [[ "$base" =~ ^[0-9]+\.json$ ]]; then
+      echo ">>> Fallback (WP-CLI) importing template: $f"
+      if wp elementor library import "$f" --allow-root >/dev/null 2>&1; then
+        imported=$((imported+1))
+      else
+        echo "⚠ WP-CLI import failed for $f (continuing)"
+      fi
     fi
-  done
+  done < <(find "$tmpdir" -type f -name '*.json' -print0)
   rm -rf "$tmpdir"
-  return "$imported"
+  if (( imported > 0 )); then
+    return 0
+  else
+    return 1
+  fi
 }
 
 # Delete & import in order
