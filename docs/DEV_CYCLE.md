@@ -5,22 +5,23 @@ Use this file each morning before development begins.
 
 ## 🧭 Overview
 
-| Environment | URL |
-| --- | --- |
-| Staging Orchestrator | https://ops-orchestrator.onrender.com |
-| Future Production | https://ops.hezlepinc.com |
-| GitHub Repo | https://github.com/Hezlepinc/ops-cloud |
-| Cloudways Dashboard | https://platform.cloudways.com |
-| WordPress (Sparky) | https://staging.sparky-hq.com |
-| WordPress (Hezlep) | https://staging.hezlepinc.com |
+| Environment          | URL                                    |
+| -------------------- | -------------------------------------- |
+| Staging Orchestrator | https://ops-orchestrator.onrender.com  |
+| Future Production    | https://ops.hezlepinc.com              |
+| GitHub Repo          | https://github.com/Hezlepinc/ops-cloud |
+| Cloudways Dashboard  | https://platform.cloudways.com         |
+| WordPress (Sparky)   | https://staging.sparky-hq.com          |
+| WordPress (Hezlep)   | https://staging.hezlepinc.com          |
 
 ## 🗓️ Daily Routine
 
 ### 🔹 1. Pre-Dev-Day Sync (inside Cursor)
 
-Run once before coding:
+Run once before coding (Cursor command palette):
 
-> pre-dev-day sync
+- pre-dev-day sync
+- daily (alias)
 
 Outputs
 
@@ -75,13 +76,13 @@ curl -H "x-api-key:$env:OPENAI_API_KEY" https://ops-orchestrator.onrender.com/ai
 
 ## 📅 Weekly Routine
 
-| Task | Command / Prompt | Purpose |
-| --- | --- | --- |
-| Render Deploy Check | Review Render logs → last build successful | Ensure orchestrator uptime |
-| GitHub Alignment | `git pull origin develop` | Sync local + staging |
-| Cloudways Audit | “Hezlep Ops Assistant, summarize Cloudways apps and flag any failures.” | Spot stale caches or errors |
-| WordPress Theme Review | GET `/ai/wordpress/{brand}` | Confirm template kits applied |
-| Documentation Touch-Up | Update this file + README links | Keep commands current |
+| Task                   | Command / Prompt                                                        | Purpose                       |
+| ---------------------- | ----------------------------------------------------------------------- | ----------------------------- |
+| Render Deploy Check    | Review Render logs → last build successful                              | Ensure orchestrator uptime    |
+| GitHub Alignment       | `git pull origin develop`                                               | Sync local + staging          |
+| Cloudways Audit        | “Hezlep Ops Assistant, summarize Cloudways apps and flag any failures.” | Spot stale caches or errors   |
+| WordPress Theme Review | GET `/ai/wordpress/{brand}`                                             | Confirm template kits applied |
+| Documentation Touch-Up | Update this file + README links                                         | Keep commands current         |
 
 ## 🗓️ Monthly Maintenance
 
@@ -117,25 +118,25 @@ Confirm all endpoints still pass tests.
 
 ## 💬 GPT-5 Prompt Examples
 
-| Intent | Example |
-| --- | --- |
-| Check orchestrator | “Hezlep Ops Assistant, show current orchestrator status.” |
-| Force refresh | “Refresh live Cloudways data.” |
-| Deploy | “Deploy latest code to staging.” |
-| Restart | “Restart PHP on the staging server.” |
-| Purge cache | “Clear cache for Sparky-HQ.” |
-| Summarize | “Summarize current system health and suggest next actions.” |
-| Verify templates | “Check Elementor kits for Sparky and Hezlep.” |
+| Intent             | Example                                                     |
+| ------------------ | ----------------------------------------------------------- |
+| Check orchestrator | “Hezlep Ops Assistant, show current orchestrator status.”   |
+| Force refresh      | “Refresh live Cloudways data.”                              |
+| Deploy             | “Deploy latest code to staging.”                            |
+| Restart            | “Restart PHP on the staging server.”                        |
+| Purge cache        | “Clear cache for Sparky-HQ.”                                |
+| Summarize          | “Summarize current system health and suggest next actions.” |
+| Verify templates   | “Check Elementor kits for Sparky and Hezlep.”               |
 
 ## 🧰 Troubleshooting Quick List
 
-| Issue | Fix |
-| --- | --- |
-| Unauthorized | Key mismatch — confirm `OPENAI_API_KEY` in Render and GPT Authorization header |
-| You have reached Cloudways API | Wait 1–2 min; use cached mode; reduce refresh frequency |
-| Git commit unknown | Add `GITHUB_TOKEN` + `GITHUB_REPO` to Render env |
-| 500 Internal Server Error | Check Render logs → likely missing env var or JSON parse error |
-| GPT-5 not calling API | Re-upload `openapi.yaml` in GPT → Actions tab |
+| Issue                          | Fix                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| Unauthorized                   | Key mismatch — confirm `OPENAI_API_KEY` in Render and GPT Authorization header |
+| You have reached Cloudways API | Wait 1–2 min; use cached mode; reduce refresh frequency                        |
+| Git commit unknown             | Add `GITHUB_TOKEN` + `GITHUB_REPO` to Render env                               |
+| 500 Internal Server Error      | Check Render logs → likely missing env var or JSON parse error                 |
+| GPT-5 not calling API          | Re-upload `openapi.yaml` in GPT → Actions tab                                  |
 
 ## 🔒 Best Practices
 
@@ -147,12 +148,12 @@ Confirm all endpoints still pass tests.
 
 ## 🧭 Quick Navigation
 
-| Doc | Description |
-| --- | --- |
-| README.md | Overview & project setup |
-| docs/DEV_CYCLE.md | This playbook (daily/weekly/monthly) |
-| docs/orchestrator.md | API and architecture details |
-| docs/roadmap.md | Long-term development plan |
+| Doc                  | Description                          |
+| -------------------- | ------------------------------------ |
+| README.md            | Overview & project setup             |
+| docs/DEV_CYCLE.md    | This playbook (daily/weekly/monthly) |
+| docs/orchestrator.md | API and architecture details         |
+| docs/roadmap.md      | Long-term development plan           |
 
 ## ✅ End-Goal
 
@@ -161,5 +162,3 @@ By following this playbook you keep:
 - AI (GPT-5, Cursor) and infrastructure (Cloudways, WordPress, GitHub) in sync.
 - Every day starts with one command: `> pre-dev-day sync`.
 - Every deploy is tracked, auditable, and approved by you.
-
-
