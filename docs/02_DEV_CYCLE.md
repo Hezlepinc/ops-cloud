@@ -38,7 +38,7 @@ curl.exe -H "x-api-key:$env:OPENAI_API_KEY" https://ops-orchestrator.onrender.co
 If you need a live refresh:
 
 ```powershell
-curl.exe -H "x-api-key:$env:OPENAI_API_KEY" "https://ops-orchestrator.onrender.com/ai/status?forceRefresh=true"
+curl.exe -H "x-api: $env:OPENAI_API_KEY" "https://ops-orchestrator.onrender.com/ai/status?forceRefresh=true"
 ```
 
 Use forceRefresh sparingly to avoid Cloudways rate limits.
@@ -162,12 +162,12 @@ Confirm all endpoints still pass tests.
 
 ## 🧭 Quick Navigation
 
-| Doc                  | Description                          |
-| -------------------- | ------------------------------------ |
-| README.md            | Overview & project setup             |
-| docs/DEV_CYCLE.md    | This playbook (daily/weekly/monthly) |
-| docs/orchestrator.md | API and architecture details         |
-| docs/roadmap.md      | Long-term development plan           |
+| Doc                    | Description                          |
+| ---------------------- | ------------------------------------ |
+| README.md              | Overview & project setup             |
+| docs/02_DEV_CYCLE.md   | This playbook (daily/weekly/monthly) |
+| docs/03_ORCHESTRATOR.md| API and architecture details         |
+| docs/08_ROADMAP.md     | Long-term development plan           |
 
 ## ✅ End-Goal
 
@@ -176,3 +176,5 @@ By following this playbook you keep:
 - AI (GPT-5, Cursor) and infrastructure (Cloudways, WordPress, GitHub) in sync.
 - Every day starts with one command: `> pre-dev-day sync`.
 - Every deploy is tracked, auditable, and approved by you.
+
+
