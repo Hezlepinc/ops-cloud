@@ -29,6 +29,28 @@ wp plugin activate elementor-pro --allow-root || true
 
 imported_any=0
 
+# Fallback importer via WP-CLI: import individual template JSONs from a kit zip
+fallback_import_from_zip() {
+  local zip_path="$1"
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  unzip -q "$zip_path" -d "$tmpdir" || return 1
+  shopt -s nullglob
+  local imported=0
+  for f in "$tmpdir"/templates/*.json "$tmpdir"/*/templates/*.json; do
+    [[ -f "$f" ]] || continue
+    echo ">>> Fallback (WP-CLI) importing template: $f"
+    if wp elementor library import "$f" --allow-root >/dev/null 2>&1; then
+      imported=1
+    else
+      # Some environments may not have the subcommand; keep going
+      echo "⚠ WP-CLI import failed for $f (continuing)"
+    fi
+  done
+  rm -rf "$tmpdir"
+  return "$imported"
+}
+
 # Delete & import in order
 for kit in "${KITS[@]}"; do
   [[ -z "${kit:-}" ]] && continue
@@ -40,16 +62,37 @@ for kit in "${KITS[@]}"; do
   [[ -n "${IDS:-}" ]] && wp post delete $IDS --force --allow-root || true
 
   echo ">>> Importing kit (PHP): $kit"
-  KIT_PATH="$kit" APP_ROOT="$(pwd)" php infra/wordpress/bin/kit-import.php || true
-  imported_any=1
+  if KIT_PATH="$kit" APP_ROOT="$(pwd)" php infra/wordpress/bin/kit-import.php; then
+    imported_any=1
+  else
+    echo ">>> PHP importer failed, attempting WP-CLI template import fallback"
+    if fallback_import_from_zip "$kit"; then
+      imported_any=1
+    else
+      echo "⚠ Fallback WP-CLI import did not import any templates for $kit"
+    fi
+  fi
 done
 
 # Fallback: if nothing imported from declared kits, try brand-level zip(s)
 if [[ "$imported_any" -eq 0 ]]; then
-  fallback_zip=$(ls infra/wordpress/brands/${BRAND}/elementor/*.zip 2>/dev/null | head -n 1 || true)
+  # Prefer *template*.zip and newest by mtime; otherwise any newest .zip
+  fallback_zip=$(ls -t infra/wordpress/brands/${BRAND}/elementor/*template*.zip 2>/dev/null | head -n 1 || true)
+  if [[ -z "${fallback_zip:-}" ]]; then
+    fallback_zip=$(ls -t infra/wordpress/brands/${BRAND}/elementor/*.zip 2>/dev/null | head -n 1 || true)
+  fi
   if [[ -n "$fallback_zip" && -f "$fallback_zip" ]]; then
     echo ">>> Fallback importing brand kit (PHP): $fallback_zip"
-    KIT_PATH="$fallback_zip" APP_ROOT="$(pwd)" php infra/wordpress/bin/kit-import.php || true
+    if KIT_PATH="$fallback_zip" APP_ROOT="$(pwd)" php infra/wordpress/bin/kit-import.php; then
+      imported_any=1
+    else
+      echo ">>> PHP importer failed, attempting WP-CLI template import fallback"
+      if fallback_import_from_zip "$fallback_zip"; then
+        imported_any=1
+      else
+        echo "⚠ Fallback WP-CLI import did not import any templates for $fallback_zip"
+      fi
+    fi
   else
     echo "No fallback brand kit found under infra/wordpress/brands/${BRAND}/elementor/"
   fi
