@@ -1,7 +1,8 @@
 // orchestrator/src/middleware/auth.js
 export default function (req, res, next) {
-  const headerKey = req.headers["x-api-key"] || "";
-	const envKey = process.env.OPENAI_API_KEY;
+	const headerKey = (req.headers["x-api-key"] || "").toString().trim();
+	// Primary: OPENAI_API_KEY; Fallback: AI_KEY (for legacy envs)
+	const envKey = ((process.env.OPENAI_API_KEY || process.env.AI_KEY) || "").toString().trim();
 
 	// Require server-side API key to be configured and to match header
 	if (!envKey || headerKey !== envKey) {
