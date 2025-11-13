@@ -132,7 +132,7 @@ jobs:
           awk 'NR==1{sub(/^\xef\xbb\xbf/,"")}1' infra/wordpress/wp-bootstrap.sh > /tmp/wp-bootstrap.sh && mv /tmp/wp-bootstrap.sh infra/wordpress/wp-bootstrap.sh
           awk 'NR==1{sub(/^\xef\xbb\xbf/,"")}1' infra/wordpress/bin/import-kits.sh > /tmp/import-kits.sh && mv /tmp/import-kits.sh infra/wordpress/bin/import-kits.sh
           chmod +x infra/wordpress/bin/import-kits.sh infra/wordpress/wp-bootstrap.sh
-          bash infra/wordpress/wp-bootstrap.sh '${{ matrix.brand }}' '${{ matrix.env }}'
+          bash infra/wordpress/wp-bootstrap.sh '${{ matrix.configBrand || matrix.brand }}' '${{ matrix.env }}'
           EOF
 
       - name: HTTP health check
