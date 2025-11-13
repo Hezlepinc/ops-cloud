@@ -16,6 +16,19 @@ Use this file each morning before development begins.
 
 ## 🗓️ Daily Routine
 
+### 🔹 0. Health Check (Quick)
+
+Run health check for all services:
+
+```powershell
+node ops/ai/test-health.mjs
+```
+
+This checks:
+- Orchestrator `/healthz` endpoint
+- Dashboard `/api/ai/status` endpoint
+- Shows latency and status for each service
+
 ### 🔹 1. Pre-Dev-Day Sync (inside Cursor)
 
 Run once before coding:
@@ -79,7 +92,7 @@ curl -H "x-api-key:$env:OPENAI_API_KEY" https://ops-orchestrator.onrender.com/ai
 | Task                   | Command / Prompt                                                        | Purpose                       |
 | ---------------------- | ----------------------------------------------------------------------- | ----------------------------- |
 | Render Deploy Check    | Review Render logs → last build successful                              | Ensure orchestrator uptime    |
-| GitHub Alignment       | `git pull origin develop`                                               | Sync local + staging          |
+| GitHub Alignment       | `git pull origin dev`                                                   | Sync local + dev branch       |
 | Cloudways Audit        | “Hezlep Ops Assistant, summarize Cloudways apps and flag any failures.” | Spot stale caches or errors   |
 | WordPress Theme Review | GET `/ai/wordpress/{brand}`                                             | Confirm template kits applied |
 | Documentation Touch-Up | Update this file + README links                                         | Keep commands current         |
@@ -101,7 +114,7 @@ cd orchestrator
 npm outdated
 npm update
 git commit -am "Monthly dependency refresh"
-git push origin develop
+git push origin dev
 ```
 
 ### Review Audit Log

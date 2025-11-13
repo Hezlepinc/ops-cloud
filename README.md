@@ -13,20 +13,29 @@ repo.
 
 ## Quickstart
 
-1. Install pnpm: corepack enable && corepack prepare pnpm@9.11.0 --activate
-2. Install deps: pnpm install
-3. Start WordPress: docker compose up -d
-4. Visit: http://localhost:8081
+1. Install pnpm: `corepack enable && corepack prepare pnpm@9.11.0 --activate`
+2. Install deps: `pnpm install`
+3. Set up environment variables:
+   - Copy `dashboard/.env.sample` → `dashboard/.env.local`
+   - Copy `orchestrator/.env.sample` → `orchestrator/.env.local`
+   - See each service's README for required variables
+4. Start WordPress: `docker compose up -d`
+5. Visit: http://localhost:8081
+6. Start services:
+   - Orchestrator: `cd orchestrator && npm run dev` (port 3000)
+   - Dashboard: `cd dashboard && npm run dev` (port 5120)
+7. Health check: `node ops/ai/test-health.mjs`
 
 ## Docs
 
 - Docs Index: [docs/README.md](docs/README.md)
-- Daily/Weekly/Monthly Playbook: [docs/DEV_CYCLE.md](docs/DEV_CYCLE.md)
-- Orchestrator API & Usage: [docs/orchestrator.md](docs/orchestrator.md)
-- Roadmap and Remaining Tasks: [docs/roadmap.md](docs/roadmap.md)
-- Repository Map & Workflows: [docs/project-map.md](docs/project-map.md)
-- Elementor Kit Workflow: [docs/kit-workflow.md](docs/kit-workflow.md)
-- Hello Child Deploy Guide: [docs/hello-child-deploy.md](docs/hello-child-deploy.md)
+- Daily/Weekly/Monthly Playbook: [docs/02_DEV_CYCLE.md](docs/02_DEV_CYCLE.md)
+- Orchestrator API & Usage: [docs/03_ORCHESTRATOR.md](docs/03_ORCHESTRATOR.md)
+- Roadmap and Remaining Tasks: [docs/08_ROADMAP.md](docs/08_ROADMAP.md)
+- Repository Map & Workflows: [docs/01_OVERVIEW.md](docs/01_OVERVIEW.md)
+- Deployment & Secrets: [docs/04_DEPLOYMENT.md](docs/04_DEPLOYMENT.md)
+- Observability & Monitoring: [docs/observability.md](docs/observability.md)
+- Branching Strategy: [docs/BRANCHING.md](docs/BRANCHING.md)
 
 ## What's live now (staging CI/CD)
 
@@ -50,7 +59,7 @@ Optional repo secrets (production, when enabling prod workflow):
 
 Triggering a deploy:
 
-- Push to `develop` → runs “Deploy to Staging (Hello Child)” for both sites
+- Push to `dev` → runs "Deploy to Staging (Hello Child)" for both sites (when workflow configured)
 
 ## Setting Up a New WordPress Site (Staging + Production)
 
@@ -76,8 +85,9 @@ Triggering a deploy:
 
 6. Deploy:
 
-- Push to `develop` → deploys Hello Child to staging apps for configured sites
-- Push to `main` → deploys to production (when production workflow/secrets are configured)
+- Push to `dev` → daily development work
+- Create PR `dev` → `staging` → deploys Hello Child to staging apps for configured sites
+- Create PR `staging` → `main` → deploys to production (when production workflow/secrets are configured)
 
 ### Duplicate this setup for a new brand/site
 
@@ -91,7 +101,7 @@ Triggering a deploy:
    `matrix.site: [sparky, hezlepinc, <brand>]` and map its secret name if it differs from the
    convention.
 
-4. Push to `develop` and watch Actions. The job rsyncs `infra/wordpress/themes/hello-child/` and
+4. Create PR `dev` → `staging` and watch Actions. The job rsyncs `infra/wordpress/themes/hello-child/` and
    runs `deploy/post-deploy.sh` to activate the theme.
 
 5. Verify in WP Admin → Appearance → Themes, or via CLI
@@ -99,11 +109,12 @@ Triggering a deploy:
 
 ## Promotion Flow (Git-driven)
 
-- Develop on feature branches → merge into `develop`.
-- Verify staging deployment (auto from `develop` pushes).
-- Manually promote to production using GitHub Actions → Promote Staging to Production (merges
-  `develop` → `main`).
+- Develop on `dev` branch for daily work.
+- Create PR `dev` → `staging` for testing (CI runs checks).
+- After testing passes, manually promote `staging` → `main` using GitHub Actions workflow.
 - Production deploy runs automatically from `main` push.
+
+See [docs/BRANCHING.md](docs/BRANCHING.md) for detailed branching strategy.
 
 ## Cursor Design System: Build + Deploy
 
@@ -133,8 +144,8 @@ Examples:
 
 ### Deploy workflow (GitHub Actions)
 
-- On push to `develop` or `main`, `.github/workflows/deploy-theme.yml`:
-  - Determines env from branch (`main` → production, `develop` → staging)
+- On push to `staging` or `main`, `.github/workflows/deploy-theme.yml`:
+  - Determines env from branch (`main` → production, `staging` → staging)
   - Calls `scripts/deploy.sh` with `DEPLOY_SITE` and env
   - Rsyncs theme and uploads `wp-bootstrap.sh`
   - Bootstrap script activates theme, creates pages/menu, sets permalinks
@@ -204,9 +215,9 @@ Examples:
    This should update:
    - `infra/wordpress/brands/<brand>/assets/css/cursor.css`
 
-5. Commit and push to `staging` to deploy and re-import the kit on staging automatically.
+5. Commit and push to `dev`, then create PR `dev` → `staging` to deploy and re-import the kit on staging automatically.
 6. Verify on staging (Site Settings reflect changes; front-end tokens present), then promote
-   `staging → main` using the Promote workflow to deploy to production.
+   `staging → main` using the GitHub Actions Promote workflow to deploy to production.
 
 ## Structure
 

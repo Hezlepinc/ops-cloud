@@ -15,9 +15,11 @@ This doc consolidates WordPress theme deploys, Elementor kit workflow, GitHub Ac
 
 Goal:
 - Scaffold Hello‑Child theme
-- Auto‑deploy to Cloudways on push to `staging`
+- Auto‑deploy to Cloudways on merge to `staging` branch
 - Bootstrap WordPress on first activation
 - Load brand CSS from `assets/css/cursor.css`
+
+**Note:** Deployment triggers on merge to `staging` or `main` branches. Work on `dev` branch, then create PR `dev` → `staging` for testing.
 
 Prereqs:
 - Cloudways SSH wiring (host/user/key)
