@@ -1,8 +1,15 @@
 import Head from "next/head";
 import type { AppProps } from "next/app";
+import { useEffect } from "react";
 import "@/styles/globals.css";
 
 export default function App({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      console.log("=== DASHBOARD SERVER: boot complete, waiting for requests ===");
+    }
+  }, []);
+
   return (
     <>
       <Head>
