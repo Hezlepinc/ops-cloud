@@ -2,7 +2,9 @@ name: Deploy WP Themes & Kits
 
 on:
   push:
-    branches: [develop, main]
+    branches: [staging, main]
+  repository_dispatch:
+    types: [deploy-templates]
 
 jobs:
   build-matrix:
@@ -17,12 +19,46 @@ jobs:
           node -e '
             const fs = require("fs");
             const p = JSON.parse(fs.readFileSync("infra/wordpress/config/projects.json", "utf8"));
-            const branch = process.env.GITHUB_REF_NAME;
-            const env = branch === "main" ? "prod" : "staging";
+            
+            // Determine environment from branch or repository_dispatch payload
+            let env = "staging";
+            let requestedBrand = null;
+            
+            if (process.env.GITHUB_EVENT_NAME === "repository_dispatch") {
+              const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
+              const payload = event.client_payload || {};
+              env = payload.environment === "production" ? "prod" : "staging";
+              requestedBrand = payload.brand; // "sparky" or "hezlepinc"
+            } else {
+              const branch = process.env.GITHUB_REF_NAME;
+              env = branch === "main" ? "prod" : "staging";
+            }
+            
+            // Map orchestrator brand keys to config file keys
+            const brandMap = {
+              "sparky": "sparky-hq",
+              "hezlepinc": "hezlep-inc"
+            };
+            
             const include = [];
-            for (const [brand, v] of Object.entries(p)) {
+            for (const [configBrand, v] of Object.entries(p)) {
+              // If specific brand requested, filter to that brand
+              if (requestedBrand) {
+                const mappedBrand = brandMap[requestedBrand];
+                if (configBrand !== mappedBrand) continue;
+              }
+              
               const envKey = env === "prod" ? "production" : "staging";
-              include.push({ brand, overlay: v.overlay_theme, domain: v[envKey].domain, app_root_secret: v[envKey].app_root_secret, env });
+              // Use orchestrator brand key for workflow
+              const workflowBrand = Object.keys(brandMap).find(k => brandMap[k] === configBrand) || configBrand;
+              include.push({ 
+                brand: workflowBrand, 
+                configBrand: configBrand,
+                overlay: v.overlay_theme || "hello-child", 
+                domain: v[envKey].domain, 
+                app_root_secret: v[envKey].app_root_secret || `APP_ROOT_${workflowBrand.toUpperCase()}_${envKey.toUpperCase()}`, 
+                env 
+              });
             }
             process.stdout.write(JSON.stringify({ include }));
           ' > matrix.json
