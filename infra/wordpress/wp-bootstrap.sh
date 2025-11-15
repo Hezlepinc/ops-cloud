@@ -34,8 +34,11 @@ else
 fi
 
 echo "▶ Applying Astra pages for brand: $BRAND (via wp eval-file)"
-# Pass brand as argument AND set env var (hybrid approach for reliability)
-BRAND_SLUG="$BRAND" wp eval-file infra/wordpress/bin/apply-astra-pages.php "$BRAND" --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
+# Use wp eval with inline PHP to pass brand reliably
+wp eval "
+define('BRAND_SLUG', '$BRAND');
+require_once('infra/wordpress/bin/apply-astra-pages.php');
+" --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
 
 echo "▶ Ensuring Home page exists and is front page"
 # Extract first numeric ID (strip any BOM or non-digit chars just in case).

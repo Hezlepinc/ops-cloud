@@ -13,10 +13,17 @@ if (!defined('ABSPATH')) {
 // Get brand from multiple sources (hybrid approach for reliability)
 $brand = null;
 
-// Method 1: Environment variable (set by wp-bootstrap.sh)
-$brand = getenv('BRAND_SLUG');
+// Method 1: Constant defined by wp eval (most reliable)
+if (defined('BRAND_SLUG')) {
+    $brand = BRAND_SLUG;
+}
 
-// Method 2: Command-line arguments via $_SERVER['argv']
+// Method 2: Environment variable (set by wp-bootstrap.sh)
+if (!$brand) {
+    $brand = getenv('BRAND_SLUG');
+}
+
+// Method 3: Command-line arguments via $_SERVER['argv']
 // wp eval-file passes args: [0]='wp', [1]='eval-file', [2]=script_path, [3]=first_arg, [4]=--allow-root
 if (!$brand && isset($_SERVER['argv']) && is_array($_SERVER['argv'])) {
     // Look for first non-flag argument after script path
@@ -29,33 +36,17 @@ if (!$brand && isset($_SERVER['argv']) && is_array($_SERVER['argv'])) {
     }
 }
 
-// Method 3: $argv (if available in this context)
+// Method 4: $argv (if available in this context)
 if (!$brand && isset($argv) && is_array($argv) && count($argv) > 1) {
     // Skip script name, get first arg
     $brand = $argv[1] ?? null;
 }
 
-// Method 4: Try to get from WP-CLI context
-if (!$brand && class_exists('WP_CLI')) {
-    // WP-CLI might have the runner with arguments
-    try {
-        $runner = WP_CLI::get_runner();
-        if ($runner && method_exists($runner, 'get_arguments')) {
-            $args = $runner->get_arguments();
-            if (!empty($args)) {
-                $brand = $args[0];
-            }
-        }
-    } catch (Exception $e) {
-        // Ignore
-    }
-}
-
 if (!$brand) {
-    WP_CLI::error('Brand slug required. Set BRAND_SLUG environment variable or pass as argument.');
+    WP_CLI::error('Brand slug required. Define BRAND_SLUG constant or set BRAND_SLUG environment variable.');
+    WP_CLI::debug('BRAND_SLUG constant: ' . (defined('BRAND_SLUG') ? BRAND_SLUG : 'not defined'));
+    WP_CLI::debug('BRAND_SLUG env: ' . (getenv('BRAND_SLUG') ?: 'not set'));
     WP_CLI::debug('$_SERVER[argv]: ' . print_r($_SERVER['argv'] ?? 'not set', true));
-    WP_CLI::debug('$argv: ' . print_r($argv ?? 'not set', true));
-    WP_CLI::debug('BRAND_SLUG env: ' . ($brand ?: 'not set'));
     return;
 }
 
