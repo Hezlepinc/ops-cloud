@@ -1,0 +1,25 @@
+# Sparky HQ Images Directory
+
+Store brand-specific images here:
+- Logos (logo.png, logo-white.png, favicon.ico)
+- Hero images (hero-home.jpg, hero-services.jpg)
+- Service images (panel-upgrade.jpg, ev-charger.jpg, emergency.jpg)
+- Tool screenshots (ev-sizer.png, panel-planner.png)
+- Team photos (electrician-*.jpg)
+
+Images will be automatically deployed to staging/production via GitHub Actions.
+
+## Usage in Patterns
+
+Reference images in pattern HTML files:
+```html
+<img src="/infra/wordpress/brands/sparky-hq/assets/images/logo.png" alt="Sparky HQ Logo" />
+```
+
+## Image Guidelines
+
+- **Formats:** PNG (logos), JPG (photos), SVG (icons)
+- **Optimization:** Compress before committing (use tools like TinyPNG, ImageOptim)
+- **Naming:** Use kebab-case (e.g., `hero-home.jpg`, `service-panel-upgrade.jpg`)
+- **Sizes:** Optimize for web (typically < 500KB per image)
+

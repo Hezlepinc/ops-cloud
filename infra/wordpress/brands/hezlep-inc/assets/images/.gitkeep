@@ -1,0 +1,25 @@
+# Hezlep Inc Images Directory
+
+Store brand-specific images here:
+- Logos (logo.png, logo-white.png, favicon.ico)
+- Hero images (hero-home.jpg, hero-about.jpg)
+- Service icons (automation-icon.svg, webops-icon.svg)
+- Team photos (team-member-*.jpg)
+- Case study images (case-study-*.jpg)
+
+Images will be automatically deployed to staging/production via GitHub Actions.
+
+## Usage in Patterns
+
+Reference images in pattern HTML files:
+```html
+<img src="/infra/wordpress/brands/hezlep-inc/assets/images/logo.png" alt="Hezlep Inc Logo" />
+```
+
+## Image Guidelines
+
+- **Formats:** PNG (logos), JPG (photos), SVG (icons)
+- **Optimization:** Compress before committing (use tools like TinyPNG, ImageOptim)
+- **Naming:** Use kebab-case (e.g., `hero-home.jpg`, `service-automation-icon.svg`)
+- **Sizes:** Optimize for web (typically < 500KB per image)
+
