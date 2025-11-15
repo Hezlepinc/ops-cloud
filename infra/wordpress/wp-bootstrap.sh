@@ -33,11 +33,26 @@ else
   wp theme activate "$OVERLAY" --allow-root || true
 fi
 
-echo "▶ Applying Astra pages for brand: $BRAND (via wp eval)"
-# Use wp eval with inline PHP to pass brand reliably
-# Note: require_once path is relative to APP_ROOT (WordPress root)
-# Single-line format for reliability
-wp eval "define('BRAND_SLUG', '$BRAND'); if (file_exists('infra/wordpress/bin/apply-astra-pages.php')) { require_once('infra/wordpress/bin/apply-astra-pages.php'); } else { WP_CLI::error('Script not found: infra/wordpress/bin/apply-astra-pages.php'); }" --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
+echo "▶ Applying Astra pages for brand: $BRAND (via temp file method)"
+# Write brand to temp file, then PHP script reads it (most reliable method)
+TMP_BRAND_FILE="/tmp/ops_brand_$$.txt"
+echo "$BRAND" > "$TMP_BRAND_FILE"
+wp eval "
+\$brandFile = '$TMP_BRAND_FILE';
+if (file_exists(\$brandFile)) {
+    define('BRAND_SLUG', trim(file_get_contents(\$brandFile)));
+    unlink(\$brandFile);
+} else {
+    WP_CLI::error('Brand file not found: ' . \$brandFile);
+}
+if (file_exists('infra/wordpress/bin/apply-astra-pages.php')) {
+    require_once('infra/wordpress/bin/apply-astra-pages.php');
+} else {
+    WP_CLI::error('Script not found: infra/wordpress/bin/apply-astra-pages.php');
+}
+" --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
+# Cleanup temp file if wp eval failed
+[ -f "$TMP_BRAND_FILE" ] && rm -f "$TMP_BRAND_FILE"
 
 echo "▶ Ensuring Home page exists and is front page"
 # Extract first numeric ID (strip any BOM or non-digit chars just in case).
