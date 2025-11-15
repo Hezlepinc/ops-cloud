@@ -184,8 +184,9 @@ jobs:
           cd "$APP_ROOT"
           ACTIVE_SLUG=$(wp theme list --status=active --field=stylesheet --allow-root | head -n1 || true)
           echo "Active theme slug: ${ACTIVE_SLUG:-none}"
-          if [ "${ACTIVE_SLUG}" != "astra-child" ]; then
-            echo "⚠️  Expected astra-child to be active theme, but found '${ACTIVE_SLUG:-none}'"
+          # Check for either preferred theme or fallback
+          if [ "${ACTIVE_SLUG}" != "hezlep-child-theme" ] && [ "${ACTIVE_SLUG}" != "astra-child" ]; then
+            echo "⚠️  Expected hezlep-child-theme or astra-child to be active theme, but found '${ACTIVE_SLUG:-none}'"
             if [ "${{ matrix.env }}" = "prod" ]; then
               exit 1
             fi
