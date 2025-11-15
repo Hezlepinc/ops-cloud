@@ -114,7 +114,7 @@ jobs:
             infra/wordpress/themes/ops-base/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/ops-base/
 
-      - name: Rsync Astra child theme
+      - name: Rsync Astra child theme (legacy)
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
@@ -126,14 +126,27 @@ jobs:
             infra/wordpress/themes/astra-child/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/$THEME_DIR/
 
+      - name: Rsync Ops Astra child theme (universal)
+        env:
+          CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
+          CW_USER: ${{ secrets.CLOUDWAYS_USER }}
+        run: |
+          set -e
+          THEME_DIR="ops-astra-child"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/$THEME_DIR"
+          rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            infra/wordpress/themes/ops-astra-child/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/$THEME_DIR/
+
       - name: Upload MU plugins, brands, config, and scripts
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/mu-plugins ${APP_ROOT}/infra/wordpress/bin ${APP_ROOT}/infra/wordpress/config ${APP_ROOT}/infra/wordpress/brands ${APP_ROOT}/deploy/wp-cli"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/mu-plugins ${APP_ROOT}/wp-content/ops/brands ${APP_ROOT}/infra/wordpress/bin ${APP_ROOT}/infra/wordpress/config ${APP_ROOT}/infra/wordpress/brands ${APP_ROOT}/deploy/wp-cli"
           rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/mu-plugins/ ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/mu-plugins/
+          rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/ops/brands/ ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/ops/brands/
           rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/brands/     ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/brands/
           rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/config/     ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/config/
           rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/wp-bootstrap.sh ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/wp-bootstrap.sh
@@ -156,7 +169,7 @@ jobs:
           bash infra/wordpress/wp-bootstrap.sh '${{ matrix.configBrand || matrix.brand }}' '${{ matrix.env }}'
           EOF
 
-      - name: Apply polish (pages, menus, home)
+      - name: Activate Ops Astra child theme and apply polish
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
@@ -172,8 +185,19 @@ jobs:
             echo "Skipping polish for unknown brand: $BRAND"
             exit 0
           fi
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} \
-            "cd ${APP_ROOT} && wp eval-file deploy/wp-cli/polish_setup.php ${POLISH_BRAND} --allow-root"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} <<EOF
+          set -e
+          APP_ROOT="${APP_ROOT}"
+          cd "$APP_ROOT"
+          # Ensure Astra parent theme is installed
+          wp theme is-installed astra --allow-root || wp theme install astra --allow-root
+          # Activate Ops Astra child theme
+          wp theme activate ops-astra-child --allow-root || echo "Warning: ops-astra-child not found, skipping activation"
+          # Apply polish (pages, menus, home)
+          wp eval-file deploy/wp-cli/polish_setup.php ${POLISH_BRAND} --allow-root || echo "Warning: polish_setup.php failed"
+          # Apply Astra mods (optional)
+          wp eval-file deploy/wp-cli/astra_mods.php --allow-root || echo "Warning: astra_mods.php failed (non-blocking)"
+          EOF
 
       - name: HTTP health check
         run: |

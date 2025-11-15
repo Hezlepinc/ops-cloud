@@ -1,0 +1,78 @@
+:root{
+  /* Brand tokens (overridden by per-site brand CSS) */
+  --brand-primary:#0a2342;
+  --brand-accent:#007aff;
+  --text-900:#0a2540;
+  --text-700:#334155;
+  --surface-0:#ffffff;
+  --surface-1:#f6f7fb;
+  --border:rgba(2,6,23,0.08);
+
+  /* Header/Footer defaults */
+  --header-bg:var(--brand-primary);
+  --header-fg:#ffffff;
+  --footer-bg:#0b1727;
+  --footer-fg:#cbd5e1;
+
+  --container-max:1200px;
+  --radius:12px;
+  --shadow-1:0 6px 18px rgba(0,0,0,.06);
+  --shadow-2:0 10px 24px rgba(0,0,0,.09);
+}
+
+/* Astra universal header/footer */
+.ast-container{max-width:var(--container-max);}
+.ast-primary-header-bar,.ast-above-header{background:var(--header-bg);color:var(--header-fg);}
+.ast-desktop .main-header-menu .menu-link,.ast-desktop .ast-menu-toggle{color:var(--header-fg);}
+.ast-desktop .main-header-menu .menu-link:hover{color:var(--brand-accent);}
+.site-footer{background:var(--footer-bg);color:var(--footer-fg);}
+.site-footer a{color:var(--footer-fg);}
+a,.entry-content a{color:var(--brand-primary);}
+a:hover{color:var(--brand-accent);}
+
+/* Shared components (used by your [oc_*] shortcodes) */
+.oc-section{padding:64px 0;}
+.oc-section--alt{background:var(--surface-1);}
+.oc-container{max-width:var(--container-max);margin:0 auto;padding:0 24px;}
+.oc-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+@media (max-width:900px){.oc-grid-3{grid-template-columns:1fr 1fr;}}
+@media (max-width:600px){.oc-grid-3{grid-template-columns:1fr;}}
+
+.oc-card{display:block;background:var(--surface-0);border-radius:var(--radius);box-shadow:var(--shadow-1);padding:20px;color:var(--text-900);text-decoration:none;position:relative;}
+.oc-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);transition:all .18s ease;}
+.oc-card h3{margin:0 0 8px;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}
+.oc-card p{margin:0 0 12px;color:var(--text-700);}
+.oc-cta{font-weight:600;}
+.oc-tag{position:absolute;top:14px;right:14px;font-size:12px;background:#eef5ff;color:#0a55ff;padding:4px 8px;border-radius:999px;}
+.oc-hero{padding:88px 0 72px;color:#fff;}
+.oc-hero--hezlep{background:linear-gradient(135deg,var(--brand-primary),#123b6b);}
+.oc-hero--sparky{background:linear-gradient(135deg,var(--brand-primary),var(--brand-accent));}
+.oc-hero h1{font-size:44px;line-height:1.1;margin:0 0 12px;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}
+.oc-hero p{font-size:18px;opacity:.95;margin:0 0 20px;}
+.oc-button{display:inline-block;padding:12px 20px;border-radius:10px;background:#fff;color:#0a2540;font-weight:600;text-decoration:none;}
+.oc-photo img{width:100%;height:auto;border-radius:var(--radius);box-shadow:var(--shadow-2);}
+
+/* Footer styles */
+.oc-footer { background:var(--footer-bg); color:var(--footer-fg); padding: 48px 0 24px; margin-top: 64px; }
+.oc-footer-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; margin-bottom: 32px; }
+@media (max-width: 900px){ .oc-footer-grid{ grid-template-columns: 1fr; gap: 32px; } }
+
+.oc-footer-left { }
+.oc-footer-logo { max-width: 180px; height: auto; margin-bottom: 20px; }
+.oc-footer-logo-text { color: #fff; font-size: 24px; margin: 0 0 20px; font-weight: 600; }
+.oc-footer-contact { }
+.oc-footer-contact p { margin: 0 0 8px; font-size: 15px; line-height: 1.6; }
+.oc-footer-contact a { color:var(--footer-fg); text-decoration: none; }
+.oc-footer-contact a:hover { color: #fff; text-decoration: underline; }
+.oc-footer-address { }
+.oc-footer-email a, .oc-footer-phone a { }
+
+.oc-footer-right { }
+.oc-footer-nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.oc-footer-nav li { }
+.oc-footer-nav a { color:var(--footer-fg); text-decoration: none; font-size: 15px; }
+.oc-footer-nav a:hover { color: #fff; text-decoration: underline; }
+
+.oc-footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; text-align: center; }
+.oc-footer-bottom p { margin: 0; font-size: 14px; color: rgba(255,255,255,0.6); }
+

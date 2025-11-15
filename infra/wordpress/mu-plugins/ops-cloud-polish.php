@@ -7,10 +7,8 @@
 
 if (!defined('ABSPATH')) exit;
 
-add_action('wp_enqueue_scripts', function () {
-    wp_register_style('oc-polish', plugin_dir_url(__FILE__) . 'oc-polish.css', [], '1.0.0');
-    wp_enqueue_style('oc-polish');
-});
+// CSS now loaded via ops-astra-child theme (base.css + brand CSS)
+// Removed oc-polish.css enqueue - styles moved to theme
 
 function oc_esc($t){ return esc_html($t); }
 
@@ -216,13 +214,13 @@ add_action('wp_footer', function(){
     // Detect site from domain
     $domain = isset($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : '';
     $site = '';
-    
+
     if (strpos($domain, 'hezlep') !== false || strpos($domain, 'hezlepinc') !== false) {
         $site = 'hezlep';
     } elseif (strpos($domain, 'sparky') !== false || strpos($domain, 'sparky-hq') !== false) {
         $site = 'sparky';
     }
-    
+
     // Also check site_url as fallback
     if (!$site) {
         $site_url = get_site_url();
@@ -232,7 +230,7 @@ add_action('wp_footer', function(){
             $site = 'sparky';
         }
     }
-    
+
     if ($site) {
         echo do_shortcode('[oc_footer site="' . esc_attr($site) . '"]');
     }

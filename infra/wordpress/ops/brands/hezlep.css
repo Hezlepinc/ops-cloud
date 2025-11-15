@@ -1,0 +1,14 @@
+:root{
+  --brand-primary:#0A2342; /* navy */
+  --brand-accent:#007AFF;  /* blue */
+  --text-900:#0a2540;
+  --text-700:#334155;
+  --surface-0:#ffffff;
+  --surface-1:#f3f6fb;
+
+  --header-bg:#0A2342;
+  --header-fg:#ffffff;
+  --footer-bg:#0a1b2e;
+  --footer-fg:#cbd5e1;
+}
+
