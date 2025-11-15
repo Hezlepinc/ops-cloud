@@ -124,3 +124,117 @@ add_shortcode('oc_about', function($atts){
     <?php return ob_get_clean();
 });
 
+function oc_footer_hezlep() {
+    $logo_url = get_theme_mod('custom_logo') ? wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'full') : '';
+    $site_name = get_bloginfo('name');
+    ob_start(); ?>
+    <footer class="oc-footer">
+        <div class="oc-container">
+            <div class="oc-footer-grid">
+                <div class="oc-footer-left">
+                    <?php if ($logo_url): ?>
+                        <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($site_name); ?>" class="oc-footer-logo" />
+                    <?php else: ?>
+                        <h3 class="oc-footer-logo-text"><?php echo oc_esc($site_name); ?></h3>
+                    <?php endif; ?>
+                    <div class="oc-footer-contact">
+                        <p class="oc-footer-address">123 Business St<br>Charlotte, NC 28202</p>
+                        <p class="oc-footer-email"><a href="mailto:hello@hezlepinc.com">hello@hezlepinc.com</a></p>
+                        <p class="oc-footer-phone"><a href="tel:+17041234567">(704) 123-4567</a></p>
+                    </div>
+                </div>
+                <div class="oc-footer-right">
+                    <?php
+                    $menu_items = wp_get_nav_menu_items('Primary');
+                    if ($menu_items) {
+                        echo '<nav class="oc-footer-nav"><ul>';
+                        foreach ($menu_items as $item) {
+                            echo '<li><a href="' . esc_url($item->url) . '">' . oc_esc($item->title) . '</a></li>';
+                        }
+                        echo '</ul></nav>';
+                    }
+                    ?>
+                </div>
+            </div>
+            <div class="oc-footer-bottom">
+                <p>&copy; <?php echo date('Y'); ?> <?php echo oc_esc($site_name); ?>. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <?php return ob_get_clean();
+}
+
+function oc_footer_sparky() {
+    $logo_url = get_theme_mod('custom_logo') ? wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'full') : '';
+    $site_name = get_bloginfo('name');
+    ob_start(); ?>
+    <footer class="oc-footer">
+        <div class="oc-container">
+            <div class="oc-footer-grid">
+                <div class="oc-footer-left">
+                    <?php if ($logo_url): ?>
+                        <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($site_name); ?>" class="oc-footer-logo" />
+                    <?php else: ?>
+                        <h3 class="oc-footer-logo-text"><?php echo oc_esc($site_name); ?></h3>
+                    <?php endif; ?>
+                    <div class="oc-footer-contact">
+                        <p class="oc-footer-address">456 Electric Ave<br>Charlotte, NC 28203</p>
+                        <p class="oc-footer-email"><a href="mailto:info@sparky-hq.com">info@sparky-hq.com</a></p>
+                        <p class="oc-footer-phone"><a href="tel:+17049876543">(704) 987-6543</a></p>
+                    </div>
+                </div>
+                <div class="oc-footer-right">
+                    <?php
+                    $menu_items = wp_get_nav_menu_items('Primary');
+                    if ($menu_items) {
+                        echo '<nav class="oc-footer-nav"><ul>';
+                        foreach ($menu_items as $item) {
+                            echo '<li><a href="' . esc_url($item->url) . '">' . oc_esc($item->title) . '</a></li>';
+                        }
+                        echo '</ul></nav>';
+                    }
+                    ?>
+                </div>
+            </div>
+            <div class="oc-footer-bottom">
+                <p>&copy; <?php echo date('Y'); ?> <?php echo oc_esc($site_name); ?>. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <?php return ob_get_clean();
+}
+
+add_shortcode('oc_footer', function($atts){
+    $site = isset($atts['site']) ? strtolower(sanitize_text_field($atts['site'])) : '';
+    if ($site === 'hezlep') return oc_footer_hezlep();
+    if ($site === 'sparky') return oc_footer_sparky();
+    return '<!-- oc_footer: unknown site -->';
+});
+
+// Hook footer shortcode into wp_footer for automatic display
+add_action('wp_footer', function(){
+    // Detect site from domain
+    $domain = isset($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : '';
+    $site = '';
+    
+    if (strpos($domain, 'hezlep') !== false || strpos($domain, 'hezlepinc') !== false) {
+        $site = 'hezlep';
+    } elseif (strpos($domain, 'sparky') !== false || strpos($domain, 'sparky-hq') !== false) {
+        $site = 'sparky';
+    }
+    
+    // Also check site_url as fallback
+    if (!$site) {
+        $site_url = get_site_url();
+        if (strpos($site_url, 'hezlep') !== false) {
+            $site = 'hezlep';
+        } elseif (strpos($site_url, 'sparky') !== false) {
+            $site = 'sparky';
+        }
+    }
+    
+    if ($site) {
+        echo do_shortcode('[oc_footer site="' . esc_attr($site) . '"]');
+    }
+}, 99);
+
