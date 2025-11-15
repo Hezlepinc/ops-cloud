@@ -18,7 +18,7 @@ on:
       plugins:
         description: 'Comma-separated WP.org plugin slugs to install/activate'
         required: false
-        default: 'elementor,breeze,wordpress-seo,header-footer-elementor,contact-form-7'
+        default: 'breeze,wordpress-seo,contact-form-7'
       build_cursor:
         description: 'Build brand Cursor assets before deploy'
         required: false

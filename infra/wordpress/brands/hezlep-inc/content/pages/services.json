@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "blockName": "core/heading",
+      "attrs": {
+        "level": 1
+      },
+      "innerHTML": "Services"
+    },
+    {
+      "blockName": "core/paragraph",
+      "attrs": {
+        "className": "section-surface"
+      },
+      "innerHTML": "This is a placeholder page for 'hezlep-inc' (services). Patterns: services-grid, cta-banner"
+    }
+  ]
+}

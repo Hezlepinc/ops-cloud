@@ -19,11 +19,11 @@ jobs:
           node -e '
             const fs = require("fs");
             const p = JSON.parse(fs.readFileSync("infra/wordpress/config/projects.json", "utf8"));
-            
+
             // Determine environment from branch or repository_dispatch payload
             let env = "staging";
             let requestedBrand = null;
-            
+
             if (process.env.GITHUB_EVENT_NAME === "repository_dispatch") {
               const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
               const payload = event.client_payload || {};
@@ -33,13 +33,13 @@ jobs:
               const branch = process.env.GITHUB_REF_NAME;
               env = branch === "main" ? "prod" : "staging";
             }
-            
+
             // Map orchestrator brand keys to config file keys
             const brandMap = {
               "sparky": "sparky-hq",
               "hezlepinc": "hezlep-inc"
             };
-            
+
             const include = [];
             for (const [configBrand, v] of Object.entries(p)) {
               // If specific brand requested, filter to that brand
@@ -47,17 +47,17 @@ jobs:
                 const mappedBrand = brandMap[requestedBrand];
                 if (configBrand !== mappedBrand) continue;
               }
-              
+
               const envKey = env === "prod" ? "production" : "staging";
               // Use orchestrator brand key for workflow
               const workflowBrand = Object.keys(brandMap).find(k => brandMap[k] === configBrand) || configBrand;
-              include.push({ 
-                brand: workflowBrand, 
+              include.push({
+                brand: workflowBrand,
                 configBrand: configBrand,
-                overlay: v.overlay_theme || "hello-child", 
-                domain: v[envKey].domain, 
-                app_root_secret: v[envKey].app_root_secret || `APP_ROOT_${workflowBrand.toUpperCase()}_${envKey.toUpperCase()}`, 
-                env 
+                overlay: v.overlay_theme || "hello-child",
+                domain: v[envKey].domain,
+                app_root_secret: v[envKey].app_root_secret || `APP_ROOT_${workflowBrand.toUpperCase()}_${envKey.toUpperCase()}`,
+                env
               });
             }
             process.stdout.write(JSON.stringify({ include }));
@@ -71,6 +71,26 @@ jobs:
       matrix: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Node for design pipeline
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate Astra theme.json and cursor.css
+        run: |
+          set -e
+          BRAND="${{ matrix.configBrand || matrix.brand }}"
+          echo "Generating design assets for brand=${BRAND}"
+          node scripts/design/generate-theme-json.mjs --brand="${BRAND}"
+          node scripts/design/generate-cursor-css.mjs --brand="${BRAND}"
+
+      - name: Build Astra pages from sitemap
+        run: |
+          set -e
+          BRAND="${{ matrix.configBrand || matrix.brand }}"
+          echo "Building pages for brand=${BRAND}"
+          node scripts/design/buildpages.mjs --brand="${BRAND}"
 
       - name: Prepare SSH key
         run: |
@@ -93,17 +113,17 @@ jobs:
             infra/wordpress/themes/ops-base/ \
             ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/ops-base/
 
-      - name: Rsync overlay theme
+      - name: Rsync Astra child theme
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
         run: |
           set -e
-          OVERLAY_DIR="${{ matrix.overlay }}"
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/$OVERLAY_DIR"
+          THEME_DIR="astra-child"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${CW_USER}@${CW_HOST} "mkdir -p ${APP_ROOT}/wp-content/themes/$THEME_DIR"
           rsync -azvP --no-perms --no-times --omit-dir-times --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
-            infra/wordpress/themes/overlays/${OVERLAY_DIR}/ \
-            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/$OVERLAY_DIR/
+            infra/wordpress/themes/astra-child/ \
+            ${CW_USER}@${CW_HOST}:${APP_ROOT}/wp-content/themes/$THEME_DIR/
 
       - name: Upload MU plugins, brands, config, and scripts
         env:
@@ -118,7 +138,7 @@ jobs:
           rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/wp-bootstrap.sh ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/wp-bootstrap.sh
           rsync -azP --no-perms --no-times -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" infra/wordpress/bin/        ${CW_USER}@${CW_HOST}:${APP_ROOT}/infra/wordpress/bin/
 
-      - name: Run bootstrap (activate overlay + import kits)
+      - name: Run bootstrap (activate Astra child theme)
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
@@ -128,10 +148,9 @@ jobs:
           set -e
           APP_ROOT="${APP_ROOT}"
           cd "$APP_ROOT"
-          sed -i -e 's/\r$//' infra/wordpress/wp-bootstrap.sh infra/wordpress/bin/import-kits.sh || true
+          sed -i -e 's/\r$//' infra/wordpress/wp-bootstrap.sh || true
           awk 'NR==1{sub(/^\xef\xbb\xbf/,"")}1' infra/wordpress/wp-bootstrap.sh > /tmp/wp-bootstrap.sh && mv /tmp/wp-bootstrap.sh infra/wordpress/wp-bootstrap.sh
-          awk 'NR==1{sub(/^\xef\xbb\xbf/,"")}1' infra/wordpress/bin/import-kits.sh > /tmp/import-kits.sh && mv /tmp/import-kits.sh infra/wordpress/bin/import-kits.sh
-          chmod +x infra/wordpress/bin/import-kits.sh infra/wordpress/wp-bootstrap.sh
+          chmod +x infra/wordpress/wp-bootstrap.sh
           bash infra/wordpress/wp-bootstrap.sh '${{ matrix.configBrand || matrix.brand }}' '${{ matrix.env }}'
           EOF
 
@@ -152,7 +171,7 @@ jobs:
             fi
           fi
 
-      - name: Remote sanity checks (header/footer present)
+      - name: Remote sanity checks (Astra child theme active)
         env:
           CW_HOST: ${{ secrets.CLOUDWAYS_HOST }}
           CW_USER: ${{ secrets.CLOUDWAYS_USER }}
@@ -162,10 +181,14 @@ jobs:
           set -e
           APP_ROOT="${APP_ROOT}"
           cd "$APP_ROOT"
-          H=$(wp post list --post_type=elementor_library --search=Header --field=ID --allow-root | head -n1 || true)
-          F=$(wp post list --post_type=elementor_library --search=Footer --field=ID --allow-root | head -n1 || true)
-          echo "HeaderID=${H:-none} FooterID=${F:-none}"
-          test -n "$H" && test -n "$F"
+          ACTIVE_SLUG=$(wp theme list --status=active --field=stylesheet --allow-root | head -n1 || true)
+          echo "Active theme slug: ${ACTIVE_SLUG:-none}"
+          if [ "${ACTIVE_SLUG}" != "astra-child" ]; then
+            echo "⚠️  Expected astra-child to be active theme, but found '${ACTIVE_SLUG:-none}'"
+            if [ "${{ matrix.env }}" = "prod" ]; then
+              exit 1
+            fi
+          fi
           EOF
 
       - name: Cleanup SSH key

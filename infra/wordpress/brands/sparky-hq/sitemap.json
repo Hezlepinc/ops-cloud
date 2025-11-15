@@ -1,0 +1,33 @@
+{
+  "home": {
+    "title": "Home",
+    "slug": "/",
+    "type": "page",
+    "patterns": ["hero-basic", "services-grid", "cta-banner"]
+  },
+  "services": {
+    "title": "Services",
+    "slug": "/services",
+    "type": "page",
+    "patterns": ["services-grid", "cta-banner"]
+  },
+  "about": {
+    "title": "About",
+    "slug": "/about",
+    "type": "page",
+    "patterns": ["hero-basic", "cta-banner"]
+  },
+  "contact": {
+    "title": "Contact",
+    "slug": "/contact",
+    "type": "page",
+    "patterns": ["cta-banner"]
+  },
+  "blog": {
+    "title": "Blog",
+    "slug": "/blog",
+    "type": "archive"
+  }
+}
+
+

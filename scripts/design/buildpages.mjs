@@ -11,6 +11,10 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -27,10 +31,12 @@ const { brand = "hezlep-inc" } = parseArgs();
 const repoRoot = path.resolve(__dirname, "..", "..");
 const brandRoot = path.join(repoRoot, "infra", "wordpress", "brands", brand);
 const contentDir = path.join(brandRoot, "content", "pages");
+const sitemapPath = path.join(brandRoot, "sitemap.json");
 
 fs.mkdirSync(contentDir, { recursive: true });
 
-if (!fs.existsSync(path.join(brandRoot, "sitemap.json"))) {
+// If no sitemap exists yet, create a simple default.
+if (!fs.existsSync(sitemapPath)) {
   const sampleSitemap = {
     home: {
       title: "Home",
@@ -39,30 +45,45 @@ if (!fs.existsSync(path.join(brandRoot, "sitemap.json"))) {
       patterns: ["hero-basic", "services-grid", "cta-banner"],
     },
   };
-  fs.writeFileSync(
-    path.join(brandRoot, "sitemap.json"),
-    JSON.stringify(sampleSitemap, null, 2),
-  );
+  fs.writeFileSync(sitemapPath, JSON.stringify(sampleSitemap, null, 2));
 }
 
-// Placeholder home.json so the pipeline has something to work with.
-const homeJsonPath = path.join(contentDir, "home.json");
-if (!fs.existsSync(homeJsonPath)) {
+// Read sitemap and create a simple placeholder JSON file per page.
+const sitemap = JSON.parse(fs.readFileSync(sitemapPath, "utf8"));
+
+for (const [key, page] of Object.entries(sitemap)) {
+  if (page.type === "archive") {
+    // Archives use block templates; no per-page JSON needed.
+    continue;
+  }
+  const slug = key === "home" ? "home" : key;
+  const targetPath = path.join(contentDir, `${slug}.json`);
+
+  if (fs.existsSync(targetPath)) continue;
+
+  const title = page.title || slug;
+  const patterns = Array.isArray(page.patterns) ? page.patterns.join(", ") : "";
+
   const placeholder = {
     blocks: [
       {
+        blockName: "core/heading",
+        attrs: { level: 1 },
+        innerHTML: title,
+      },
+      {
         blockName: "core/paragraph",
         attrs: { className: "section-surface" },
-        innerHTML:
-          "This is a placeholder Home page for brand '" + brand + "'. The Astra pipeline is wired, but content generation is not implemented yet.",
+        innerHTML: `This is a placeholder page for '${brand}' (${slug}). Patterns: ${patterns}`,
       },
     ],
   };
-  fs.writeFileSync(homeJsonPath, JSON.stringify(placeholder, null, 2));
+
+  fs.writeFileSync(targetPath, JSON.stringify(placeholder, null, 2));
 }
 
 console.log(
-  `✅ Ensured page content scaffolding for brand=${brand} at ${contentDir}`,
+  `✅ Ensured page content scaffolding for brand=${brand} from sitemap at ${contentDir}`,
 );
 
 
