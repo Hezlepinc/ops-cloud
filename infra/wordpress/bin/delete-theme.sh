@@ -26,10 +26,37 @@ if [ "$ACTIVE_THEME" = "$THEME_SLUG" ]; then
 fi
 
 echo "▶ Deleting theme: $THEME_SLUG"
-wp theme delete "$THEME_SLUG" --allow-root
 
+# Try WP-CLI delete first
+if wp theme delete "$THEME_SLUG" --allow-root 2>/dev/null; then
+  echo "✅ Theme deleted via WP-CLI"
+else
+  echo "⚠️  WP-CLI delete failed, attempting manual removal..."
+  
+  # Get WordPress root
+  WP_ROOT="$(wp eval 'echo ABSPATH;' --allow-root 2>/dev/null || pwd)"
+  THEME_DIR="$WP_ROOT/wp-content/themes/$THEME_SLUG"
+  
+  if [ -d "$THEME_DIR" ]; then
+    echo "▶ Removing theme directory: $THEME_DIR"
+    rm -rf "$THEME_DIR"
+    
+    if [ -d "$THEME_DIR" ]; then
+      echo "❌ Failed to remove directory. You may need to delete manually via FTP/SSH:"
+      echo "   rm -rf $THEME_DIR"
+      exit 1
+    else
+      echo "✅ Theme directory removed manually"
+    fi
+  else
+    echo "⚠️  Theme directory not found: $THEME_DIR"
+  fi
+fi
+
+# Verify deletion
 if wp theme is-installed "$THEME_SLUG" --allow-root >/dev/null 2>&1; then
-  echo "❌ Failed to delete theme: $THEME_SLUG"
+  echo "❌ Theme still appears to be installed: $THEME_SLUG"
+  echo "   You may need to delete manually via FTP/SSH"
   exit 1
 else
   echo "✅ Successfully deleted theme: $THEME_SLUG"
