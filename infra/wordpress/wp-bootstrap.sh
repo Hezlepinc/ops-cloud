@@ -12,12 +12,17 @@ cd "$APP_ROOT"
 echo "▶ APP_ROOT = $APP_ROOT"
 echo "▶ Bootstrap mode: Astra-first (Elementor path deprecated)"
 
-ASTRA_SLUG="astra-child"
+# Prefer user-downloaded theme, fall back to Cursor-created theme
+ASTRA_SLUG="hezlep-child-theme"
+FALLBACK_SLUG="astra-child"
 
 echo "▶ Checking for Astra child theme: $ASTRA_SLUG"
 if wp theme is-installed "$ASTRA_SLUG" --allow-root >/dev/null 2>&1; then
   echo "▶ Activating Astra child theme: $ASTRA_SLUG"
   wp theme activate "$ASTRA_SLUG" --allow-root || true
+elif wp theme is-installed "$FALLBACK_SLUG" --allow-root >/dev/null 2>&1; then
+  echo "⚠️  Preferred theme ($ASTRA_SLUG) not found; using fallback: $FALLBACK_SLUG"
+  wp theme activate "$FALLBACK_SLUG" --allow-root || true
 else
   echo "⚠️  Astra child theme not installed; falling back to overlay from projects.json"
 
