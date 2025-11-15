@@ -31,7 +31,7 @@ repo.
 - Docs Index: [docs/README.md](docs/README.md)
 - Daily/Weekly/Monthly Playbook: [docs/02_DEV_CYCLE.md](docs/02_DEV_CYCLE.md)
 - Orchestrator API & Usage: [docs/03_ORCHESTRATOR.md](docs/03_ORCHESTRATOR.md)
-- Roadmap and Remaining Tasks: [docs/08_ROADMAP.md](docs/08_ROADMAP.md)
+- Roadmaps and Remaining Tasks: [docs/ROADMAP.md](docs/ROADMAP.md)
 - Repository Map & Workflows: [docs/01_OVERVIEW.md](docs/01_OVERVIEW.md)
 - Deployment & Secrets: [docs/04_DEPLOYMENT.md](docs/04_DEPLOYMENT.md)
 - Observability & Monitoring: [docs/observability.md](docs/observability.md)
@@ -118,8 +118,7 @@ See [docs/BRANCHING.md](docs/BRANCHING.md) for detailed branching strategy.
 
 ## Cursor Design System: Build + Deploy
 
-This repo enforces the design system (Cursor tokens) across brands with a Hello Elementor child
-theme and brand kits.
+This repo is migrating the design system across brands from a Hello Elementor child theme to an **Astra + Gutenberg** pipeline driven by design tokens and CI/CD. Elementor-based kits remain supported for legacy sites, but new work should target the Astra child theme and brand token files.
 
 ### Repo layout for brand kits
 

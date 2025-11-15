@@ -12,12 +12,29 @@ jobs:
       - name: Fetch live snapshot
         env:
           ORCH_URL: ${{ secrets.ORCHESTRATOR_URL }}
+          # Use OPENAI_API_KEY as primary (matches orchestrator auth), fallback to AI_KEY for legacy
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           AI_KEY: ${{ secrets.AI_KEY }}
         run: |
-          if [ -z "$ORCH_URL" ] || [ -z "$AI_KEY" ]; then
-            echo "ORCHESTRATOR_URL and AI_KEY secrets are required"; exit 1
+          # Determine API key: prefer OPENAI_API_KEY, fallback to AI_KEY
+          API_KEY="${OPENAI_API_KEY:-${AI_KEY}}"
+
+          if [ -z "$ORCH_URL" ]; then
+            echo "⚠️  Warning: ORCHESTRATOR_URL secret not set, skipping live snapshot"
+            echo "{}" > live.json
+            exit 0
           fi
-          curl -sS -H "x-api-key: $AI_KEY" "$ORCH_URL/ai/live" | tee live.json
+          if [ -z "$API_KEY" ]; then
+            echo "⚠️  Warning: Neither OPENAI_API_KEY nor AI_KEY secret is set, skipping live snapshot"
+            echo "Set OPENAI_API_KEY (preferred) or AI_KEY in repository secrets to enable live snapshot"
+            echo "{}" > live.json
+            exit 0
+          fi
+          echo "Fetching live snapshot from $ORCH_URL/ai/live"
+          curl -sS -H "x-api-key: $API_KEY" "$ORCH_URL/ai/live" | tee live.json || {
+            echo "⚠️  Warning: Failed to fetch live snapshot, creating empty artifact"
+            echo "{}" > live.json
+          }
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

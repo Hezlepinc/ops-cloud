@@ -1,0 +1,33 @@
+{
+  "brandName": "Hezlep Inc",
+  "palette": {
+    "primary": "#1456FF",
+    "primaryAlt": "#233B8D",
+    "accent": "#FFB020",
+    "background": "#FFFFFF",
+    "surface": "#F5F6FA",
+    "text": "#141414",
+    "muted": "#7A7A7A"
+  },
+  "typography": {
+    "headingFont": "Inter",
+    "bodyFont": "system-ui",
+    "scale": {
+      "h1": "clamp(2.5rem, 4vw, 3.25rem)",
+      "h2": "clamp(2rem, 3vw, 2.5rem)",
+      "body": "1rem"
+    }
+  },
+  "radius": {
+    "sm": "4px",
+    "md": "8px",
+    "lg": "16px"
+  },
+  "spacing": {
+    "sm": "0.75rem",
+    "md": "1.5rem",
+    "lg": "3rem"
+  }
+}
+
+
