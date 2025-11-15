@@ -68,7 +68,8 @@ if [ -z "$HOME_ID" ]; then
     --porcelain \
     --allow-root)"
 else
-  echo "▶ Home page already exists (ID=$HOME_ID); leaving content as-is"
+  echo "▶ Home page already exists (ID=$HOME_ID)"
+  echo "   Note: Content should be updated by apply-astra-pages.php script above"
 fi
 
 echo "▶ Setting page_on_front to ID=$HOME_ID"
