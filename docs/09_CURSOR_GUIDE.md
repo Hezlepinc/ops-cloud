@@ -1,42 +1,23 @@
-## Cursor Guide
+# Cursor Guide
 
-Turn Cursor into your ops console with commands mapped to the Orchestrator.
+**Turn Cursor into ops console with commands mapped to Orchestrator.**
 
-### Setup
+## Setup
+1. Copy `.cursor/cursor.env.sample` → `.cursor/cursor.env`
+2. Edit env file: `OPENAI_API_KEY`, `ORCHESTRATOR_URL`, `GITHUB_TOKEN`
 
-1) Copy env sample:
+## Commands (Command Palette)
+- `daily` → runs `.cursor/scripts/daily.sh` (status + WP + git)
+- `status` → one-shot `/ai/status` snapshot
+- `daily suggestions` → `/ai/suggestions/daily`
+- `deploy staging` → `.cursor/scripts/deploy-staging.sh <brand> staging`
+- `update docs` → pulls latest docs and rebuilds bundles
 
-```bash
-cp .cursor/cursor.env.sample .cursor/cursor.env
-```
+## Scripts
+- `.cursor/scripts/daily.sh` - Loads env, calls orchestrator endpoints
+- `.cursor/scripts/deploy-staging.sh` - Triggers Orchestrator deploy
+- `.cursor/scripts/update-docs.sh` - Pulls and builds GPT bundle
 
-2) Edit `.cursor/cursor.env`:
+**Tips:** Keep secrets in `.cursor/cursor.env` (git-ignored), use "pre-dev-day sync" each morning.
 
-```
-OPENAI_API_KEY=sk-...
-ORCHESTRATOR_URL=https://ops-orchestrator.onrender.com
-GITHUB_TOKEN=ghp_...
-```
-
-### Commands (Command Palette)
-
-- daily → runs `.cursor/scripts/daily.sh` (status + WP + git)
-- status → one-shot `/ai/status` snapshot
-- daily suggestions → `/ai/suggestions/daily`
-- deploy staging → `.cursor/scripts/deploy-staging.sh sparky-hq staging`
-- update docs → pulls latest docs and rebuilds bundles
-
-### Scripts
-
-- `.cursor/scripts/daily.sh` loads `.cursor/cursor.env` and calls orchestrator endpoints
-- `.cursor/scripts/deploy-staging.sh <brand> <env>` triggers Orchestrator deploy
-- `.cursor/scripts/update-docs.sh` pulls and runs `scripts/docs/build-gpt-bundle.js` if present
-- `.cursor/scripts/summarize-errors.js` prints quick connectivity and AI suggestion summaries
-
-### Tips
-
-- Keep secrets only in `.cursor/cursor.env` (git-ignored)
-- If Render URL changes, update `ORCHESTRATOR_URL` in the env file
-- Use “pre-dev-day sync” or “daily” each morning to warm caches and spot drift
-
-
+**See:** [02_DEV_CYCLE.md](02_DEV_CYCLE.md) for daily workflow.
