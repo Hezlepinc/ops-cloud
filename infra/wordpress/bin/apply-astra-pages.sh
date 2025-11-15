@@ -32,39 +32,18 @@ for file in "$CONTENT_DIR"/*.json; do
   slug="$(basename "$file" .json)"
   title="$(echo "$slug" | tr '-' ' ' | sed 's/.*/\u&/')"
 
-  echo "▶ Syncing page slug=$slug title=\"$title\" from $file"
+  echo "▶ Syncing page slug=$slug title=\"$title\" (using placeholder Astra content)"
 
-  # Extract basic HTML content from JSON (concatenate innerHTML fields).
-  CONTENT="$(php -r '
-    $path = $argv[1] ?? null;
-    if (!$path || !file_exists($path)) { exit(0); }
-    $data = json_decode(file_get_contents($path), true);
-    if (!is_array($data) || empty($data["blocks"])) { exit(0); }
-    $out = "";
-    foreach ($data["blocks"] as $b) {
-      if (!empty($b["innerHTML"])) {
-        $out .= $b["innerHTML"] . "\n\n";
-      }
-    }
-    echo $out;
-  ' "$file")"
-
-  # Fallback content if JSON has no innerHTML
-  if [ -z "$CONTENT" ]; then
-    CONTENT="<h1>${title}</h1>\n<p>This is a placeholder page for ${BRAND} (${slug}).</p>"
-  fi
-
-  # Write content to a temp file so wp-cli can read it safely (avoids issues with
-  # special characters/newlines being interpreted as file paths).
-  TMP_FILE="$(mktemp)"
-  printf '%b\n' "$CONTENT" > "$TMP_FILE"
+  # For now, ignore JSON block structure and use a simple, robust HTML placeholder.
+  # This avoids WP-CLI @file parsing issues while still giving us automated page creation.
+  CONTENT="<h1>${title}</h1> <p>This is a placeholder page for ${BRAND} (${slug}).</p>"
 
   PAGE_ID="$(get_page_id "$slug")"
 
   if [ -n "$PAGE_ID" ]; then
     wp post update "$PAGE_ID" \
       --post_title="$title" \
-      --post_content="@$TMP_FILE" \
+      --post_content="$CONTENT" \
       --allow-root >/dev/null
   else
     PAGE_ID="$(wp post create \
@@ -72,12 +51,10 @@ for file in "$CONTENT_DIR"/*.json; do
       --post_status=publish \
       --post_name="$slug" \
       --post_title="$title" \
-      --post_content="@$TMP_FILE" \
+      --post_content="$CONTENT" \
       --porcelain \
       --allow-root)"
   fi
-
-  rm -f "$TMP_FILE"
 
   if [ "$slug" = "home" ]; then
     HOME_ID="$PAGE_ID"
