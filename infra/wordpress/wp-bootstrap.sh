@@ -34,10 +34,11 @@ else
 fi
 
 echo "▶ Applying Astra pages for brand: $BRAND"
-bash infra/wordpress/bin/apply-astra-pages.sh "$BRAND" || echo "⚠️  Astra page apply script exited non-zero"
+bash infra/wordpress/bin/apply-astra-pages.sh "$BRAND" || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
 
 echo "▶ Ensuring Home page exists and is front page"
-HOME_ID="$(wp post list --post_type=page --name=home --field=ID --allow-root 2>/dev/null | head -n1 || true)"
+# Extract first numeric ID (strip any BOM or non-digit chars just in case).
+HOME_ID="$(wp post list --post_type=page --name=home --field=ID --allow-root 2>/dev/null | tr -cd '0-9\n' | head -n1 || true)"
 if [ -z "$HOME_ID" ]; then
   echo "⚠️  No Home page found; creating basic Home page"
   HOME_ID="$(wp post create \
