@@ -3,7 +3,7 @@
     "title": "Home",
     "slug": "/",
     "type": "page",
-    "patterns": ["hero-basic", "services-grid", "cta-banner"]
+    "patterns": ["hero-basic", "value-pillars", "services-grid", "tools-highlight", "cta-banner"]
   },
   "services": {
     "title": "Services",

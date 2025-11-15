@@ -1,0 +1,8 @@
+{
+  "title": "Contact",
+  "content": "<!--\r\n  Sparky HQ - CTA Banner Pattern\r\n-->\r\n\r\n<!-- wp:group {\"className\":\"cta-banner\",\"layout\":{\"type\":\"constrained\"}} -->\r\n  <!-- wp:group {\"className\":\"oc-card\",\"layout\":{\"type\":\"constrained\"}} -->\r\n    <!-- wp:heading {\"level\":2} -->\r\n    <h2>Need an electrician?</h2>\r\n    <!-- /wp:heading -->\r\n    <!-- wp:paragraph -->\r\n    <p>Call now for fast scheduling, transparent pricing, and clean work.</p>\r\n    <!-- /wp:paragraph -->\r\n    <!-- wp:buttons -->\r\n      <!-- wp:button {\"className\":\"btn-primary\"} -->\r\n        <a class=\"wp-block-button__link btn-primary\" href=\"tel:123-456-7890\">Call now</a>\r\n      <!-- /wp:button -->\r\n    <!-- /wp:buttons -->\r\n  <!-- /wp:group -->\r\n<!-- /wp:group -->",
+  "auto_update": true,
+  "patterns": [
+    "cta-banner"
+  ]
+}

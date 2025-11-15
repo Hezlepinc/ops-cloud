@@ -3,25 +3,25 @@
     "title": "Home",
     "slug": "/",
     "type": "page",
-    "patterns": ["hero-basic", "services-grid", "cta-banner"]
+    "patterns": ["hero-basic", "value-pillars", "method-stepper", "proof-snapshot", "cta-banner"]
   },
   "services": {
     "title": "Services",
     "slug": "/services",
     "type": "page",
-    "patterns": ["services-grid", "cta-banner"]
+    "patterns": ["services-grid", "proof-snapshot", "cta-banner"]
   },
   "about": {
     "title": "About",
     "slug": "/about",
     "type": "page",
-    "patterns": ["hero-basic", "cta-banner"]
+    "patterns": ["hero-basic", "services-grid", "cta-banner"]
   },
   "contact": {
     "title": "Contact",
     "slug": "/contact",
     "type": "page",
-    "patterns": ["cta-banner"]
+    "patterns": ["contact-section", "cta-banner"]
   },
   "blog": {
     "title": "Blog",
