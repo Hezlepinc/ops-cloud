@@ -36,14 +36,8 @@ fi
 echo "▶ Applying Astra pages for brand: $BRAND (via wp eval)"
 # Use wp eval with inline PHP to pass brand reliably
 # Note: require_once path is relative to APP_ROOT (WordPress root)
-wp eval "
-define('BRAND_SLUG', '$BRAND');
-if (file_exists('infra/wordpress/bin/apply-astra-pages.php')) {
-    require_once('infra/wordpress/bin/apply-astra-pages.php');
-} else {
-    WP_CLI::error('Script not found: infra/wordpress/bin/apply-astra-pages.php');
-}
-" --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
+# Single-line format for reliability
+wp eval "define('BRAND_SLUG', '$BRAND'); if (file_exists('infra/wordpress/bin/apply-astra-pages.php')) { require_once('infra/wordpress/bin/apply-astra-pages.php'); } else { WP_CLI::error('Script not found: infra/wordpress/bin/apply-astra-pages.php'); }" --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
 
 echo "▶ Ensuring Home page exists and is front page"
 # Extract first numeric ID (strip any BOM or non-digit chars just in case).
