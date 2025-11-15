@@ -1,18 +1,4 @@
 {
-  "blocks": [
-    {
-      "blockName": "core/heading",
-      "attrs": {
-        "level": 1
-      },
-      "innerHTML": "Home"
-    },
-    {
-      "blockName": "core/paragraph",
-      "attrs": {
-        "className": "section-surface"
-      },
-      "innerHTML": "This is a placeholder page for 'hezlep-inc' (home). Patterns: hero-basic, services-grid, cta-banner"
-    }
-  ]
+  "title": "Home",
+  "content": "<!-- wp:paragraph -->\\n<p>testing</p>\\n<!-- /wp:paragraph -->\\n\\n<!-- wp:paragraph -->\\n<p></p>\\n<!-- /wp:paragraph -->"
 }
