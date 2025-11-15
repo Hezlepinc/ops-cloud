@@ -34,7 +34,7 @@ else
 fi
 
 echo "▶ Applying Astra pages for brand: $BRAND (via wp eval-file)"
-wp eval-file infra/wordpress/bin/apply-astra-pages.php "$BRAND" --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
+BRAND_SLUG="$BRAND" wp eval-file infra/wordpress/bin/apply-astra-pages.php --allow-root || echo "⚠️  Astra page apply script exited non-zero (non-blocking)"
 
 echo "▶ Ensuring Home page exists and is front page"
 # Extract first numeric ID (strip any BOM or non-digit chars just in case).

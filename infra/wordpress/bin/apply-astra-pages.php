@@ -10,21 +10,24 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Get brand from command-line args (wp eval-file passes them after the script path)
-// $argv[0] is script name, $argv[1] is first arg
-$brand = null;
-if (isset($argv) && count($argv) > 1) {
-    $brand = $argv[1];
-} elseif (function_exists('WP_CLI') && class_exists('WP_CLI')) {
-    // Try to get from WP-CLI runner config
-    $runner = WP_CLI::get_runner();
-    if ($runner && isset($runner->config['argv']) && count($runner->config['argv']) > 1) {
-        $brand = $runner->config['argv'][1];
+// Get brand from environment variable (set by wp-bootstrap.sh)
+$brand = getenv('BRAND_SLUG');
+
+// Fallback: try command-line args if env var not set
+if (!$brand) {
+    // Try $_SERVER['argv'] - wp eval-file passes args here
+    if (isset($_SERVER['argv']) && is_array($_SERVER['argv']) && count($_SERVER['argv']) > 2) {
+        // $_SERVER['argv'][0] = 'wp', [1] = 'eval-file', [2] = script path, [3] = first arg
+        $brand = $_SERVER['argv'][3] ?? null;
+    }
+    // Try $argv as fallback
+    if (!$brand && isset($argv) && is_array($argv) && count($argv) > 1) {
+        $brand = $argv[1];
     }
 }
 
 if (!$brand) {
-    WP_CLI::warning('Brand slug required for apply-astra-pages.php. Usage: wp eval-file apply-astra-pages.php <brand-slug>');
+    WP_CLI::error('Brand slug required. Set BRAND_SLUG environment variable or pass as argument.');
     return;
 }
 
