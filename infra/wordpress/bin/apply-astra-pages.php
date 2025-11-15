@@ -10,9 +10,21 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$brand = $argv[1] ?? null;
+// Get brand from command-line args (wp eval-file passes them after the script path)
+// $argv[0] is script name, $argv[1] is first arg
+$brand = null;
+if (isset($argv) && count($argv) > 1) {
+    $brand = $argv[1];
+} elseif (function_exists('WP_CLI') && class_exists('WP_CLI')) {
+    // Try to get from WP-CLI runner config
+    $runner = WP_CLI::get_runner();
+    if ($runner && isset($runner->config['argv']) && count($runner->config['argv']) > 1) {
+        $brand = $runner->config['argv'][1];
+    }
+}
+
 if (!$brand) {
-    WP_CLI::warning('Brand slug required for apply-astra-pages.php');
+    WP_CLI::warning('Brand slug required for apply-astra-pages.php. Usage: wp eval-file apply-astra-pages.php <brand-slug>');
     return;
 }
 
