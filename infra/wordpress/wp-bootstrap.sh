@@ -36,10 +36,10 @@ fi
 echo "▶ Applying Astra pages for brand: $BRAND"
 bash infra/wordpress/bin/apply-astra-pages.sh "$BRAND" || echo "⚠️  Astra page apply script exited non-zero"
 
-echo "▶ Verifying that at least one page exists"
-PAGE_CHECK_ID="$(wp post list --post_type=page --field=ID --allow-root 2>/dev/null | head -n1 || true)"
-if [ -z "$PAGE_CHECK_ID" ]; then
-  echo "⚠️  No pages found; creating basic Home page"
+echo "▶ Ensuring Home page exists and is front page"
+HOME_ID="$(wp post list --post_type=page --name=home --field=ID --allow-root 2>/dev/null | head -n1 || true)"
+if [ -z "$HOME_ID" ]; then
+  echo "⚠️  No Home page found; creating basic Home page"
   HOME_ID="$(wp post create \
     --post_type=page \
     --post_status=publish \
@@ -48,9 +48,12 @@ if [ -z "$PAGE_CHECK_ID" ]; then
     --post_content='<h1>Home</h1><p>Placeholder Astra home page created by bootstrap.</p>' \
     --porcelain \
     --allow-root)"
-  echo "▶ Setting page_on_front to ID=$HOME_ID (fallback)"
-  wp option update show_on_front page --allow-root >/dev/null
-  wp option update page_on_front "$HOME_ID" --allow-root >/dev/null
+else
+  echo "▶ Home page already exists (ID=$HOME_ID); leaving content as-is"
 fi
+
+echo "▶ Setting page_on_front to ID=$HOME_ID"
+wp option update show_on_front page --allow-root >/dev/null
+wp option update page_on_front "$HOME_ID" --allow-root >/dev/null
 
 echo "✅ Bootstrap complete for $BRAND ($DEPLOY_ENV) (Astra-first + pages)"
