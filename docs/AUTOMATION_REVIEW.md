@@ -1,8 +1,10 @@
 # Full Automation Review - Design to Cloudways WordPress
 
 **Date:** 2025-11-15  
-**Status:** ~70% Automated, Key Gaps Identified  
+**Status:** ~85% Automated (Pattern Assembly Complete), Hybrid Structure Support Added  
 **Goal:** Achieve 100% automated design deployment from Git to Cloudways WordPress
+
+> **Migration Note:** This system now supports both current and preferred file structures (hybrid). See [Brand Structure Alignment](BRAND_STRUCTURE_ALIGNMENT.md) for details. New brands should use the preferred structure (`design-tokens.json`, `theme.json`, `cursor.css`, `pages/*.html` at brand root). Existing brands continue to work with nested structure.
 
 ## 🎯 Current State Assessment
 
@@ -83,24 +85,24 @@
    ```javascript
    // Read sitemap.json
    const sitemap = JSON.parse(fs.readFileSync(sitemapPath, 'utf8'));
-   
+
    // For each page:
    for (const [key, page] of Object.entries(sitemap)) {
      const patterns = page.patterns || [];
      let blocks = [];
-     
+
      // Load each pattern HTML
      for (const patternName of patterns) {
        const patternHtml = fs.readFileSync(
          `infra/wordpress/brands/${brand}/patterns/${patternName}.html`,
          'utf8'
        );
-       
+
        // Convert HTML to Gutenberg blocks
        const patternBlocks = htmlToBlocks(patternHtml);
        blocks = blocks.concat(patternBlocks);
      }
-     
+
      // Write assembled page JSON
      fs.writeFileSync(
        `content/pages/${key}.json`,
@@ -180,7 +182,7 @@
        ];
      }
    }
-   
+
    // Create/update primary menu
    wp_create_nav_menu('Primary Menu', $menuItems);
    ```

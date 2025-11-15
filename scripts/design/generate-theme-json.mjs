@@ -26,26 +26,18 @@ function parseArgs() {
 const { brand = "hezlep-inc" } = parseArgs();
 
 const repoRoot = path.resolve(__dirname, "..", "..");
-const tokensPath = path.join(
-  repoRoot,
-  "infra",
-  "wordpress",
-  "brands",
-  brand,
-  "tokens",
-  "design-tokens.json",
-);
-const themePath = path.join(
-  repoRoot,
-  "infra",
-  "wordpress",
-  "themes",
-  "astra-child",
-  "theme.json",
-);
+const brandRoot = path.join(repoRoot, "infra", "wordpress", "brands", brand);
+
+// Try preferred location first (root), fall back to nested (tokens/)
+let tokensPath = path.join(brandRoot, "design-tokens.json");
+if (!fs.existsSync(tokensPath)) {
+  tokensPath = path.join(brandRoot, "tokens", "design-tokens.json");
+}
 
 if (!fs.existsSync(tokensPath)) {
-  console.error(`❌ Tokens not found for brand=${brand}: ${tokensPath}`);
+  console.error(`❌ Tokens not found for brand=${brand}. Checked:`);
+  console.error(`   - ${path.join(brandRoot, "design-tokens.json")}`);
+  console.error(`   - ${path.join(brandRoot, "tokens", "design-tokens.json")}`);
   process.exit(1);
 }
 
@@ -82,7 +74,25 @@ const theme = {
   },
 };
 
-fs.writeFileSync(themePath, JSON.stringify(theme, null, 2));
-console.log(`✅ Generated theme.json for brand=${brand} -> ${themePath}`);
+// Output to both locations (hybrid support):
+// 1. Brand root (preferred structure)
+const brandThemePath = path.join(brandRoot, "theme.json");
+fs.writeFileSync(brandThemePath, JSON.stringify(theme, null, 2));
+
+// 2. Shared theme location (current structure - for backward compatibility)
+const sharedThemePath = path.join(
+  repoRoot,
+  "infra",
+  "wordpress",
+  "themes",
+  "astra-child",
+  "theme.json",
+);
+fs.mkdirSync(path.dirname(sharedThemePath), { recursive: true });
+fs.writeFileSync(sharedThemePath, JSON.stringify(theme, null, 2));
+
+console.log(`✅ Generated theme.json for brand=${brand}:`);
+console.log(`   → ${brandThemePath} (preferred)`);
+console.log(`   → ${sharedThemePath} (shared theme, backward compat)`);
 
 

@@ -1,7 +1,10 @@
 # Astra Migration Checklist
 
-**Date:** 2025-01-09
+**Date:** 2025-01-09  
+**Updated:** 2025-11-15 (Hybrid Structure Support Added)  
 **Goal:** Complete Roadmap 1 - Astra Client Site Deployment
+
+> **Migration Note:** System now supports both current and preferred file structures (hybrid). See [Brand Structure Alignment](BRAND_STRUCTURE_ALIGNMENT.md) for full migration plan. New brands should use preferred structure; existing brands can migrate gradually.
 
 ## ✅ Foundation (Complete)
 

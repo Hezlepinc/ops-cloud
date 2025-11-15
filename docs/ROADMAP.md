@@ -11,6 +11,8 @@ This file is the single source of truth for all roadmaps. When work completes, u
 
 **Goal:** Ship a repeatable Astra + Gutenberg website deployment pipeline for multiple client brands (different professions/industries) using a single codebase.
 
+> **Migration Note:** System now supports hybrid file structures. New brands should use preferred structure (see [Brand Structure Alignment](BRAND_STRUCTURE_ALIGNMENT.md)). Full migration path documented for gradual transition.
+
 ### Completed
 
 - [x] Orchestrator online and healthy (`/healthz` returns `{ ok: true }`)

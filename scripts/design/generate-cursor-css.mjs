@@ -26,28 +26,18 @@ function parseArgs() {
 const { brand = "hezlep-inc" } = parseArgs();
 
 const repoRoot = path.resolve(__dirname, "..", "..");
-const tokensPath = path.join(
-  repoRoot,
-  "infra",
-  "wordpress",
-  "brands",
-  brand,
-  "tokens",
-  "design-tokens.json",
-);
-const cssPath = path.join(
-  repoRoot,
-  "infra",
-  "wordpress",
-  "themes",
-  "astra-child",
-  "assets",
-  "css",
-  "cursor.css",
-);
+const brandRoot = path.join(repoRoot, "infra", "wordpress", "brands", brand);
+
+// Try preferred location first (root), fall back to nested (tokens/)
+let tokensPath = path.join(brandRoot, "design-tokens.json");
+if (!fs.existsSync(tokensPath)) {
+  tokensPath = path.join(brandRoot, "tokens", "design-tokens.json");
+}
 
 if (!fs.existsSync(tokensPath)) {
-  console.error(`❌ Tokens not found for brand=${brand}: ${tokensPath}`);
+  console.error(`❌ Tokens not found for brand=${brand}. Checked:`);
+  console.error(`   - ${path.join(brandRoot, "design-tokens.json")}`);
+  console.error(`   - ${path.join(brandRoot, "tokens", "design-tokens.json")}`);
   process.exit(1);
 }
 
@@ -83,7 +73,33 @@ const css = `:root {
 }
 `;
 
-fs.writeFileSync(cssPath, css);
-console.log(`✅ Generated cursor.css for brand=${brand} -> ${cssPath}`);
+// Output to both locations (hybrid support):
+// 1. Brand root (preferred structure)
+const brandCssPath = path.join(brandRoot, "cursor.css");
+fs.writeFileSync(brandCssPath, css);
+
+// 2. Assets directory (current structure - for backward compatibility)
+const assetsCssPath = path.join(brandRoot, "assets", "css", "cursor.css");
+fs.mkdirSync(path.dirname(assetsCssPath), { recursive: true });
+fs.writeFileSync(assetsCssPath, css);
+
+// 3. Shared theme location (current structure - for backward compatibility)
+const sharedCssPath = path.join(
+  repoRoot,
+  "infra",
+  "wordpress",
+  "themes",
+  "astra-child",
+  "assets",
+  "css",
+  "cursor.css",
+);
+fs.mkdirSync(path.dirname(sharedCssPath), { recursive: true });
+fs.writeFileSync(sharedCssPath, css);
+
+console.log(`✅ Generated cursor.css for brand=${brand}:`);
+console.log(`   → ${brandCssPath} (preferred)`);
+console.log(`   → ${assetsCssPath} (brand assets, backward compat)`);
+console.log(`   → ${sharedCssPath} (shared theme, backward compat)`);
 
 

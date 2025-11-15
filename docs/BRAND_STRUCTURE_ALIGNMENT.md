@@ -1,6 +1,6 @@
 # Brand Structure Alignment Guide
 
-**Date:** 2025-11-15  
+**Date:** 2025-11-15
 **Status:** Documenting current vs. preferred structure
 
 ## Current Structure vs. Preferred Structure
@@ -83,7 +83,7 @@
    ```bash
    mv infra/wordpress/brands/<brand>/tokens/design-tokens.json \
       infra/wordpress/brands/<brand>/design-tokens.json
-   
+
    mv infra/wordpress/brands/<brand>/assets/css/cursor.css \
       infra/wordpress/brands/<brand>/cursor.css
    ```
@@ -159,10 +159,10 @@ Once hybrid support is proven:
    // Support both HTML and JSON output
    const htmlPath = path.join(contentDir, `${slug}.html`);
    const jsonPath = path.join(contentDir, `${slug}.json`);
-   
+
    // Write HTML (preferred)
    fs.writeFileSync(htmlPath, assembledHtml);
-   
+
    // Also write JSON (for current PHP script)
    fs.writeFileSync(jsonPath, JSON.stringify({ title, content: assembledHtml }));
    ```
@@ -172,7 +172,7 @@ Once hybrid support is proven:
    // Try HTML first, fall back to JSON
    $htmlFile = "{$pagesDir}/{$slug}.html";
    $jsonFile = "{$pagesDir}/{$slug}.json";
-   
+
    if (file_exists($htmlFile)) {
        $content = file_get_contents($htmlFile);
    } elseif (file_exists($jsonFile)) {

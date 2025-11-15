@@ -120,6 +120,8 @@ See [docs/BRANCHING.md](docs/BRANCHING.md) for detailed branching strategy.
 
 This repo is migrating the design system across brands from a Hello Elementor child theme to an **Astra + Gutenberg** pipeline driven by design tokens and CI/CD. Elementor-based kits remain supported for legacy sites, but new work should target the Astra child theme and brand token files.
 
+> **Structure Note:** The system now supports both current and preferred file structures (hybrid). New brands should use the preferred structure (`design-tokens.json`, `theme.json`, `cursor.css`, `pages/*.html` at brand root). See [Brand Structure Alignment](docs/BRAND_STRUCTURE_ALIGNMENT.md) for migration details.
+
 ### Repo layout for brand kits
 
 - `infra/wordpress/brands/<brand>/elementor/cursor-sitekit.json`

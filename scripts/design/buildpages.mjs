@@ -29,11 +29,16 @@ const { brand = "hezlep-inc" } = parseArgs();
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const brandRoot = path.join(repoRoot, "infra", "wordpress", "brands", brand);
-const contentDir = path.join(brandRoot, "content", "pages");
+
+// Support both preferred and current structures (hybrid)
+const preferredPagesDir = path.join(brandRoot, "pages"); // Preferred: pages/ at root
+const currentPagesDir = path.join(brandRoot, "content", "pages"); // Current: content/pages/
 const patternsDir = path.join(brandRoot, "patterns");
 const sitemapPath = path.join(brandRoot, "sitemap.json");
 
-fs.mkdirSync(contentDir, { recursive: true });
+// Create both directories
+fs.mkdirSync(preferredPagesDir, { recursive: true });
+fs.mkdirSync(currentPagesDir, { recursive: true });
 
 // If no sitemap exists yet, create a simple default.
 if (!fs.existsSync(sitemapPath)) {
@@ -68,7 +73,7 @@ function loadPattern(patternName) {
  */
 function assemblePageContent(page, brandSlug) {
   const patterns = Array.isArray(page.patterns) ? page.patterns : [];
-  
+
   if (patterns.length === 0) {
     // No patterns defined, use placeholder
     const title = page.title || "Page";
@@ -116,38 +121,56 @@ for (const [key, page] of Object.entries(sitemap)) {
   }
 
   const slug = key === "home" ? "home" : key;
-  const targetPath = path.join(contentDir, `${slug}.json`);
-
+  
   // Assemble content from patterns
   const { title, content } = assemblePageContent(page, brand);
 
-  // Read existing file if it exists to preserve manual edits (if content field exists)
+  // Check for existing files in both locations
+  const preferredHtmlPath = path.join(preferredPagesDir, `${slug}.html`);
+  const currentJsonPath = path.join(currentPagesDir, `${slug}.json`);
+  
   let existingData = {};
-  if (fs.existsSync(targetPath)) {
+  let hasExisting = false;
+  
+  // Try to read existing JSON (current structure)
+  if (fs.existsSync(currentJsonPath)) {
     try {
-      existingData = JSON.parse(fs.readFileSync(targetPath, "utf8"));
+      existingData = JSON.parse(fs.readFileSync(currentJsonPath, "utf8"));
+      hasExisting = true;
     } catch (e) {
       // Invalid JSON, will overwrite
     }
   }
+  
+  // Try to read existing HTML (preferred structure)
+  if (!hasExisting && fs.existsSync(preferredHtmlPath)) {
+    const existingHtml = fs.readFileSync(preferredHtmlPath, "utf8");
+    if (existingHtml.trim()) {
+      hasExisting = true;
+      existingData = { content: existingHtml };
+    }
+  }
 
   // If existing file has manual content and no "auto_update" flag, preserve it
-  if (existingData.content && !existingData.auto_update) {
-    console.log(`   ⏭️  Skipping ${slug}.json (has manual content, set "auto_update": true to override)`);
+  if (hasExisting && existingData.content && !existingData.auto_update) {
+    console.log(`   ⏭️  Skipping ${slug} (has manual content, set "auto_update": true to override)`);
     continue;
   }
 
-  // Write assembled page JSON
+  // Write to both formats (hybrid support):
+  // 1. Preferred: HTML at brand root pages/
+  fs.writeFileSync(preferredHtmlPath, content);
+
+  // 2. Current: JSON in content/pages/ (for PHP script compatibility)
   const pageData = {
     title,
     content, // Gutenberg block HTML
     auto_update: true, // Flag to allow automated updates
     patterns: page.patterns || [],
   };
+  fs.writeFileSync(currentJsonPath, JSON.stringify(pageData, null, 2));
 
-  fs.writeFileSync(targetPath, JSON.stringify(pageData, null, 2));
-
-  if (existingData.content) {
+  if (hasExisting) {
     pagesUpdated++;
   } else {
     pagesCreated++;
@@ -158,4 +181,5 @@ console.log(
   `✅ Assembled pages for brand=${brand} from sitemap:`,
 );
 console.log(`   Created: ${pagesCreated}, Updated: ${pagesUpdated}`);
-console.log(`   Output: ${contentDir}`);
+console.log(`   Output (preferred): ${preferredPagesDir}/*.html`);
+console.log(`   Output (current): ${currentPagesDir}/*.json`);

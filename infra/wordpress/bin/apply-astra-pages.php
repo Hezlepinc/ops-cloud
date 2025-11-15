@@ -38,31 +38,71 @@ if (!$brandRoot) {
     return;
 }
 
-$pagesDir = "{$brandRoot}/content/pages";
+// Support both preferred and current structures (hybrid)
+$preferredPagesDir = "{$brandRoot}/pages"; // Preferred: pages/ at root
+$currentPagesDir = "{$brandRoot}/content/pages"; // Current: content/pages/
+
+// Use preferred if exists, fall back to current
+$pagesDir = is_dir($preferredPagesDir) ? $preferredPagesDir : $currentPagesDir;
 if (!is_dir($pagesDir)) {
-    WP_CLI::warning("No content/pages directory for {$brand} ({$pagesDir})");
+    WP_CLI::warning("No pages directory found for {$brand}. Checked:");
+    WP_CLI::warning("  - {$preferredPagesDir}");
+    WP_CLI::warning("  - {$currentPagesDir}");
     return;
 }
 
 WP_CLI::line("▶ (PHP) Applying Astra pages for brand={$brand}");
 
 $homeId = 0;
-$files = glob($pagesDir . '/*.json');
+
+// Collect files from both formats (hybrid support)
+$files = [];
+// Preferred: HTML files
+$htmlFiles = glob($pagesDir . '/*.html');
+foreach ($htmlFiles as $file) {
+    $files[] = ['path' => $file, 'format' => 'html'];
+}
+// Current: JSON files (only if not already found as HTML)
+$jsonFiles = glob("{$brandRoot}/content/pages/*.json");
+foreach ($jsonFiles as $file) {
+    $slug = basename($file, '.json');
+    $htmlFile = "{$pagesDir}/{$slug}.html";
+    // Only add JSON if HTML doesn't exist (prefer HTML)
+    if (!file_exists($htmlFile)) {
+        $files[] = ['path' => $file, 'format' => 'json'];
+    }
+}
+
 sort($files);
 
-foreach ($files as $file) {
-    $slug = basename($file, '.json');
-    $json = json_decode(file_get_contents($file), true);
-    if (!is_array($json)) {
-        WP_CLI::warning("Skipping {$slug}: invalid JSON");
-        continue;
+foreach ($files as $fileInfo) {
+    $file = $fileInfo['path'];
+    $format = $fileInfo['format'];
+    $slug = basename($file, $format === 'html' ? '.html' : '.json');
+    
+    $title = ucwords(str_replace('-', ' ', $slug));
+    $content = '';
+    
+    if ($format === 'html') {
+        // Preferred: Read HTML directly
+        $content = file_get_contents($file);
+        if (!$content) {
+            WP_CLI::warning("Skipping {$slug}: empty HTML file");
+            continue;
+        }
+    } else {
+        // Current: Read JSON
+        $json = json_decode(file_get_contents($file), true);
+        if (!is_array($json)) {
+            WP_CLI::warning("Skipping {$slug}: invalid JSON");
+            continue;
+        }
+        $title = $json['title'] ?? $title;
+        $content = $json['content'] ?? '';
     }
 
-    $title = $json['title'] ?? ucwords(str_replace('-', ' ', $slug));
-    $content = $json['content'] ?? '';
-
-    if (!$content && !empty($json['blocks']) && is_array($json['blocks'])) {
-        // As a fallback, concatenate innerHTML values.
+    // Fallback: if JSON format has blocks array, extract innerHTML
+    if (!$content && $format === 'json' && isset($json) && !empty($json['blocks']) && is_array($json['blocks'])) {
         $contentPieces = [];
         foreach ($json['blocks'] as $block) {
             if (!empty($block['innerHTML'])) {
