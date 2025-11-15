@@ -10,24 +10,52 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Get brand from environment variable (set by wp-bootstrap.sh)
+// Get brand from multiple sources (hybrid approach for reliability)
+$brand = null;
+
+// Method 1: Environment variable (set by wp-bootstrap.sh)
 $brand = getenv('BRAND_SLUG');
 
-// Fallback: try command-line args if env var not set
-if (!$brand) {
-    // Try $_SERVER['argv'] - wp eval-file passes args here
-    if (isset($_SERVER['argv']) && is_array($_SERVER['argv']) && count($_SERVER['argv']) > 2) {
-        // $_SERVER['argv'][0] = 'wp', [1] = 'eval-file', [2] = script path, [3] = first arg
-        $brand = $_SERVER['argv'][3] ?? null;
+// Method 2: Command-line arguments via $_SERVER['argv']
+// wp eval-file passes args: [0]='wp', [1]='eval-file', [2]=script_path, [3]=first_arg, [4]=--allow-root
+if (!$brand && isset($_SERVER['argv']) && is_array($_SERVER['argv'])) {
+    // Look for first non-flag argument after script path
+    for ($i = 3; $i < count($_SERVER['argv']); $i++) {
+        $arg = $_SERVER['argv'][$i];
+        if ($arg && $arg[0] !== '-') {
+            $brand = $arg;
+            break;
+        }
     }
-    // Try $argv as fallback
-    if (!$brand && isset($argv) && is_array($argv) && count($argv) > 1) {
-        $brand = $argv[1];
+}
+
+// Method 3: $argv (if available in this context)
+if (!$brand && isset($argv) && is_array($argv) && count($argv) > 1) {
+    // Skip script name, get first arg
+    $brand = $argv[1] ?? null;
+}
+
+// Method 4: Try to get from WP-CLI context
+if (!$brand && class_exists('WP_CLI')) {
+    // WP-CLI might have the runner with arguments
+    try {
+        $runner = WP_CLI::get_runner();
+        if ($runner && method_exists($runner, 'get_arguments')) {
+            $args = $runner->get_arguments();
+            if (!empty($args)) {
+                $brand = $args[0];
+            }
+        }
+    } catch (Exception $e) {
+        // Ignore
     }
 }
 
 if (!$brand) {
     WP_CLI::error('Brand slug required. Set BRAND_SLUG environment variable or pass as argument.');
+    WP_CLI::debug('$_SERVER[argv]: ' . print_r($_SERVER['argv'] ?? 'not set', true));
+    WP_CLI::debug('$argv: ' . print_r($argv ?? 'not set', true));
+    WP_CLI::debug('BRAND_SLUG env: ' . ($brand ?: 'not set'));
     return;
 }
 
@@ -79,10 +107,10 @@ foreach ($files as $fileInfo) {
     $file = $fileInfo['path'];
     $format = $fileInfo['format'];
     $slug = basename($file, $format === 'html' ? '.html' : '.json');
-    
+
     $title = ucwords(str_replace('-', ' ', $slug));
     $content = '';
-    
+
     if ($format === 'html') {
         // Preferred: Read HTML directly
         $content = file_get_contents($file);
