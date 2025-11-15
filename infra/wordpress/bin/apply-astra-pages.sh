@@ -54,12 +54,17 @@ for file in "$CONTENT_DIR"/*.json; do
     CONTENT="<h1>${title}</h1>\n<p>This is a placeholder page for ${BRAND} (${slug}).</p>"
   fi
 
+  # Write content to a temp file so wp-cli can read it safely (avoids issues with
+  # special characters/newlines being interpreted as file paths).
+  TMP_FILE="$(mktemp)"
+  printf '%b\n' "$CONTENT" > "$TMP_FILE"
+
   PAGE_ID="$(get_page_id "$slug")"
 
   if [ -n "$PAGE_ID" ]; then
     wp post update "$PAGE_ID" \
       --post_title="$title" \
-      --post_content="$CONTENT" \
+      --post_content="@$TMP_FILE" \
       --allow-root >/dev/null
   else
     PAGE_ID="$(wp post create \
@@ -67,10 +72,12 @@ for file in "$CONTENT_DIR"/*.json; do
       --post_status=publish \
       --post_name="$slug" \
       --post_title="$title" \
-      --post_content="$CONTENT" \
+      --post_content="@$TMP_FILE" \
       --porcelain \
       --allow-root)"
   fi
+
+  rm -f "$TMP_FILE"
 
   if [ "$slug" = "home" ]; then
     HOME_ID="$PAGE_ID"
