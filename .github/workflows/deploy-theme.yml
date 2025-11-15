@@ -5,6 +5,7 @@ on:
     branches: [staging, main]
   repository_dispatch:
     types: [deploy-templates]
+  workflow_dispatch: {}
 
 jobs:
   build-matrix:
