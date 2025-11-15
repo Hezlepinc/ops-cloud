@@ -75,4 +75,9 @@ echo "▶ Setting page_on_front to ID=$HOME_ID"
 wp option update show_on_front page --allow-root >/dev/null
 wp option update page_on_front "$HOME_ID" --allow-root >/dev/null
 
+# Clear caches to ensure front page displays correctly
+echo "▶ Clearing WordPress caches"
+wp cache flush --allow-root >/dev/null 2>&1 || true
+wp rewrite flush --allow-root >/dev/null 2>&1 || true
+
 echo "✅ Bootstrap complete for $BRAND ($DEPLOY_ENV) (Astra-first + pages)"

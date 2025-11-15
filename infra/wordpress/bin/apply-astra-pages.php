@@ -152,6 +152,8 @@ foreach ($files as $fileInfo) {
             continue;
         }
         $pageId = $existing->ID;
+        // Clear post cache to ensure content is fresh
+        clean_post_cache($pageId);
         WP_CLI::line("   • Updated page {$slug} (ID={$pageId})");
     } else {
         $result = wp_insert_post($postarr, true);
@@ -160,6 +162,8 @@ foreach ($files as $fileInfo) {
             continue;
         }
         $pageId = $result;
+        // Clear post cache for new posts too
+        clean_post_cache($pageId);
         WP_CLI::line("   • Created page {$slug} (ID={$pageId})");
     }
 
